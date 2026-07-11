@@ -29,13 +29,13 @@ export default function SignInScreen() {
       await signIn.finalize({});
     } else if (signIn.status === 'needs_client_trust') {
       // New/untrusted device or browser context — Clerk requires a one-time
-      // email code before it will trust this client. Kick off that code
-      // automatically so the user isn't stuck with no visible next step.
-      const emailCodeFactor = signIn.supportedSecondFactors?.find(
-        (factor) => factor.strategy === 'email_code'
-      );
-      if (emailCodeFactor) {
-        await signIn.mfa.sendEmailCode();
+      // email code before it will trust this client. `supportedSecondFactors`
+      // is only populated for real MFA enrollment, not client-trust checks,
+      // so gating on it meant sendEmailCode() never actually ran. Send
+      // unconditionally instead.
+      const { error: sendError } = await signIn.mfa.sendEmailCode();
+      if (sendError) {
+        console.error('Failed to send client-trust code:', JSON.stringify(sendError));
       }
     } else {
       // Surfaces cases like MFA or unsupported second factors instead of
