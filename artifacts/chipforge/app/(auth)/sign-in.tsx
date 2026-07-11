@@ -19,6 +19,7 @@ export default function SignInScreen() {
 
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
 
   const handleSubmit = async () => {
     const { error } = await signIn.password({ emailAddress, password });
@@ -26,6 +27,16 @@ export default function SignInScreen() {
 
     if (signIn.status === 'complete') {
       await signIn.finalize({});
+    } else if (signIn.status === 'needs_client_trust') {
+      // New/untrusted device or browser context — Clerk requires a one-time
+      // email code before it will trust this client. Kick off that code
+      // automatically so the user isn't stuck with no visible next step.
+      const emailCodeFactor = signIn.supportedSecondFactors?.find(
+        (factor) => factor.strategy === 'email_code'
+      );
+      if (emailCodeFactor) {
+        await signIn.mfa.sendEmailCode();
+      }
     } else {
       // Surfaces cases like MFA or unsupported second factors instead of
       // silently doing nothing when status never reaches 'complete'.
@@ -33,10 +44,77 @@ export default function SignInScreen() {
     }
   };
 
+  const handleVerifyClientTrust = async () => {
+    await signIn.mfa.verifyEmailCode({ code });
+    if (signIn.status === 'complete') {
+      await signIn.finalize({});
+    }
+  };
+
   // Errors not tied to a specific field (rate limiting, session conflicts,
   // etc.) live in `errors.global` and were previously swallowed entirely,
   // making failed sign-ins look like the button did nothing.
   const globalError = errors.global?.[0]?.message;
+
+  if (signIn.status === 'needs_client_trust') {
+    return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1, backgroundColor: colors.background }}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={[styles.title, { color: colors.foreground }]}>
+            Verify this device
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+            We sent a verification code to {emailAddress}. Enter it below to
+            finish signing in.
+          </Text>
+
+          <AuthTextField
+            label="Verification code"
+            value={code}
+            onChangeText={setCode}
+            keyboardType="numeric"
+            placeholder="123456"
+            errorMessage={errors.fields.code?.message}
+          />
+
+          {globalError ? (
+            <Text style={[styles.globalError, { color: colors.destructive }]}>
+              {globalError}
+            </Text>
+          ) : null}
+
+          <PrimaryButton
+            title="Verify"
+            onPress={handleVerifyClientTrust}
+            loading={fetchStatus === 'fetching'}
+            disabled={!code}
+          />
+
+          <View style={styles.footerRow}>
+            <Text
+              style={{ color: colors.primary, fontWeight: '600' }}
+              onPress={() => signIn.mfa.sendEmailCode()}
+            >
+              Resend code
+            </Text>
+            <Text style={{ color: colors.mutedForeground }}>{'   '}</Text>
+            <Text
+              style={{ color: colors.primary, fontWeight: '600' }}
+              onPress={() => signIn.reset()}
+            >
+              Start over
+            </Text>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -129,6 +207,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 24,
     fontFamily: 'Inter_700Bold',
+  },
+  subtitle: {
+    fontSize: 14,
+    marginBottom: 20,
+    marginTop: -12,
+    fontFamily: 'Inter_400Regular',
   },
   footerRow: {
     flexDirection: 'row',
