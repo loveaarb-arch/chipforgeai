@@ -135,8 +135,17 @@ export default function ProjectWorkspaceScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={handleDelete} hitSlop={10}>
-              <Feather name="trash-2" size={18} color={colors.destructive} />
+            <Pressable
+              onPress={handleDelete}
+              hitSlop={10}
+              style={({ pressed }) => [
+                styles.headerIconButton,
+                {
+                  backgroundColor: pressed ? `${colors.destructive}33` : `${colors.destructive}1a`,
+                },
+              ]}
+            >
+              <Feather name="trash-2" size={16} color={colors.destructive} />
             </Pressable>
           ),
         }}
@@ -202,6 +211,13 @@ export default function ProjectWorkspaceScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headerIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   errorCenter: { paddingHorizontal: 32, gap: 14 },
   errorText: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, flexGrow: 0 },

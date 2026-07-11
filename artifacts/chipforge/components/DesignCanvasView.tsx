@@ -1,13 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react';
-import {
-  Animated,
-  PanResponder,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import Svg, { Line } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
@@ -15,6 +13,7 @@ import { ComponentEditModal } from '@/components/ComponentEditModal';
 import type { ChipComponent, ChipConnection, ChipDesign } from '@workspace/api-client-react';
 
 const CANVAS_SIZE = 1600;
+const TAP_SLOP = 4;
 
 interface Props {
   design: ChipDesign;
@@ -39,58 +38,79 @@ function ComponentNode({
   onDragEnd: (id: string, x: number, y: number) => void;
   onPress: (component: ChipComponent) => void;
 }) {
-  const start = useRef({ x: component.x, y: component.y });
-  const pan = useRef(new Animated.ValueXY({ x: component.x, y: component.y })).current;
-  const dragged = useRef(false);
+  // Shared values drive the transform entirely on the UI thread, so dragging
+  // stays smooth (60fps) even while the JS thread is busy elsewhere.
+  const translateX = useSharedValue(component.x);
+  const translateY = useSharedValue(component.y);
+  const startX = useSharedValue(component.x);
+  const startY = useSharedValue(component.y);
+  const dragging = useSharedValue(false);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) =>
-        Math.abs(gesture.dx) > 3 || Math.abs(gesture.dy) > 3,
-      onPanResponderGrant: () => {
-        dragged.current = false;
-        start.current = { x: (pan.x as any)._value, y: (pan.y as any)._value };
-      },
-      onPanResponderMove: (_, gesture) => {
-        dragged.current = true;
-        pan.setValue({
-          x: start.current.x + gesture.dx / scale,
-          y: start.current.y + gesture.dy / scale,
-        });
-      },
-      onPanResponderRelease: () => {
-        const x = Math.round((pan.x as any)._value);
-        const y = Math.round((pan.y as any)._value);
-        if (dragged.current) {
-          onDragEnd(component.id, x, y);
-        } else {
-          onPress(component);
-        }
-      },
-    }),
-  ).current;
+  // Keep in sync with position changes coming from outside this gesture
+  // (e.g. the AI regenerating the design, or a version restore) as long as
+  // the user isn't actively dragging this node right now.
+  useEffect(() => {
+    if (!dragging.value) {
+      translateX.value = component.x;
+      translateY.value = component.y;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [component.x, component.y]);
+
+  const pan = Gesture.Pan()
+    .minDistance(1)
+    .onBegin(() => {
+      dragging.value = true;
+      startX.value = translateX.value;
+      startY.value = translateY.value;
+    })
+    .onUpdate((e) => {
+      translateX.value = startX.value + e.translationX / scale;
+      translateY.value = startY.value + e.translationY / scale;
+    })
+    .onEnd((e) => {
+      dragging.value = false;
+      const moved = Math.abs(e.translationX) > TAP_SLOP || Math.abs(e.translationY) > TAP_SLOP;
+      if (moved) {
+        runOnJS(onDragEnd)(
+          component.id,
+          Math.round(translateX.value),
+          Math.round(translateY.value),
+        );
+      } else {
+        runOnJS(onPress)(component);
+      }
+    })
+    .onFinalize(() => {
+      dragging.value = false;
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }, { translateY: translateY.value }],
+  }));
 
   return (
-    <Animated.View
-      {...panResponder.panHandlers}
-      style={[
-        styles.node,
-        {
-          width: component.width,
-          height: component.height,
-          borderColor: color,
-          transform: pan.getTranslateTransform(),
-        },
-      ]}
-    >
-      <Text style={styles.nodeType} numberOfLines={1}>
-        {component.type.replace('_', ' ')}
-      </Text>
-      <Text style={styles.nodeLabel} numberOfLines={2}>
-        {component.label}
-        {component.bitWidth ? ` [${component.bitWidth - 1}:0]` : ''}
-      </Text>
-    </Animated.View>
+    <GestureDetector gesture={pan}>
+      <Animated.View
+        style={[
+          styles.node,
+          {
+            width: component.width,
+            height: component.height,
+            borderColor: color,
+          },
+          animatedStyle,
+        ]}
+      >
+        <Text style={styles.nodeType} numberOfLines={1}>
+          {component.type.replace('_', ' ')}
+        </Text>
+        <Text style={styles.nodeLabel} numberOfLines={2}>
+          {component.label}
+          {component.bitWidth ? ` [${component.bitWidth - 1}:0]` : ''}
+        </Text>
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
@@ -98,16 +118,11 @@ export function DesignCanvasView({ design, onChange, saving }: Props) {
   const colors = useColors();
   const [scale, setScale] = useState(1);
   const [editing, setEditing] = useState<ChipComponent | null>(null);
-  const positions = useRef(new Map<string, { x: number; y: number }>()).current;
-
-  design.components.forEach((c) => {
-    if (!positions.has(c.id)) positions.set(c.id, { x: c.x, y: c.y });
-  });
 
   const lines = useMemo(() => {
     const byId = new Map(design.components.map((c) => [c.id, c]));
     return design.connections
-      .map((conn) => {
+      .map((conn: ChipConnection) => {
         const from = byId.get(conn.fromComponentId);
         const to = byId.get(conn.toComponentId);
         if (!from || !to) return null;
@@ -177,13 +192,13 @@ export function DesignCanvasView({ design, onChange, saving }: Props) {
         </Pressable>
         <View style={styles.zoomGroup}>
           <Pressable
-            onPress={() => setScale((s) => Math.max(0.4, s - 0.15))}
+            onPress={() => setScale((s) => Math.max(0.4, Math.round((s - 0.15) * 100) / 100))}
             style={[styles.zoomButton, { borderColor: colors.border }]}
           >
             <Feather name="zoom-out" size={16} color={colors.foreground} />
           </Pressable>
           <Pressable
-            onPress={() => setScale((s) => Math.min(2, s + 0.15))}
+            onPress={() => setScale((s) => Math.min(2, Math.round((s + 0.15) * 100) / 100))}
             style={[styles.zoomButton, { borderColor: colors.border }]}
           >
             <Feather name="zoom-in" size={16} color={colors.foreground} />
@@ -194,6 +209,9 @@ export function DesignCanvasView({ design, onChange, saving }: Props) {
         ) : null}
       </View>
 
+      {/* Using gesture-handler's ScrollView (not the plain RN one) lets the
+          drag gesture on each node negotiate cleanly with canvas panning
+          instead of both fighting over the same touch. */}
       <ScrollView>
         <ScrollView horizontal>
           <View
@@ -210,11 +228,7 @@ export function DesignCanvasView({ design, onChange, saving }: Props) {
                 transformOrigin: '0 0',
               }}
             >
-              <Svg
-                style={StyleSheet.absoluteFill}
-                width={CANVAS_SIZE}
-                height={CANVAS_SIZE}
-              >
+              <Svg style={StyleSheet.absoluteFill} width={CANVAS_SIZE} height={CANVAS_SIZE}>
                 {lines.map((line) => (
                   <Line
                     key={line.id}
