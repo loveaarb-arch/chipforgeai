@@ -26,8 +26,17 @@ export default function SignInScreen() {
 
     if (signIn.status === 'complete') {
       await signIn.finalize({});
+    } else {
+      // Surfaces cases like MFA or unsupported second factors instead of
+      // silently doing nothing when status never reaches 'complete'.
+      console.error('Sign-in attempt not complete:', signIn.status);
     }
   };
+
+  // Errors not tied to a specific field (rate limiting, session conflicts,
+  // etc.) live in `errors.global` and were previously swallowed entirely,
+  // making failed sign-ins look like the button did nothing.
+  const globalError = errors.global?.[0]?.message;
 
   return (
     <KeyboardAvoidingView
@@ -71,6 +80,12 @@ export default function SignInScreen() {
           placeholder="••••••••"
           errorMessage={errors.fields.password?.message}
         />
+
+        {globalError ? (
+          <Text style={[styles.globalError, { color: colors.destructive }]}>
+            {globalError}
+          </Text>
+        ) : null}
 
         <PrimaryButton
           title="Sign in"
@@ -119,5 +134,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginTop: 20,
+  },
+  globalError: {
+    fontSize: 13,
+    marginBottom: 12,
+    textAlign: 'center',
+    fontFamily: 'Inter_400Regular',
   },
 });

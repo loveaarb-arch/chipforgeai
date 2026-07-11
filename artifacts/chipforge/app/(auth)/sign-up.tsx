@@ -37,6 +37,11 @@ export default function SignUpScreen() {
 
   if (signUp.status === 'complete' || isSignedIn) return null;
 
+  // Errors not tied to a specific field (rate limiting, session conflicts,
+  // etc.) live in `errors.global` and were previously swallowed entirely,
+  // making a failed sign-up look like the button did nothing.
+  const globalError = errors.global?.[0]?.message;
+
   const needsVerification =
     signUp.status === 'missing_requirements' &&
     signUp.unverifiedFields.includes('email_address') &&
@@ -101,6 +106,12 @@ export default function SignUpScreen() {
               errorMessage={errors.fields.password?.message}
             />
 
+            {globalError ? (
+              <Text style={[styles.globalError, { color: colors.destructive }]}>
+                {globalError}
+              </Text>
+            ) : null}
+
             <PrimaryButton
               title="Sign up"
               onPress={handleSubmit}
@@ -137,4 +148,10 @@ const styles = StyleSheet.create({
   },
   subtitle: { fontSize: 14, marginBottom: 24, fontFamily: 'Inter_400Regular' },
   footerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
+  globalError: {
+    fontSize: 13,
+    marginBottom: 12,
+    textAlign: 'center',
+    fontFamily: 'Inter_400Regular',
+  },
 });
