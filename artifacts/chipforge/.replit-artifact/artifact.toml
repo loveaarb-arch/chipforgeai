@@ -1,0 +1,23 @@
+kind = "mobile"
+previewPath = "/"
+title = "ChipForge"
+version = "1.0.0"
+id = "artifacts/chipforge"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 25270
+
+[services.development]
+run = "pnpm --filter @workspace/chipforge run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/chipforge", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/chipforge", "run", "serve" ]
+
+[services.env]
+PORT = "25270"
+BASE_PATH = "/"
