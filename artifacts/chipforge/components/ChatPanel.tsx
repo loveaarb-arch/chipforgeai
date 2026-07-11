@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import {
   getGetProjectQueryKey,
@@ -68,6 +69,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
 export function ChatPanel({ projectId }: Props) {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const [input, setInput] = useState('');
 
@@ -114,7 +116,12 @@ export function ChatPanel({ projectId }: Props) {
         }
       />
 
-      <View style={[styles.inputRow, { borderTopColor: colors.border }]}>
+      <View
+        style={[
+          styles.inputRow,
+          { borderTopColor: colors.border, paddingBottom: Math.max(insets.bottom, 12) },
+        ]}
+      >
         <TextInput
           value={input}
           onChangeText={setInput}
