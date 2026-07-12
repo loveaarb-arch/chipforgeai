@@ -1,12 +1,14 @@
-import React from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useColors } from '@/hooks/useColors';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { exportDesignPackage, hasBlockingIssues } from '@/lib/exportDesign';
 import {
   getGetProjectQueryKey,
   useGenerateProjectHdl,
+  useValidateProjectDesign,
   type ChipProject,
 } from '@workspace/api-client-react';
 
@@ -15,9 +17,18 @@ interface Props {
   project: ChipProject;
 }
 
+function formatNetlist(netlist: string): string {
+  try {
+    return JSON.stringify(JSON.parse(netlist), null, 2);
+  } catch {
+    return netlist;
+  }
+}
+
 export function HdlPanel({ projectId, project }: Props) {
   const colors = useColors();
   const queryClient = useQueryClient();
+  const [isExporting, setIsExporting] = useState(false);
   const generateHdl = useGenerateProjectHdl({
     mutation: {
       onSuccess: () => {
@@ -25,6 +36,29 @@ export function HdlPanel({ projectId, project }: Props) {
       },
     },
   });
+  const validate = useValidateProjectDesign();
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const validation = await validate.mutateAsync({ id: projectId });
+      if (hasBlockingIssues(validation)) {
+        Alert.alert(
+          'Fix errors before exporting',
+          'Validation found structural errors (e.g. a missing clock source or a connection to an unknown component). Fix these in Validate or Diagram before exporting a design package.',
+        );
+        return;
+      }
+      await exportDesignPackage(project, validation);
+    } catch (err) {
+      Alert.alert(
+        'Export failed',
+        err instanceof Error ? err.message : 'Something went wrong while exporting.',
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -59,6 +93,39 @@ export function HdlPanel({ projectId, project }: Props) {
           No HDL generated yet for the current design.
         </Text>
       )}
+
+      {project.netlist ? (
+        <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.codeHeader}>
+            <Feather name="share-2" size={14} color={colors.mutedForeground} />
+            <Text style={[styles.codeHeaderText, { color: colors.mutedForeground }]}>
+              netlist.json
+            </Text>
+          </View>
+          <Text selectable style={[styles.codeText, { color: colors.foreground }]}>
+            {formatNetlist(project.netlist)}
+          </Text>
+        </View>
+      ) : null}
+
+      <View style={[styles.exportSection, { borderColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Export design package
+        </Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          Bundles the design, HDL, netlist, and a validation report into one
+          file you can save or hand to an engineer. This is a pre-tapeout
+          handoff — synthesis, physical design, DFT, packaging, and signoff
+          for a specific foundry still need to happen before fabrication.
+        </Text>
+        <PrimaryButton
+          title="Export design package"
+          onPress={handleExport}
+          loading={isExporting || validate.isPending}
+          disabled={project.design.components.length === 0}
+          variant="secondary"
+        />
+      </View>
     </ScrollView>
   );
 }
@@ -82,5 +149,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     padding: 14,
+  },
+  exportSection: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 16,
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
   },
 });
