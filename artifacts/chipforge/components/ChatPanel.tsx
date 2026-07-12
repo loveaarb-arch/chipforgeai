@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -76,18 +77,44 @@ export function ChatPanel({ projectId }: Props) {
   const { data: messages } = useListProjectChatMessages(projectId);
   const sendMessage = useSendProjectChatMessage();
 
+  const messagesQueryKey = getListProjectChatMessagesQueryKey(projectId);
+
   const handleSend = () => {
     const content = input.trim();
     if (!content) return;
     setInput('');
+
+    // The AI reply can take tens of seconds to generate, and the server
+    // only responds once both the user message and the reply are ready.
+    // Without this, the user's own message wouldn't appear at all until
+    // that whole round trip finished, making the app look stuck/laggy —
+    // show it immediately so there's instant feedback while the reply loads.
+    const optimisticMessage: ChatMessage = {
+      id: -Date.now(),
+      role: 'user',
+      content,
+      blocked: false,
+      createdAt: new Date().toISOString(),
+    };
+    queryClient.setQueryData<ChatMessage[]>(messagesQueryKey, (previous) => [
+      ...(previous ?? []),
+      optimisticMessage,
+    ]);
+
     sendMessage.mutate(
       { id: projectId, data: { content } },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({
-            queryKey: getListProjectChatMessagesQueryKey(projectId),
-          });
+          queryClient.invalidateQueries({ queryKey: messagesQueryKey });
           queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+        },
+        onError: () => {
+          // Roll back the optimistic message so a failed send doesn't leave
+          // a message stuck in the list.
+          queryClient.setQueryData<ChatMessage[]>(messagesQueryKey, (previous) =>
+            (previous ?? []).filter((m) => m.id !== optimisticMessage.id),
+          );
+          setInput(content);
         },
       },
     );
@@ -113,6 +140,24 @@ export function ChatPanel({ projectId }: Props) {
               active-high reset."
             </Text>
           </View>
+        }
+        ListFooterComponent={
+          sendMessage.isPending ? (
+            <View style={[styles.bubbleRow, { justifyContent: 'flex-start' }]}>
+              <View
+                style={[
+                  styles.bubble,
+                  styles.thinkingBubble,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <ActivityIndicator size="small" color={colors.mutedForeground} />
+                <Text style={{ color: colors.mutedForeground, fontSize: 14 }}>
+                  Thinking…
+                </Text>
+              </View>
+            </View>
+          ) : null
         }
       />
 
@@ -159,6 +204,12 @@ const styles = StyleSheet.create({
   listContent: { padding: 16, flexGrow: 1 },
   bubbleRow: { flexDirection: 'row', marginBottom: 10 },
   bubble: { maxWidth: '82%', borderRadius: 14, padding: 12 },
+  thinkingBubble: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+  },
   empty: { alignItems: 'center', marginTop: 60, paddingHorizontal: 24 },
   emptyText: { textAlign: 'center', marginTop: 12, fontSize: 13, lineHeight: 19 },
   inputRow: {

@@ -148,10 +148,27 @@ Rules:
   return {
     design: {
       components: parsed.components ?? [],
-      connections: parsed.connections ?? [],
+      connections: normalizeConnections(parsed.connections),
     },
     explanation: parsed.explanation ?? "Updated the design.",
   };
+}
+
+/**
+ * The LLM's JSON output sometimes omits the (optional) "label" field on a
+ * connection entirely instead of emitting `label: null`. The API response
+ * schema validates label as `string | null` — not `undefined` — so an
+ * omitted key made the whole project fail to load with a 500 on every
+ * subsequent GET, until the design was edited again. Normalize here so
+ * malformed model output can never reach storage.
+ */
+export function normalizeConnections(
+  connections: ChipConnectionData[] | undefined,
+): ChipConnectionData[] {
+  return (connections ?? []).map((connection) => ({
+    ...connection,
+    label: connection.label ?? null,
+  }));
 }
 
 /**

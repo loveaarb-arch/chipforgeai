@@ -9,7 +9,7 @@ import {
 } from "@workspace/db";
 import { and, desc, eq } from "drizzle-orm";
 import { decryptJson, encryptJson } from "./crypto";
-import type { ChipComponentData, ChipConnectionData } from "./design";
+import { normalizeConnections, type ChipComponentData, type ChipConnectionData } from "./design";
 
 export interface StoredDesign {
   components: ChipComponentData[];
@@ -30,7 +30,11 @@ export function encryptDesign(design: StoredDesign): string {
 }
 
 export function decryptDesign(encrypted: string): StoredDesign {
-  return decryptJson<StoredDesign>(encrypted);
+  const design = decryptJson<StoredDesign>(encrypted);
+  // Self-heals any previously-stored connections missing "label" (see
+  // normalizeConnections) so already-broken projects recover on next read
+  // instead of 500ing forever.
+  return { ...design, connections: normalizeConnections(design.connections) };
 }
 
 export type OwnershipResult =
