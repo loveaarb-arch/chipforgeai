@@ -76,12 +76,19 @@ function explainCategory(category: string | null): string {
   return match ? match[1] : `it matches a prohibited category (${category})`;
 }
 
-/** Message shown the first time a request in a project is blocked. */
+/**
+ * Message shown the first time a request in a project is blocked.
+ *
+ * Deliberately does NOT suggest starting a new project or any other next
+ * step — if the request was a genuine attempt at harm, we should not be
+ * handing back a workaround. Legitimate users who tripped this by mistake
+ * can reach out through normal support channels.
+ */
 export function buildRefusalMessage(category: string | null): string {
   return (
     `I can't help with that request because ${explainCategory(category)}. ` +
     "This project has been locked and can no longer accept design requests, " +
-    "even rephrased or reframed ones — start a new project for other, unrelated designs."
+    "even rephrased or reframed ones."
   );
 }
 
@@ -91,7 +98,7 @@ export function buildLockedProjectMessage(category: string | null): string {
     `This project is locked because an earlier request in it was flagged (${
       category ?? "policy violation"
     }) — ${explainCategory(category)}. ` +
-    "It can no longer send or receive design requests. Start a new project to continue."
+    "It can no longer send or receive design requests."
   );
 }
 

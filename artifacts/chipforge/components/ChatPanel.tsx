@@ -176,7 +176,6 @@ export function ChatPanel({ projectId, locked }: Props) {
           <Feather name="lock" size={16} color={colors.warningForeground} />
           <Text style={[styles.lockedText, { color: colors.warningForeground }]}>
             This project is locked and can no longer send design requests.
-            Start a new project to continue.
           </Text>
         </View>
       ) : (
