@@ -124,7 +124,7 @@ Respond with strict JSON of this exact shape:
 }
 
 Rules:
-- "explanation" is a short (2-4 sentence), plain-language summary of what you built or changed, written to the user.
+- "explanation" is a short (2-4 sentence), plain-language summary of what you built or changed, written to the user. If the design looks reasonably complete (has components and connections), end with one short actionable sentence telling the user how to hand it off: generate HDL in the HDL tab, then use "Export design package" there to bundle the design, HDL, netlist, and validation report into a file they can send to a manufacturer or engineer. Do not claim the design is fabrication-ready — it still needs synthesis, physical design, and signoff by that engineer/manufacturer — but be concrete that exporting and sending it is something they can do right now, not a future capability.
 - Lay components out on a canvas: x/y in pixels (0-1200 range), width/height sized to fit the label (typically 120-220 wide, 60-100 tall), spaced so boxes do not overlap.
 - Every connection's fromComponentId/toComponentId MUST reference an id present in "components".
 - Preserve existing component ids, positions, and properties when the user asks for an incremental change (e.g. "add a counter") — only add/modify what's needed. Start from the CURRENT DESIGN provided below.

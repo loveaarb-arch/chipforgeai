@@ -187,6 +187,23 @@ export default function ProjectWorkspaceScreen() {
         })}
       </ScrollView>
 
+      {tab === 'chat' && localDesign && localDesign.components.length > 0 && (
+        <Pressable
+          onPress={() => setTab('hdl')}
+          style={[
+            styles.handoffBanner,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Feather name="upload" size={16} color={colors.primary} />
+          <Text style={[styles.handoffText, { color: colors.foreground }]}>
+            Ready to send this to a manufacturer? Go to the HDL tab to generate
+            HDL and export a design package you can share.
+          </Text>
+          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+        </Pressable>
+      )}
+
       <View style={{ flex: 1 }}>
         {tab === 'chat' && <ChatPanel projectId={projectId} />}
         {tab === 'diagram' && localDesign && (
@@ -219,6 +236,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   errorCenter: { paddingHorizontal: 32, gap: 14 },
+  handoffBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  handoffText: { flex: 1, fontSize: 12.5, lineHeight: 17 },
   errorText: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, flexGrow: 0 },
   tabItem: {

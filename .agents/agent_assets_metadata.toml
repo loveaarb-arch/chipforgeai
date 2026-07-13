@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "xi83fTwQSuUXx9SdDkUZc"
+uri = "file://attached_assets/chipforge-qr.png"
+type = "image"
+title = "ChipForge dev server QR code"
