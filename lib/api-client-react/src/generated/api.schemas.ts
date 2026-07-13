@@ -57,6 +57,7 @@ export interface ChipProjectSummary {
   /** @nullable */
   description: string | null;
   currentVersionNumber: number;
+  locked: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -72,6 +73,9 @@ export interface ChipProject {
   hdlCode: string | null;
   /** @nullable */
   netlist: string | null;
+  locked: boolean;
+  /** @nullable */
+  lockedCategory: string | null;
   createdAt: string;
   updatedAt: string;
 }

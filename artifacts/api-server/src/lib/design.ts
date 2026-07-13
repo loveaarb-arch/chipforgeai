@@ -34,8 +34,6 @@ export interface ValidationIssueData {
 
 const MODEL = "gpt-5.4";
 
-export const REFUSAL_MESSAGE = "I can't assist with that type of design.";
-
 // Prohibited categories, verbatim from the product spec. Kept as a single
 // source of truth so the safety-filter prompt and any future audit tooling
 // stay in sync.
@@ -47,6 +45,55 @@ const PROHIBITED_CATEGORIES = [
   "dangerous autonomous systems (e.g. weaponized drones, autonomous systems designed to evade human control or accountability)",
   "fraud or counterfeiting (e.g. card skimmers, counterfeit currency/goods authentication bypass, forged ID chips)",
 ];
+
+/**
+ * A short, human-readable explanation of why a matched category is harmful.
+ * Shown to the user alongside the refusal so the block reads as a reasoned
+ * decision rather than an opaque wall — and so a persistent, differently
+ * worded attempt doesn't look like a fresh, unanswered question.
+ */
+const CATEGORY_EXPLANATIONS: Record<string, string> = {
+  weapons:
+    "it could be used to cause physical harm or death",
+  cybersecurity:
+    "it could be used to compromise or gain unauthorized access to computer systems",
+  surveillance:
+    "it could be used to covertly track or monitor people without their knowledge or consent",
+  infrastructure:
+    "it could be used to disrupt power, water, transportation, or other critical infrastructure that people depend on",
+  autonomous:
+    "it could be used to build systems that cause harm without human oversight or accountability",
+  fraud:
+    "it could be used to defraud people or forge/counterfeit protected goods or credentials",
+};
+
+function explainCategory(category: string | null): string {
+  if (!category) return "it falls into a category we don't allow this tool to help design";
+  const key = category.toLowerCase();
+  const match = Object.entries(CATEGORY_EXPLANATIONS).find(([needle]) =>
+    key.includes(needle),
+  );
+  return match ? match[1] : `it matches a prohibited category (${category})`;
+}
+
+/** Message shown the first time a request in a project is blocked. */
+export function buildRefusalMessage(category: string | null): string {
+  return (
+    `I can't help with that request because ${explainCategory(category)}. ` +
+    "This project has been locked and can no longer accept design requests, " +
+    "even rephrased or reframed ones — start a new project for other, unrelated designs."
+  );
+}
+
+/** Message shown for any further chat attempt in an already-locked project. */
+export function buildLockedProjectMessage(category: string | null): string {
+  return (
+    `This project is locked because an earlier request in it was flagged (${
+      category ?? "policy violation"
+    }) — ${explainCategory(category)}. ` +
+    "It can no longer send or receive design requests. Start a new project to continue."
+  );
+}
 
 function extractJson(content: string | null | undefined): unknown {
   if (!content) {

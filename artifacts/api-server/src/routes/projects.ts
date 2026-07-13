@@ -37,7 +37,8 @@ import {
 import { requireAuth } from "../middlewares/requireAuth";
 import { logger } from "../lib/logger";
 import {
-  REFUSAL_MESSAGE,
+  buildLockedProjectMessage,
+  buildRefusalMessage,
   generateArchitecture,
   generateHdl,
   runSafetyCheck,
@@ -241,6 +242,35 @@ router.post("/projects/:id/chat", async (req, res) => {
     return;
   }
 
+  // Once a project is locked (an earlier message tripped the safety
+  // classifier), it stays locked permanently — no further design requests
+  // are evaluated, even reframed or "it's just for education" follow-ups.
+  // Other projects owned by the same user are unaffected.
+  if (result.project.locked) {
+    const [userMessageRow] = await db
+      .insert(chipChatMessagesTable)
+      .values({ projectId: id, role: "user", content: body.content, blocked: true })
+      .returning();
+    const [assistantMessageRow] = await db
+      .insert(chipChatMessagesTable)
+      .values({
+        projectId: id,
+        role: "assistant",
+        content: buildLockedProjectMessage(result.project.lockedCategory),
+        blocked: true,
+      })
+      .returning();
+    res.json(
+      SendProjectChatMessageResponse.parse({
+        userMessage: toChatMessageResponse(userMessageRow!),
+        assistantMessage: toChatMessageResponse(assistantMessageRow!),
+        blocked: true,
+        project: toProjectResponse(result.project),
+      }),
+    );
+    return;
+  }
+
   const safety = await runSafetyCheck(body.content);
 
   const [userMessageRow] = await db
@@ -256,14 +286,19 @@ router.post("/projects/:id/chat", async (req, res) => {
   if (!safety.allowed) {
     req.log.warn(
       { projectId: id, category: safety.category },
-      "Chat message blocked by safety filter",
+      "Chat message blocked by safety filter — locking project",
     );
+    const [lockedProject] = await db
+      .update(chipProjectsTable)
+      .set({ locked: true, lockedCategory: safety.category })
+      .where(eq(chipProjectsTable.id, id))
+      .returning();
     const [assistantMessageRow] = await db
       .insert(chipChatMessagesTable)
       .values({
         projectId: id,
         role: "assistant",
-        content: REFUSAL_MESSAGE,
+        content: buildRefusalMessage(safety.category),
         blocked: true,
       })
       .returning();
@@ -272,7 +307,7 @@ router.post("/projects/:id/chat", async (req, res) => {
         userMessage: toChatMessageResponse(userMessageRow!),
         assistantMessage: toChatMessageResponse(assistantMessageRow!),
         blocked: true,
-        project: toProjectResponse(result.project),
+        project: toProjectResponse(lockedProject!),
       }),
     );
     return;

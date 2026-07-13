@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -13,6 +13,12 @@ export const chipProjectsTable = pgTable("chip_projects", {
   description: text("description"),
   currentVersionNumber: integer("current_version_number").notNull().default(0),
   encryptedDesign: text("encrypted_design").notNull(),
+  // Set permanently once a chat message in this project is flagged by the
+  // safety classifier. A locked project can no longer send chat messages —
+  // the user must start a new project. This does not affect any other
+  // project the user owns.
+  locked: boolean("locked").notNull().default(false),
+  lockedCategory: text("locked_category"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

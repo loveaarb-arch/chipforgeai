@@ -187,7 +187,7 @@ export default function ProjectWorkspaceScreen() {
         })}
       </ScrollView>
 
-      {tab === 'chat' && localDesign && localDesign.components.length > 0 && (
+      {tab === 'chat' && !project.locked && localDesign && localDesign.components.length > 0 && (
         <Pressable
           onPress={() => setTab('hdl')}
           style={[
@@ -205,7 +205,7 @@ export default function ProjectWorkspaceScreen() {
       )}
 
       <View style={{ flex: 1 }}>
-        {tab === 'chat' && <ChatPanel projectId={projectId} />}
+        {tab === 'chat' && <ChatPanel projectId={projectId} locked={project.locked} />}
         {tab === 'diagram' && localDesign && (
           <DesignCanvasView
             design={localDesign}

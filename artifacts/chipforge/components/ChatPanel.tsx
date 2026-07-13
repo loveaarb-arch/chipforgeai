@@ -24,6 +24,7 @@ import {
 
 interface Props {
   projectId: number;
+  locked: boolean;
 }
 
 function MessageBubble({ message }: { message: ChatMessage }) {
@@ -68,7 +69,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   );
 }
 
-export function ChatPanel({ projectId }: Props) {
+export function ChatPanel({ projectId, locked }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
@@ -161,41 +162,60 @@ export function ChatPanel({ projectId }: Props) {
         }
       />
 
-      <View
-        style={[
-          styles.inputRow,
-          { borderTopColor: colors.border, paddingBottom: Math.max(insets.bottom, 12) },
-        ]}
-      >
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="Describe your chip or request a change…"
-          placeholderTextColor={colors.mutedForeground}
+      {locked ? (
+        <View
           style={[
-            styles.input,
+            styles.lockedBanner,
             {
-              backgroundColor: colors.input,
-              color: colors.foreground,
-              borderColor: colors.border,
-            },
-          ]}
-          multiline
-        />
-        <Pressable
-          onPress={handleSend}
-          disabled={!input.trim() || sendMessage.isPending}
-          style={[
-            styles.sendButton,
-            {
-              backgroundColor: colors.primary,
-              opacity: !input.trim() || sendMessage.isPending ? 0.5 : 1,
+              borderTopColor: colors.border,
+              backgroundColor: colors.warning,
+              paddingBottom: Math.max(insets.bottom, 14),
             },
           ]}
         >
-          <Feather name="arrow-up" size={18} color={colors.primaryForeground} />
-        </Pressable>
-      </View>
+          <Feather name="lock" size={16} color={colors.warningForeground} />
+          <Text style={[styles.lockedText, { color: colors.warningForeground }]}>
+            This project is locked and can no longer send design requests.
+            Start a new project to continue.
+          </Text>
+        </View>
+      ) : (
+        <View
+          style={[
+            styles.inputRow,
+            { borderTopColor: colors.border, paddingBottom: Math.max(insets.bottom, 12) },
+          ]}
+        >
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="Describe your chip or request a change…"
+            placeholderTextColor={colors.mutedForeground}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.input,
+                color: colors.foreground,
+                borderColor: colors.border,
+              },
+            ]}
+            multiline
+          />
+          <Pressable
+            onPress={handleSend}
+            disabled={!input.trim() || sendMessage.isPending}
+            style={[
+              styles.sendButton,
+              {
+                backgroundColor: colors.primary,
+                opacity: !input.trim() || sendMessage.isPending ? 0.5 : 1,
+              },
+            ]}
+          >
+            <Feather name="arrow-up" size={18} color={colors.primaryForeground} />
+          </Pressable>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -235,4 +255,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  lockedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 14,
+    borderTopWidth: 1,
+  },
+  lockedText: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '600' },
 });

@@ -25,6 +25,7 @@ export const ListProjectsResponseItem = zod.object({
   "name": zod.string(),
   "description": zod.string().nullable(),
   "currentVersionNumber": zod.number(),
+  "locked": zod.boolean(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -70,6 +71,8 @@ export const CreateProjectResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -110,6 +113,8 @@ export const GetProjectResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -158,6 +163,8 @@ export const UpdateProjectResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -230,6 +237,8 @@ export const UpdateProjectDesignResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -372,6 +381,8 @@ export const RestoreProjectVersionResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -453,6 +464,8 @@ export const SendProjectChatMessageResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -511,6 +524,8 @@ export const GenerateProjectHdlResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })

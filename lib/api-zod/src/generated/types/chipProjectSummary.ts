@@ -12,6 +12,7 @@ export interface ChipProjectSummary {
   /** @nullable */
   description: string | null;
   currentVersionNumber: number;
+  locked: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

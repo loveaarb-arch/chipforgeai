@@ -76,6 +76,8 @@ export function toProjectResponse(project: ChipProjectRow) {
     },
     hdlCode: design.hdlCode,
     netlist: design.netlist,
+    locked: project.locked,
+    lockedCategory: project.lockedCategory,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   };
@@ -87,6 +89,7 @@ export function toProjectSummaryResponse(project: ChipProjectRow) {
     name: project.name,
     description: project.description,
     currentVersionNumber: project.currentVersionNumber,
+    locked: project.locked,
     createdAt: project.createdAt,
     updatedAt: project.updatedAt,
   };

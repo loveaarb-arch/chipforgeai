@@ -571,6 +571,8 @@ components:
           type: ["string", "null"]
         currentVersionNumber:
           type: integer
+        locked:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -582,6 +584,7 @@ components:
         - name
         - description
         - currentVersionNumber
+        - locked
         - createdAt
         - updatedAt
 
@@ -602,6 +605,10 @@ components:
           type: ["string", "null"]
         netlist:
           type: ["string", "null"]
+        locked:
+          type: boolean
+        lockedCategory:
+          type: ["string", "null"]
         createdAt:
           type: string
           format: date-time
@@ -616,6 +623,8 @@ components:
         - design
         - hdlCode
         - netlist
+        - locked
+        - lockedCategory
         - createdAt
         - updatedAt
 

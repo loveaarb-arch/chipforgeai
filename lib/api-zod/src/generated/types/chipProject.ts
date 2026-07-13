@@ -18,6 +18,9 @@ export interface ChipProject {
   hdlCode: string | null;
   /** @nullable */
   netlist: string | null;
+  locked: boolean;
+  /** @nullable */
+  lockedCategory: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
