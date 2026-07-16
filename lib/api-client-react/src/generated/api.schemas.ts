@@ -73,6 +73,10 @@ export interface ChipProject {
   hdlCode: string | null;
   /** @nullable */
   netlist: string | null;
+  /** @nullable */
+  xdcConstraints: string | null;
+  /** @nullable */
+  sdcConstraints: string | null;
   locked: boolean;
   /** @nullable */
   lockedCategory: string | null;

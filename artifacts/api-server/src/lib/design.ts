@@ -263,6 +263,62 @@ Respond with strict JSON: { "hdlCode": string, "netlist": object }`,
 }
 
 /**
+ * Generates XDC (Xilinx Design Constraints) and SDC (Synopsys Design
+ * Constraints / OpenROAD) files from a chip design and its HDL. Both formats
+ * are open industry standards — no tool attribution required.
+ *
+ * The AI picks a reasonable default clock frequency based on the component
+ * types present. These files are a starting point for hand-off to real EDA
+ * tooling, not synthesis-verified constraints.
+ */
+export async function generateConstraints(
+  design: ChipDesignData,
+  hdlCode: string,
+): Promise<{ xdc: string; sdc: string }> {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 4096,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are an expert digital design engineer specializing in EDA constraint files. Given a chip block-diagram design (components + connections) and its Verilog HDL, produce two constraint files:
+
+1. "xdc": a Xilinx XDC constraints file. Include:
+   - create_clock constraints for each clock signal (pick a reasonable frequency in MHz based on the component types — e.g. 100 MHz for general logic, 50 MHz for memory-heavy designs)
+   - set_input_delay and set_output_delay for I/O ports (reference the generated clock)
+   - set_false_path for any asynchronous reset signals
+   - Brief comments explaining each section
+
+2. "sdc": a Synopsys Design Constraints / OpenROAD SDC file covering the same timing intent:
+   - create_clock for the primary clock
+   - set_input_delay and set_output_delay for I/O
+   - set_false_path for async resets
+   - Brief comments explaining each section
+
+Both files must use only standard XDC/SDC syntax. Do not reference proprietary vendor libraries or PDKs. These are pre-synthesis handoff constraints for a qualified engineer to refine.
+
+Respond with strict JSON: { "xdc": string, "sdc": string }`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify({ design, hdlCode }),
+      },
+    ],
+  });
+
+  const parsed = extractJson(response.choices[0]?.message?.content) as {
+    xdc?: string;
+    sdc?: string;
+  };
+
+  return {
+    xdc: parsed.xdc ?? "",
+    sdc: parsed.sdc ?? "",
+  };
+}
+
+/**
  * Deterministic structural checks — never hallucinated, always computed
  * directly from the design graph.
  */

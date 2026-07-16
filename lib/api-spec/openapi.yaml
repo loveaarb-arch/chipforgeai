@@ -468,6 +468,48 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /projects/{id}/constraints:
+    post:
+      operationId: generateProjectConstraints
+      tags: [design]
+      summary: Generate XDC (Xilinx) and SDC (Synopsys/OpenROAD) constraints files for the working design
+      description: >
+        Requires HDL to have been generated first. Produces a Xilinx XDC
+        constraints file (clock definitions, pin assignments, timing constraints)
+        and a Synopsys/OpenROAD SDC file (clock constraints, input/output delays)
+        derived from the design's component and connection data and the existing HDL.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The project with generated XDC and SDC constraints
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChipProject"
+        "400":
+          description: HDL has not been generated yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -605,6 +647,10 @@ components:
           type: ["string", "null"]
         netlist:
           type: ["string", "null"]
+        xdcConstraints:
+          type: ["string", "null"]
+        sdcConstraints:
+          type: ["string", "null"]
         locked:
           type: boolean
         lockedCategory:
@@ -623,6 +669,8 @@ components:
         - design
         - hdlCode
         - netlist
+        - xdcConstraints
+        - sdcConstraints
         - locked
         - lockedCategory
         - createdAt

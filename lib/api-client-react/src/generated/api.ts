@@ -1177,3 +1177,75 @@ export const useGenerateProjectHdl = <TError = ErrorType<ErrorResponse>,
       return useMutation(getGenerateProjectHdlMutationOptions(options));
     }
 
+export const getGenerateProjectConstraintsUrl = (id: number,) => {
+
+
+
+
+  return `/api/projects/${id}/constraints`
+}
+
+/**
+ * Requires HDL to have been generated first. Produces a Xilinx XDC constraints file (clock definitions, pin assignments, timing constraints) and a Synopsys/OpenROAD SDC file (clock constraints, input/output delays) derived from the design's component and connection data and the existing HDL.
+ * @summary Generate XDC (Xilinx) and SDC (Synopsys/OpenROAD) constraints files for the working design
+ */
+export const generateProjectConstraints = async (id: number, options?: RequestInit): Promise<ChipProject> => {
+
+  return customFetch<ChipProject>(getGenerateProjectConstraintsUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getGenerateProjectConstraintsMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateProjectConstraints>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateProjectConstraints>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['generateProjectConstraints'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateProjectConstraints>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  generateProjectConstraints(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateProjectConstraintsMutationResult = NonNullable<Awaited<ReturnType<typeof generateProjectConstraints>>>
+
+    export type GenerateProjectConstraintsMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Generate XDC (Xilinx) and SDC (Synopsys/OpenROAD) constraints files for the working design
+ */
+export const useGenerateProjectConstraints = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateProjectConstraints>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateProjectConstraints>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getGenerateProjectConstraintsMutationOptions(options));
+    }
+

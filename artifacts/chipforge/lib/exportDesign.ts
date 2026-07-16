@@ -103,6 +103,20 @@ ${PACKAGE_DISCLAIMER}`;
 
   body += section('Validation report', validationSection);
 
+  if (project.xdcConstraints) {
+    body += section(
+      'Constraints — XDC (Xilinx)',
+      '```tcl\n' + project.xdcConstraints + '\n```',
+    );
+  }
+
+  if (project.sdcConstraints) {
+    body += section(
+      'Constraints — SDC (Synopsys / OpenROAD)',
+      '```tcl\n' + project.sdcConstraints + '\n```',
+    );
+  }
+
   return body;
 }
 

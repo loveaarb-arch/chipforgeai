@@ -6,6 +6,8 @@ import {
   CreateProjectBody,
   CreateProjectResponse,
   DeleteProjectParams,
+  GenerateProjectConstraintsParams,
+  GenerateProjectConstraintsResponse,
   GenerateProjectHdlParams,
   GenerateProjectHdlResponse,
   GetProjectParams,
@@ -40,6 +42,7 @@ import {
   buildLockedProjectMessage,
   buildRefusalMessage,
   generateArchitecture,
+  generateConstraints,
   generateHdl,
   runSafetyCheck,
   validateDesign,
@@ -140,9 +143,12 @@ router.patch("/projects/:id/design", async (req, res) => {
       encryptedDesign: encryptDesign({
         components: body.components,
         connections: body.connections,
-        // Manual structural edits invalidate previously generated HDL/netlist.
+        // Manual structural edits invalidate previously generated HDL/netlist
+        // and constraints — they must be regenerated against the new design.
         hdlCode: null,
         netlist: null,
+        xdcConstraints: null,
+        sdcConstraints: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
@@ -335,8 +341,11 @@ router.post("/projects/:id/chat", async (req, res) => {
       encryptedDesign: encryptDesign({
         components: design.components,
         connections: design.connections,
+        // AI architecture changes invalidate HDL and constraints.
         hdlCode: null,
         netlist: null,
+        xdcConstraints: null,
+        sdcConstraints: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
@@ -397,11 +406,47 @@ router.post("/projects/:id/hdl", async (req, res) => {
         connections: design.connections,
         hdlCode,
         netlist: JSON.stringify(netlist),
+        // Regenerating HDL invalidates previously generated constraints —
+        // the user must re-run Generate Constraints after this.
+        xdcConstraints: null,
+        sdcConstraints: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
     .returning();
   res.json(GenerateProjectHdlResponse.parse(toProjectResponse(updated!)));
+});
+
+router.post("/projects/:id/constraints", async (req, res) => {
+  const { id } = GenerateProjectConstraintsParams.parse(req.params);
+  const result = await loadOwnedProject(id, req.userId!);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+  const design = decryptDesign(result.project.encryptedDesign);
+  if (!design.hdlCode) {
+    res.status(400).json({
+      error: "Generate HDL first — constraints are derived from the design's HDL.",
+    });
+    return;
+  }
+  const { xdc, sdc } = await generateConstraints(
+    { components: design.components, connections: design.connections },
+    design.hdlCode,
+  );
+  const [updated] = await db
+    .update(chipProjectsTable)
+    .set({
+      encryptedDesign: encryptDesign({
+        ...design,
+        xdcConstraints: xdc,
+        sdcConstraints: sdc,
+      }),
+    })
+    .where(eq(chipProjectsTable.id, id))
+    .returning();
+  res.json(GenerateProjectConstraintsResponse.parse(toProjectResponse(updated!)));
 });
 
 export default router;

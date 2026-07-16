@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useColors } from '@/hooks/useColors';
@@ -7,6 +7,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { exportDesignPackage, hasBlockingIssues } from '@/lib/exportDesign';
 import {
   getGetProjectQueryKey,
+  useGenerateProjectConstraints,
   useGenerateProjectHdl,
   useValidateProjectDesign,
   type ChipProject,
@@ -29,7 +30,16 @@ export function HdlPanel({ projectId, project }: Props) {
   const colors = useColors();
   const queryClient = useQueryClient();
   const [isExporting, setIsExporting] = useState(false);
+  const [xdcExpanded, setXdcExpanded] = useState(true);
+  const [sdcExpanded, setSdcExpanded] = useState(true);
   const generateHdl = useGenerateProjectHdl({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+      },
+    },
+  });
+  const generateConstraints = useGenerateProjectConstraints({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
@@ -110,13 +120,92 @@ export function HdlPanel({ projectId, project }: Props) {
 
       <View style={[styles.exportSection, { borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Constraints
+        </Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          Generates XDC (Xilinx) and SDC (Synopsys / OpenROAD) constraint
+          files — clock definitions, pin assignments, and timing constraints —
+          as a starting point for your EDA tooling. Requires HDL to be
+          generated first.
+        </Text>
+
+        {!project.hdlCode ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            Generate HDL above before generating constraints.
+          </Text>
+        ) : (
+          <PrimaryButton
+            title={
+              project.xdcConstraints
+                ? 'Regenerate constraints'
+                : 'Generate constraints'
+            }
+            onPress={() => generateConstraints.mutate({ id: projectId })}
+            loading={generateConstraints.isPending}
+            disabled={!project.hdlCode}
+            variant="secondary"
+          />
+        )}
+
+        {project.xdcConstraints ? (
+          <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Pressable
+              onPress={() => setXdcExpanded((v) => !v)}
+              style={styles.codeHeader}
+            >
+              <Feather name="sliders" size={14} color={colors.mutedForeground} />
+              <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
+                constraints.xdc
+              </Text>
+              <Feather
+                name={xdcExpanded ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={colors.mutedForeground}
+              />
+            </Pressable>
+            {xdcExpanded ? (
+              <Text selectable style={[styles.codeText, { color: colors.foreground }]}>
+                {project.xdcConstraints}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+
+        {project.sdcConstraints ? (
+          <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Pressable
+              onPress={() => setSdcExpanded((v) => !v)}
+              style={styles.codeHeader}
+            >
+              <Feather name="sliders" size={14} color={colors.mutedForeground} />
+              <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
+                constraints.sdc
+              </Text>
+              <Feather
+                name={sdcExpanded ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={colors.mutedForeground}
+              />
+            </Pressable>
+            {sdcExpanded ? (
+              <Text selectable style={[styles.codeText, { color: colors.foreground }]}>
+                {project.sdcConstraints}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+
+      <View style={[styles.exportSection, { borderColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
           Export design package
         </Text>
         <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-          Bundles the design, HDL, netlist, and a validation report into one
-          file you can save or hand to an engineer. This is a pre-tapeout
-          handoff — synthesis, physical design, DFT, packaging, and signoff
-          for a specific foundry still need to happen before fabrication.
+          Bundles the design, HDL, netlist, constraints, and a validation
+          report into one file you can save or hand to an engineer. This is a
+          pre-tapeout handoff — synthesis, physical design, DFT, packaging,
+          and signoff for a specific foundry still need to happen before
+          fabrication.
         </Text>
         <PrimaryButton
           title="Export design package"

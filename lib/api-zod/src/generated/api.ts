@@ -71,6 +71,8 @@ export const CreateProjectResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -113,6 +115,8 @@ export const GetProjectResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -163,6 +167,8 @@ export const UpdateProjectResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -237,6 +243,8 @@ export const UpdateProjectDesignResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -381,6 +389,8 @@ export const RestoreProjectVersionResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -464,6 +474,8 @@ export const SendProjectChatMessageResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -524,6 +536,53 @@ export const GenerateProjectHdlResponse = zod.object({
 }),
   "hdlCode": zod.string().nullable(),
   "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Requires HDL to have been generated first. Produces a Xilinx XDC constraints file (clock definitions, pin assignments, timing constraints) and a Synopsys/OpenROAD SDC file (clock constraints, input/output delays) derived from the design's component and connection data and the existing HDL.
+ * @summary Generate XDC (Xilinx) and SDC (Synopsys/OpenROAD) constraints files for the working design
+ */
+export const GenerateProjectConstraintsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GenerateProjectConstraintsResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "currentVersionNumber": zod.number(),
+  "design": zod.object({
+  "components": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "label": zod.string(),
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "bitWidth": zod.number().nullable(),
+  "properties": zod.record(zod.string(), zod.string())
+}).describe('A single block in the chip\'s architecture (e.g. register, ALU, memory, I\/O port)')),
+  "connections": zod.array(zod.object({
+  "id": zod.string(),
+  "fromComponentId": zod.string(),
+  "fromPort": zod.string().nullable(),
+  "toComponentId": zod.string(),
+  "toPort": zod.string().nullable(),
+  "label": zod.string().nullable()
+}).describe('A wire connecting two components'))
+}),
+  "hdlCode": zod.string().nullable(),
+  "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),

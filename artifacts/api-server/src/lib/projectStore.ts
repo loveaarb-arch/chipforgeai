@@ -16,6 +16,8 @@ export interface StoredDesign {
   connections: ChipConnectionData[];
   hdlCode: string | null;
   netlist: string | null;
+  xdcConstraints: string | null;
+  sdcConstraints: string | null;
 }
 
 export const EMPTY_DESIGN: StoredDesign = {
@@ -23,6 +25,8 @@ export const EMPTY_DESIGN: StoredDesign = {
   connections: [],
   hdlCode: null,
   netlist: null,
+  xdcConstraints: null,
+  sdcConstraints: null,
 };
 
 export function encryptDesign(design: StoredDesign): string {
@@ -34,7 +38,13 @@ export function decryptDesign(encrypted: string): StoredDesign {
   // Self-heals any previously-stored connections missing "label" (see
   // normalizeConnections) so already-broken projects recover on next read
   // instead of 500ing forever.
-  return { ...design, connections: normalizeConnections(design.connections) };
+  // Also self-heals xdcConstraints/sdcConstraints added after initial launch.
+  return {
+    ...design,
+    connections: normalizeConnections(design.connections),
+    xdcConstraints: design.xdcConstraints ?? null,
+    sdcConstraints: design.sdcConstraints ?? null,
+  };
 }
 
 export type OwnershipResult =
@@ -76,6 +86,8 @@ export function toProjectResponse(project: ChipProjectRow) {
     },
     hdlCode: design.hdlCode,
     netlist: design.netlist,
+    xdcConstraints: design.xdcConstraints,
+    sdcConstraints: design.sdcConstraints,
     locked: project.locked,
     lockedCategory: project.lockedCategory,
     createdAt: project.createdAt,
