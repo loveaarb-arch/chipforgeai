@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Feather } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useColors } from '@/hooks/useColors';
@@ -32,6 +33,14 @@ export function HdlPanel({ projectId, project }: Props) {
   const [isExporting, setIsExporting] = useState(false);
   const [xdcExpanded, setXdcExpanded] = useState(true);
   const [sdcExpanded, setSdcExpanded] = useState(true);
+  const [xdcCopied, setXdcCopied] = useState(false);
+  const [sdcCopied, setSdcCopied] = useState(false);
+
+  const handleCopy = async (text: string, setCopied: (v: boolean) => void) => {
+    await Clipboard.setStringAsync(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   const generateHdl = useGenerateProjectHdl({
     mutation: {
       onSuccess: () => {
@@ -149,20 +158,33 @@ export function HdlPanel({ projectId, project }: Props) {
 
         {project.xdcConstraints ? (
           <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Pressable
-              onPress={() => setXdcExpanded((v) => !v)}
-              style={styles.codeHeader}
-            >
-              <Feather name="sliders" size={14} color={colors.mutedForeground} />
-              <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
-                constraints.xdc
-              </Text>
-              <Feather
-                name={xdcExpanded ? 'chevron-up' : 'chevron-down'}
-                size={14}
-                color={colors.mutedForeground}
-              />
-            </Pressable>
+            <View style={styles.codeHeader}>
+              <Pressable
+                onPress={() => setXdcExpanded((v) => !v)}
+                style={styles.codeHeaderLeft}
+              >
+                <Feather name="sliders" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
+                  constraints.xdc
+                </Text>
+                <Feather
+                  name={xdcExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color={colors.mutedForeground}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => handleCopy(project.xdcConstraints!, setXdcCopied)}
+                style={styles.copyButton}
+                hitSlop={8}
+              >
+                {xdcCopied ? (
+                  <Text style={[styles.copiedText, { color: colors.mutedForeground }]}>Copied!</Text>
+                ) : (
+                  <Feather name="copy" size={14} color={colors.mutedForeground} />
+                )}
+              </Pressable>
+            </View>
             {xdcExpanded ? (
               <Text selectable style={[styles.codeText, { color: colors.foreground }]}>
                 {project.xdcConstraints}
@@ -173,20 +195,33 @@ export function HdlPanel({ projectId, project }: Props) {
 
         {project.sdcConstraints ? (
           <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Pressable
-              onPress={() => setSdcExpanded((v) => !v)}
-              style={styles.codeHeader}
-            >
-              <Feather name="sliders" size={14} color={colors.mutedForeground} />
-              <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
-                constraints.sdc
-              </Text>
-              <Feather
-                name={sdcExpanded ? 'chevron-up' : 'chevron-down'}
-                size={14}
-                color={colors.mutedForeground}
-              />
-            </Pressable>
+            <View style={styles.codeHeader}>
+              <Pressable
+                onPress={() => setSdcExpanded((v) => !v)}
+                style={styles.codeHeaderLeft}
+              >
+                <Feather name="sliders" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
+                  constraints.sdc
+                </Text>
+                <Feather
+                  name={sdcExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color={colors.mutedForeground}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => handleCopy(project.sdcConstraints!, setSdcCopied)}
+                style={styles.copyButton}
+                hitSlop={8}
+              >
+                {sdcCopied ? (
+                  <Text style={[styles.copiedText, { color: colors.mutedForeground }]}>Copied!</Text>
+                ) : (
+                  <Feather name="copy" size={14} color={colors.mutedForeground} />
+                )}
+              </Pressable>
+            </View>
             {sdcExpanded ? (
               <Text selectable style={[styles.codeText, { color: colors.foreground }]}>
                 {project.sdcConstraints}
@@ -226,11 +261,25 @@ const styles = StyleSheet.create({
   codeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: 'rgba(255,255,255,0.1)',
+  },
+  codeHeaderLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  copyButton: {
+    paddingLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  copiedText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
   codeHeaderText: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 },
   codeText: {
