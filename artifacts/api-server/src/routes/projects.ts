@@ -8,6 +8,8 @@ import {
   CritiqueProjectDesignParams,
   CritiqueProjectDesignResponse,
   DeleteProjectParams,
+  SynthesiseProjectParams,
+  SynthesiseProjectResponse,
   GenerateProjectConstraintsParams,
   GenerateProjectConstraintsResponse,
   GenerateProjectHdlParams,
@@ -48,6 +50,7 @@ import {
   buildLockedProjectMessage,
   buildRefusalMessage,
   critiqueDesign,
+  estimateSynthesis,
   generateArchitecture,
   generateConstraints,
   generateHdl,
@@ -161,6 +164,7 @@ router.patch("/projects/:id/design", async (req, res) => {
         designCritique: null,
         testbench: null,
         testbenchSummary: null,
+        synthesisResult: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
@@ -389,6 +393,7 @@ router.post("/projects/:id/chat", async (req, res) => {
         designCritique: null,
         testbench: null,
         testbenchSummary: null,
+        synthesisResult: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
@@ -456,11 +461,36 @@ router.post("/projects/:id/hdl", async (req, res) => {
         designCritique: design.designCritique,
         testbench: null,
         testbenchSummary: null,
+        synthesisResult: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
     .returning();
   res.json(GenerateProjectHdlResponse.parse(toProjectResponse(updated!)));
+});
+
+router.post("/projects/:id/synthesise", async (req, res) => {
+  const { id } = SynthesiseProjectParams.parse(req.params);
+  const result = await loadOwnedProject(id, req.userId!);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+  const design = decryptDesign(result.project.encryptedDesign);
+  if (!design.hdlCode) {
+    res.status(400).json({ error: "Generate HDL first — synthesis estimation needs Verilog to analyse." });
+    return;
+  }
+  const synthesisResult = await estimateSynthesis(
+    { components: design.components, connections: design.connections },
+    design.hdlCode,
+  );
+  const [updated] = await db
+    .update(chipProjectsTable)
+    .set({ encryptedDesign: encryptDesign({ ...design, synthesisResult }) })
+    .where(eq(chipProjectsTable.id, id))
+    .returning();
+  res.json(SynthesiseProjectResponse.parse(toProjectResponse(updated!)));
 });
 
 router.post("/projects/:id/review-hdl", async (req, res) => {

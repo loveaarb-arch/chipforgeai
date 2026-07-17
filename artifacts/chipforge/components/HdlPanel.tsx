@@ -12,6 +12,7 @@ import {
   useGenerateProjectHdl,
   useGenerateProjectTestbench,
   useReviewProjectHdl,
+  useSynthesiseProject,
   useValidateProjectDesign,
   type ChipProject,
   type DesignFinding,
@@ -21,6 +22,40 @@ interface Props {
   projectId: number;
   project: ChipProject;
 }
+
+function SynthStat({
+  label,
+  value,
+  colors,
+  highlight,
+  wide,
+}: {
+  label: string;
+  value: string | number;
+  colors: ReturnType<typeof useColors>;
+  highlight?: 'ok' | 'warning' | 'error';
+  wide?: boolean;
+}) {
+  const valueColor =
+    highlight === 'error'
+      ? colors.destructive
+      : highlight === 'warning'
+        ? colors.warning
+        : colors.foreground;
+  return (
+    <View style={[synthStatStyles.cell, wide && synthStatStyles.cellWide]}>
+      <Text style={[synthStatStyles.label, { color: colors.mutedForeground }]}>{label}</Text>
+      <Text style={[synthStatStyles.value, { color: valueColor }]}>{value}</Text>
+    </View>
+  );
+}
+
+const synthStatStyles = StyleSheet.create({
+  cell: { width: '48%', marginBottom: 10 },
+  cellWide: { width: '100%' },
+  label: { fontSize: 11, fontFamily: 'Inter_400Regular', marginBottom: 2 },
+  value: { fontSize: 16, fontWeight: '700', fontFamily: 'Inter_700Bold' },
+});
 
 function formatNetlist(netlist: string): string {
   try {
@@ -68,6 +103,13 @@ export function HdlPanel({ projectId, project }: Props) {
     },
   });
   const generateTestbench = useGenerateProjectTestbench({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+      },
+    },
+  });
+  const synthesise = useSynthesiseProject({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
@@ -131,6 +173,72 @@ export function HdlPanel({ projectId, project }: Props) {
           No HDL generated yet for the current design.
         </Text>
       )}
+
+      {/* ── AI Synthesis Estimate ─────────────────────────── */}
+      <View style={[styles.exportSection, { borderColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Synthesis estimate
+        </Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          AI-estimated FPGA resource usage and timing on a Xilinx Artix-7 —
+          LUT count, flip-flops, DSP slices, BRAMs, critical-path depth, and
+          estimated max clock frequency. Requires HDL to be generated first.
+        </Text>
+        {!project.hdlCode ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            Generate HDL above before running synthesis estimation.
+          </Text>
+        ) : (
+          <PrimaryButton
+            title={project.synthesisResult ? 'Re-run synthesis estimate' : 'Estimate synthesis'}
+            onPress={() => synthesise.mutate({ id: projectId })}
+            loading={synthesise.isPending}
+            disabled={!project.hdlCode}
+            variant="secondary"
+          />
+        )}
+        {project.synthesisResult ? (
+          <>
+            {/* Resource table */}
+            <View style={[styles.synthCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Text style={[styles.synthDevice, { color: colors.mutedForeground }]}>
+                {project.synthesisResult.targetDevice}
+              </Text>
+              <View style={styles.synthGrid}>
+                <SynthStat label="LUTs" value={project.synthesisResult.lutCount} colors={colors} />
+                <SynthStat label="Flip-flops" value={project.synthesisResult.flipFlopCount} colors={colors} />
+                <SynthStat label="DSP slices" value={project.synthesisResult.dspSlices} colors={colors} />
+                <SynthStat label="BRAMs" value={project.synthesisResult.bramBlocks} colors={colors} />
+                <SynthStat label="Logic depth" value={`${project.synthesisResult.logicDepth} LUTs`} colors={colors} />
+                <SynthStat
+                  label="Est. Fmax"
+                  value={`${project.synthesisResult.estimatedFmaxMhz.toFixed(0)} MHz`}
+                  colors={colors}
+                  highlight={project.synthesisResult.estimatedFmaxMhz < 50 ? 'error' : project.synthesisResult.estimatedFmaxMhz < 100 ? 'warning' : 'ok'}
+                />
+                <SynthStat
+                  label="Utilisation"
+                  value={`${project.synthesisResult.utilizationPercent.toFixed(1)}%`}
+                  colors={colors}
+                  highlight={project.synthesisResult.utilizationPercent > 80 ? 'error' : project.synthesisResult.utilizationPercent > 50 ? 'warning' : 'ok'}
+                  wide
+                />
+              </View>
+            </View>
+            {/* Summary */}
+            <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+              {project.synthesisResult.summary}
+            </Text>
+            {/* Warnings */}
+            {project.synthesisResult.warnings.map((w, i) => (
+              <View key={i} style={[styles.findingRow, { borderColor: colors.border }]}>
+                <Feather name="alert-triangle" size={16} color={colors.warning} />
+                <Text style={[styles.findingText, { color: colors.foreground }]}>{w}</Text>
+              </View>
+            ))}
+          </>
+        ) : null}
+      </View>
 
       {/* ── AI HDL Review ─────────────────────────────────── */}
       <View style={[styles.exportSection, { borderColor: colors.border }]}>
@@ -429,6 +537,22 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingTop: 16,
     gap: 10,
+  },
+  synthCard: {
+    borderWidth: 1,
+    borderRadius: 14,
+    padding: 16,
+    gap: 4,
+  },
+  synthDevice: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    marginBottom: 10,
+  },
+  synthGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   findingRow: {
     flexDirection: 'row',

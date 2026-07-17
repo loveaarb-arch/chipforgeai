@@ -318,6 +318,52 @@ Respond with strict JSON: { "xdc": string, "sdc": string }`,
   };
 }
 
+export interface SynthesisResult {
+  targetDevice: string;
+  lutCount: number;
+  flipFlopCount: number;
+  dspSlices: number;
+  bramBlocks: number;
+  estimatedFmaxMhz: number;
+  logicDepth: number;
+  utilizationPercent: number;
+  warnings: string[];
+  summary: string;
+}
+
+/**
+ * Validates and normalizes a raw LLM synthesis result so a malformed response
+ * never bricks the project on a subsequent GET.
+ */
+export function normalizeSynthesisResult(raw: unknown): SynthesisResult | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+
+  const int = (v: unknown, fallback: number) =>
+    typeof v === "number" && isFinite(v) ? Math.round(Math.max(0, v)) : fallback;
+  const float = (v: unknown, fallback: number) =>
+    typeof v === "number" && isFinite(v) ? Math.max(0, v) : fallback;
+  const str = (v: unknown, fallback: string) =>
+    typeof v === "string" && v.trim() ? v.trim() : fallback;
+  const strArr = (v: unknown): string[] =>
+    Array.isArray(v)
+      ? v.filter((x): x is string => typeof x === "string" && x.trim().length > 0)
+      : [];
+
+  return {
+    targetDevice: str(r.targetDevice, "Xilinx Artix-7 (xc7a35t)"),
+    lutCount: int(r.lutCount, 0),
+    flipFlopCount: int(r.flipFlopCount, 0),
+    dspSlices: int(r.dspSlices, 0),
+    bramBlocks: int(r.bramBlocks, 0),
+    estimatedFmaxMhz: float(r.estimatedFmaxMhz, 0),
+    logicDepth: int(r.logicDepth, 0),
+    utilizationPercent: Math.min(100, float(r.utilizationPercent, 0)),
+    warnings: strArr(r.warnings),
+    summary: str(r.summary, ""),
+  };
+}
+
 export interface DesignFinding {
   severity: "error" | "warning" | "info";
   category: string;
@@ -511,6 +557,71 @@ Respond with strict JSON: { "testbench": string, "testbenchSummary": string }`,
     testbench: parsed.testbench ?? "",
     testbenchSummary: parsed.testbenchSummary ?? "",
   };
+}
+
+/**
+ * AI synthesis estimator — analyses the Verilog HDL and produces FPGA
+ * resource utilisation and timing estimates without running a real synthesiser.
+ * The model has been trained on millions of synthesis reports and knows what
+ * typical constructs cost in LUTs, flip-flops, DSP slices, and logic depth.
+ * Results are realistic enough to make design decisions; not a replacement for
+ * Vivado/Quartus for final sign-off.
+ */
+export async function estimateSynthesis(
+  design: ChipDesignData,
+  hdlCode: string,
+): Promise<SynthesisResult> {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 4096,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are a senior FPGA engineer with deep knowledge of synthesis toolchains (Vivado, Quartus, Yosys). Given a Verilog HDL design, estimate its post-synthesis resource utilisation and timing on a Xilinx Artix-7 (xc7a35t) FPGA — which has 20,800 LUTs, 41,600 flip-flops, 90 DSP slices, and 50 BRAMs.
+
+Analyse the HDL carefully:
+- Count registers (always @(posedge clk) blocks) → flip-flops
+- Count combinational logic (always @(*), assign) → LUTs
+- Identify multipliers, MACs, large adders → DSP slices
+- Identify memories, FIFOs, large arrays → BRAMs
+- Trace the critical combinational path (LUT levels from input to output) → logicDepth
+- Estimate Fmax from logicDepth (each LUT level costs ~0.3–0.5ns on Artix-7 at typical conditions, so Fmax = 1000 / (logicDepth * 0.4) MHz, capped at 450MHz)
+- Calculate utilizationPercent as (lutCount / 20800) * 100
+
+Be specific and realistic. A 4-bit adder uses ~4 LUTs. A 32-bit multiplier uses 3–4 DSP slices. A simple FSM with 4 states uses ~10–20 LUTs. A 256x8 register file uses ~16 BRAMs.
+
+Flag specific concerns as warnings — e.g. "32-bit multiplier in module alu will consume 4 DSP slices and reduce Fmax to ~120MHz", "deep combinational chain of 18 LUT levels will limit Fmax to ~55MHz".
+
+Write a plain-language summary (3–4 sentences) covering what the design synthesises to, the dominant resource, timing outlook, and whether it fits the Artix-7.
+
+Respond with strict JSON:
+{
+  "targetDevice": "Xilinx Artix-7 (xc7a35t)",
+  "lutCount": number,
+  "flipFlopCount": number,
+  "dspSlices": number,
+  "bramBlocks": number,
+  "estimatedFmaxMhz": number,
+  "logicDepth": number,
+  "utilizationPercent": number,
+  "warnings": string[],
+  "summary": string
+}`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify({ design, hdlCode }),
+      },
+    ],
+  });
+
+  const parsed = extractJson(response.choices[0]?.message?.content);
+  const result = normalizeSynthesisResult(parsed);
+  if (!result) {
+    throw new Error("Synthesis estimation returned an unusable response from the AI.");
+  }
+  return result;
 }
 
 /**

@@ -85,6 +85,18 @@ export const CreateProjectResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -141,6 +153,18 @@ export const GetProjectResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -205,6 +229,18 @@ export const UpdateProjectResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -293,6 +329,18 @@ export const UpdateProjectDesignResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -451,6 +499,18 @@ export const RestoreProjectVersionResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -548,6 +608,18 @@ export const SendProjectChatMessageResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -622,6 +694,18 @@ export const GenerateProjectHdlResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -679,6 +763,87 @@ export const GenerateProjectConstraintsResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Analyses the generated Verilog HDL and estimates post-synthesis resource utilisation and timing on a Xilinx Artix-7 FPGA without running a real synthesiser. Returns LUT count, flip-flop count, DSP slices, BRAMs, critical-path depth, estimated Fmax, utilisation percentage, and specific warnings about timing risks or resource bottlenecks. Requires HDL to have been generated first.
+ * @summary AI-estimated FPGA synthesis — gate count, timing, and resource utilisation
+ */
+export const SynthesiseProjectParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SynthesiseProjectResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "currentVersionNumber": zod.number(),
+  "design": zod.object({
+  "components": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "label": zod.string(),
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "bitWidth": zod.number().nullable(),
+  "properties": zod.record(zod.string(), zod.string())
+}).describe('A single block in the chip\'s architecture (e.g. register, ALU, memory, I\/O port)')),
+  "connections": zod.array(zod.object({
+  "id": zod.string(),
+  "fromComponentId": zod.string(),
+  "fromPort": zod.string().nullable(),
+  "toComponentId": zod.string(),
+  "toPort": zod.string().nullable(),
+  "label": zod.string().nullable()
+}).describe('A wire connecting two components'))
+}),
+  "hdlCode": zod.string().nullable(),
+  "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -736,6 +901,18 @@ export const ReviewProjectHdlResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -793,6 +970,18 @@ export const CritiqueProjectDesignResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -850,6 +1039,18 @@ export const GenerateProjectTestbenchResponse = zod.object({
 }).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
   "testbench": zod.string().nullable(),
   "testbenchSummary": zod.string().nullable(),
+  "synthesisResult": zod.union([zod.object({
+  "targetDevice": zod.string(),
+  "lutCount": zod.number(),
+  "flipFlopCount": zod.number(),
+  "dspSlices": zod.number(),
+  "bramBlocks": zod.number(),
+  "estimatedFmaxMhz": zod.number(),
+  "logicDepth": zod.number(),
+  "utilizationPercent": zod.number(),
+  "warnings": zod.array(zod.string()),
+  "summary": zod.string()
+}).describe('AI-estimated FPGA synthesis results for the generated HDL'),zod.null()]),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),

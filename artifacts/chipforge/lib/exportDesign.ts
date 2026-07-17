@@ -103,6 +103,23 @@ ${PACKAGE_DISCLAIMER}`;
 
   body += section('Validation report', validationSection);
 
+  if (project.synthesisResult) {
+    const s = project.synthesisResult;
+    const resourceTable = [
+      `Target device:    ${s.targetDevice}`,
+      `LUTs:             ${s.lutCount} (${s.utilizationPercent.toFixed(1)}% utilisation)`,
+      `Flip-flops:       ${s.flipFlopCount}`,
+      `DSP slices:       ${s.dspSlices}`,
+      `BRAMs:            ${s.bramBlocks}`,
+      `Logic depth:      ${s.logicDepth} LUT levels`,
+      `Estimated Fmax:   ${s.estimatedFmaxMhz.toFixed(0)} MHz`,
+    ].join('\n');
+    const warnings = s.warnings.length
+      ? '\n\nWarnings:\n' + s.warnings.map((w) => `- ${w}`).join('\n')
+      : '';
+    body += section('Synthesis estimate', resourceTable + warnings + '\n\n' + s.summary);
+  }
+
   if (project.designCritique && project.designCritique.length > 0) {
     const critiqueText = project.designCritique
       .map((f) => `- [${f.severity.toUpperCase()}] [${f.category}] ${f.message}`)

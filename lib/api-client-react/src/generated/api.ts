@@ -1249,6 +1249,78 @@ export const useGenerateProjectConstraints = <TError = ErrorType<ErrorResponse>,
       return useMutation(getGenerateProjectConstraintsMutationOptions(options));
     }
 
+export const getSynthesiseProjectUrl = (id: number,) => {
+
+
+
+
+  return `/api/projects/${id}/synthesise`
+}
+
+/**
+ * Analyses the generated Verilog HDL and estimates post-synthesis resource utilisation and timing on a Xilinx Artix-7 FPGA without running a real synthesiser. Returns LUT count, flip-flop count, DSP slices, BRAMs, critical-path depth, estimated Fmax, utilisation percentage, and specific warnings about timing risks or resource bottlenecks. Requires HDL to have been generated first.
+ * @summary AI-estimated FPGA synthesis — gate count, timing, and resource utilisation
+ */
+export const synthesiseProject = async (id: number, options?: RequestInit): Promise<ChipProject> => {
+
+  return customFetch<ChipProject>(getSynthesiseProjectUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSynthesiseProjectMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof synthesiseProject>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof synthesiseProject>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['synthesiseProject'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof synthesiseProject>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  synthesiseProject(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SynthesiseProjectMutationResult = NonNullable<Awaited<ReturnType<typeof synthesiseProject>>>
+
+    export type SynthesiseProjectMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary AI-estimated FPGA synthesis — gate count, timing, and resource utilisation
+ */
+export const useSynthesiseProject = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof synthesiseProject>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof synthesiseProject>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getSynthesiseProjectMutationOptions(options));
+    }
+
 export const getReviewProjectHdlUrl = (id: number,) => {
 
 

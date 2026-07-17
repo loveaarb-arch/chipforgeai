@@ -22,6 +22,7 @@ export interface StoredDesign {
   designCritique: import("./design").DesignFinding[] | null;
   testbench: string | null;
   testbenchSummary: string | null;
+  synthesisResult: import("./design").SynthesisResult | null;
 }
 
 export const EMPTY_DESIGN: StoredDesign = {
@@ -35,6 +36,7 @@ export const EMPTY_DESIGN: StoredDesign = {
   designCritique: null,
   testbench: null,
   testbenchSummary: null,
+  synthesisResult: null,
 };
 
 export function encryptDesign(design: StoredDesign): string {
@@ -56,6 +58,7 @@ export function decryptDesign(encrypted: string): StoredDesign {
     designCritique: design.designCritique ?? null,
     testbench: design.testbench ?? null,
     testbenchSummary: design.testbenchSummary ?? null,
+    synthesisResult: design.synthesisResult ?? null,
   };
 }
 
@@ -104,6 +107,7 @@ export function toProjectResponse(project: ChipProjectRow) {
     designCritique: design.designCritique,
     testbench: design.testbench,
     testbenchSummary: design.testbenchSummary,
+    synthesisResult: design.synthesisResult,
     locked: project.locked,
     lockedCategory: project.lockedCategory,
     createdAt: project.createdAt,

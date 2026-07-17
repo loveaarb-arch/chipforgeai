@@ -7,6 +7,7 @@
  */
 import type { ChipDesign } from './chipDesign';
 import type { DesignFinding } from './designFinding';
+import type { SynthesisResult } from './synthesisResult';
 
 export interface ChipProject {
   id: number;
@@ -31,6 +32,7 @@ export interface ChipProject {
   testbench: string | null;
   /** @nullable */
   testbenchSummary: string | null;
+  synthesisResult: SynthesisResult | null;
   locked: boolean;
   /** @nullable */
   lockedCategory: string | null;

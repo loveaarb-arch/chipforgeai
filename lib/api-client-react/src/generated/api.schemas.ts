@@ -13,6 +13,22 @@ export interface ErrorResponse {
   error: string;
 }
 
+/**
+ * AI-estimated FPGA synthesis results for the generated HDL
+ */
+export interface SynthesisResult {
+  targetDevice: string;
+  lutCount: number;
+  flipFlopCount: number;
+  dspSlices: number;
+  bramBlocks: number;
+  estimatedFmaxMhz: number;
+  logicDepth: number;
+  utilizationPercent: number;
+  warnings: string[];
+  summary: string;
+}
+
 export type DesignFindingSeverity = typeof DesignFindingSeverity[keyof typeof DesignFindingSeverity];
 
 
@@ -103,6 +119,7 @@ export interface ChipProject {
   testbench: string | null;
   /** @nullable */
   testbenchSummary: string | null;
+  synthesisResult: SynthesisResult | null;
   locked: boolean;
   /** @nullable */
   lockedCategory: string | null;

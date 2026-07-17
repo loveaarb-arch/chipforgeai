@@ -510,6 +510,50 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /projects/{id}/synthesise:
+    post:
+      operationId: synthesiseProject
+      tags: [design]
+      summary: AI-estimated FPGA synthesis — gate count, timing, and resource utilisation
+      description: >
+        Analyses the generated Verilog HDL and estimates post-synthesis resource
+        utilisation and timing on a Xilinx Artix-7 FPGA without running a real
+        synthesiser. Returns LUT count, flip-flop count, DSP slices, BRAMs,
+        critical-path depth, estimated Fmax, utilisation percentage, and
+        specific warnings about timing risks or resource bottlenecks. Requires
+        HDL to have been generated first.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The project with synthesis estimate stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChipProject"
+        "400":
+          description: HDL has not been generated yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /projects/{id}/review-hdl:
     post:
       operationId: reviewProjectHdl
@@ -654,6 +698,44 @@ components:
           type: string
       required:
         - error
+
+    SynthesisResult:
+      type: object
+      description: AI-estimated FPGA synthesis results for the generated HDL
+      properties:
+        targetDevice:
+          type: string
+        lutCount:
+          type: integer
+        flipFlopCount:
+          type: integer
+        dspSlices:
+          type: integer
+        bramBlocks:
+          type: integer
+        estimatedFmaxMhz:
+          type: number
+        logicDepth:
+          type: integer
+        utilizationPercent:
+          type: number
+        warnings:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+      required:
+        - targetDevice
+        - lutCount
+        - flipFlopCount
+        - dspSlices
+        - bramBlocks
+        - estimatedFmaxMhz
+        - logicDepth
+        - utilizationPercent
+        - warnings
+        - summary
 
     DesignFinding:
       type: object
@@ -806,6 +888,10 @@ components:
           type: ["string", "null"]
         testbenchSummary:
           type: ["string", "null"]
+        synthesisResult:
+          oneOf:
+            - $ref: "#/components/schemas/SynthesisResult"
+            - type: "null"
         locked:
           type: boolean
         lockedCategory:
@@ -830,6 +916,7 @@ components:
         - designCritique
         - testbench
         - testbenchSummary
+        - synthesisResult
         - locked
         - lockedCategory
         - createdAt

@@ -25,6 +25,7 @@ export * from './designFinding';
 export * from './designFindingSeverity';
 export * from './errorResponse';
 export * from './healthStatus';
+export * from './synthesisResult';
 export * from './validationIssue';
 export * from './validationIssueSeverity';
 export * from './validationResult';
