@@ -130,7 +130,7 @@ export default function SignInScreen() {
             <View style={[styles.logoDot, { backgroundColor: colors.primary }]} />
           </View>
           <Text style={[styles.appName, { color: colors.foreground }]}>
-            ChipForge
+            Chip Forge AI
           </Text>
           <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
             Describe a chip. Watch it take shape.

@@ -76,7 +76,7 @@ export function buildExportBundle(
     ? `${issuesText}\n\n### AI suggestions\n\n${suggestionsText}`
     : 'Validation was not run before export. Run validation in the app before relying on this package.';
 
-  let body = `# ${project.name} — ChipForge design export
+  let body = `# ${project.name} — Chip Forge AI design export
 
 Generated: ${generatedAt}
 ${project.description ? `Description: ${project.description}\n` : ''}
