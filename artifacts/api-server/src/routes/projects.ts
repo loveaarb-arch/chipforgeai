@@ -319,6 +319,33 @@ router.post("/projects/:id/chat", async (req, res) => {
     return;
   }
 
+  // Detect simple greetings and reply with the product intro instead of
+  // generating a random design.
+  const isGreeting = /^\s*(hi+|hey+|hello+|howdy|sup|greetings|good\s*(morning|afternoon|evening)|what'?s\s*up|yo)\W*$/i.test(
+    body.content.trim(),
+  );
+  if (isGreeting) {
+    const [assistantMessageRow] = await db
+      .insert(chipChatMessagesTable)
+      .values({
+        projectId: id,
+        role: "assistant",
+        content:
+          "Hello! Chip Forge AI lets you design custom silicon chips from your phone. Build block diagrams by adding components and drawing connections, then let AI generate production-ready Verilog HDL, a JSON netlist, and XDC/SDC constraint files — ready to hand off to an EDA tool or fabrication engineer. Export your full design package as a single file. No hardware lab required. How may I assist you today?",
+        blocked: false,
+      })
+      .returning();
+    res.json(
+      SendProjectChatMessageResponse.parse({
+        userMessage: toChatMessageResponse(userMessageRow!),
+        assistantMessage: toChatMessageResponse(assistantMessageRow!),
+        blocked: false,
+        project: toProjectResponse(result.project),
+      }),
+    );
+    return;
+  }
+
   const currentDesign = decryptDesign(result.project.encryptedDesign);
   const priorMessages = await listChatMessages(id);
   const recentHistory = priorMessages
