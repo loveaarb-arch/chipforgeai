@@ -69,7 +69,7 @@ export default function SignUpScreen() {
               value={code}
               onChangeText={setCode}
               keyboardType="numeric"
-              placeholder="123456"
+              placeholder=""
               errorMessage={errors.fields.code?.message}
             />
             <PrimaryButton
