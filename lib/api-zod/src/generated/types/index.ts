@@ -21,6 +21,8 @@ export * from './chipProjectUpdate';
 export * from './chipVersion';
 export * from './chipVersionSaveInput';
 export * from './chipVersionSummary';
+export * from './designFinding';
+export * from './designFindingSeverity';
 export * from './errorResponse';
 export * from './healthStatus';
 export * from './validationIssue';

@@ -1,31 +1,70 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useColors } from '@/hooks/useColors';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import {
+  getGetProjectQueryKey,
+  useCritiqueProjectDesign,
   useValidateProjectDesign,
+  type ChipProject,
+  type DesignFinding,
   type ValidationIssue,
 } from '@workspace/api-client-react';
 
 interface Props {
   projectId: number;
+  project: ChipProject;
 }
 
-function severityIcon(severity: ValidationIssue['severity']) {
+function severityIcon(severity: ValidationIssue['severity'] | DesignFinding['severity']) {
   if (severity === 'error') return 'x-circle';
   if (severity === 'warning') return 'alert-triangle';
   return 'info';
 }
 
-export function ValidationPanel({ projectId }: Props) {
+function FindingRow({
+  severity,
+  message,
+  colors,
+}: {
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  colors: ReturnType<typeof useColors>;
+}) {
+  const color =
+    severity === 'error'
+      ? colors.destructive
+      : severity === 'warning'
+        ? colors.warning
+        : colors.primary;
+  return (
+    <View style={[styles.row, { borderColor: colors.border }]}>
+      <Feather name={severityIcon(severity) as any} size={18} color={color} />
+      <Text style={[styles.issueText, { color: colors.foreground }]}>{message}</Text>
+    </View>
+  );
+}
+
+export function ValidationPanel({ projectId, project }: Props) {
   const colors = useColors();
+  const queryClient = useQueryClient();
   const [result, setResult] = useState<{
     issues: ValidationIssue[];
     suggestions: string[];
   } | null>(null);
+
   const validate = useValidateProjectDesign({
     mutation: { onSuccess: setResult },
+  });
+
+  const critique = useCritiqueProjectDesign({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+      },
+    },
   });
 
   const severityColor = (severity: ValidationIssue['severity']) =>
@@ -37,6 +76,7 @@ export function ValidationPanel({ projectId }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* ── Structural validation ──────────────────────────── */}
       <PrimaryButton
         title="Run validation"
         onPress={() => validate.mutate({ id: projectId })}
@@ -57,10 +97,7 @@ export function ValidationPanel({ projectId }: Props) {
             </View>
           ) : (
             result.issues.map((issue, index) => (
-              <View
-                key={index}
-                style={[styles.row, { borderColor: colors.border }]}
-              >
+              <View key={index} style={[styles.row, { borderColor: colors.border }]}>
                 <Feather
                   name={severityIcon(issue.severity) as any}
                   size={18}
@@ -79,10 +116,7 @@ export function ValidationPanel({ projectId }: Props) {
                 AI suggestions
               </Text>
               {result.suggestions.map((suggestion, index) => (
-                <View
-                  key={index}
-                  style={[styles.row, { borderColor: colors.border }]}
-                >
+                <View key={index} style={[styles.row, { borderColor: colors.border }]}>
                   <Feather name="zap" size={16} color={colors.primary} />
                   <Text style={[styles.issueText, { color: colors.foreground }]}>
                     {suggestion}
@@ -99,12 +133,61 @@ export function ValidationPanel({ projectId }: Props) {
           improvements.
         </Text>
       )}
+
+      {/* ── AI design critique ─────────────────────────────── */}
+      <View style={[styles.section, { borderColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          AI design critique
+        </Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          A senior-engineer-level review of your block diagram architecture —
+          catches bottlenecks, missing pipeline stages, unreachable components,
+          and fan-out issues before you generate HDL.
+        </Text>
+
+        <PrimaryButton
+          title={project.designCritique ? 'Re-run critique' : 'Critique design'}
+          onPress={() => critique.mutate({ id: projectId })}
+          loading={critique.isPending}
+          disabled={project.design.components.length === 0}
+          variant="secondary"
+        />
+
+        {project.design.components.length === 0 ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            Add components to the design before running a critique.
+          </Text>
+        ) : null}
+
+        {project.designCritique && project.designCritique.length > 0 ? (
+          project.designCritique.map((finding, index) => (
+            <FindingRow
+              key={index}
+              severity={finding.severity}
+              message={`[${finding.category}] ${finding.message}`}
+              colors={colors}
+            />
+          ))
+        ) : project.designCritique && project.designCritique.length === 0 ? (
+          <View style={[styles.row, styles.okRow, { borderColor: colors.border }]}>
+            <Feather name="check-circle" size={18} color={colors.primary} />
+            <Text style={{ color: colors.foreground, marginLeft: 10 }}>
+              No architectural issues found.
+            </Text>
+          </View>
+        ) : null}
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 14 },
+  section: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 16,
+    gap: 10,
+  },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',

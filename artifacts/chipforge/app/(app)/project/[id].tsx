@@ -213,7 +213,7 @@ export default function ProjectWorkspaceScreen() {
             saving={updateDesign.isPending}
           />
         )}
-        {tab === 'validate' && <ValidationPanel projectId={projectId} />}
+        {tab === 'validate' && <ValidationPanel projectId={projectId} project={project} />}
         {tab === 'hdl' && <HdlPanel projectId={projectId} project={project} />}
         {tab === 'versions' && (
           <VersionsPanel

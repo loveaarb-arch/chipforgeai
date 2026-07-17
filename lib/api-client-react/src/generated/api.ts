@@ -1249,3 +1249,219 @@ export const useGenerateProjectConstraints = <TError = ErrorType<ErrorResponse>,
       return useMutation(getGenerateProjectConstraintsMutationOptions(options));
     }
 
+export const getReviewProjectHdlUrl = (id: number,) => {
+
+
+
+
+  return `/api/projects/${id}/review-hdl`
+}
+
+/**
+ * Runs a second AI pass over the generated Verilog HDL to detect issues that deterministic structural checks cannot see — undriven signals, combinational loops, implicit latches, missing resets, timing risks, and naming conflicts. Returns structured findings with severity levels. Requires HDL to have been generated first.
+ * @summary AI review of the generated HDL for real code-level issues
+ */
+export const reviewProjectHdl = async (id: number, options?: RequestInit): Promise<ChipProject> => {
+
+  return customFetch<ChipProject>(getReviewProjectHdlUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getReviewProjectHdlMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewProjectHdl>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewProjectHdl>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['reviewProjectHdl'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewProjectHdl>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  reviewProjectHdl(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewProjectHdlMutationResult = NonNullable<Awaited<ReturnType<typeof reviewProjectHdl>>>
+
+    export type ReviewProjectHdlMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary AI review of the generated HDL for real code-level issues
+ */
+export const useReviewProjectHdl = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewProjectHdl>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewProjectHdl>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getReviewProjectHdlMutationOptions(options));
+    }
+
+export const getCritiqueProjectDesignUrl = (id: number,) => {
+
+
+
+
+  return `/api/projects/${id}/critique`
+}
+
+/**
+ * Analyses the block diagram for structural and architectural problems — bottlenecks, missing pipeline stages, unreachable components, fan-out issues — before HDL is generated. Returns structured findings with severity levels.
+ * @summary AI architectural critique of the block-diagram design
+ */
+export const critiqueProjectDesign = async (id: number, options?: RequestInit): Promise<ChipProject> => {
+
+  return customFetch<ChipProject>(getCritiqueProjectDesignUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCritiqueProjectDesignMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof critiqueProjectDesign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof critiqueProjectDesign>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['critiqueProjectDesign'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof critiqueProjectDesign>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  critiqueProjectDesign(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CritiqueProjectDesignMutationResult = NonNullable<Awaited<ReturnType<typeof critiqueProjectDesign>>>
+
+    export type CritiqueProjectDesignMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary AI architectural critique of the block-diagram design
+ */
+export const useCritiqueProjectDesign = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof critiqueProjectDesign>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof critiqueProjectDesign>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getCritiqueProjectDesignMutationOptions(options));
+    }
+
+export const getGenerateProjectTestbenchUrl = (id: number,) => {
+
+
+
+
+  return `/api/projects/${id}/testbench`
+}
+
+/**
+ * Produces a Verilog testbench module with clock/reset stimulus, input vectors, and expected output checks derived from the design and its HDL. Also returns a plain-language summary of coverage and a logic correctness assessment. Requires HDL to have been generated first.
+ * @summary AI-generated Verilog testbench with stimulus vectors and coverage summary
+ */
+export const generateProjectTestbench = async (id: number, options?: RequestInit): Promise<ChipProject> => {
+
+  return customFetch<ChipProject>(getGenerateProjectTestbenchUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getGenerateProjectTestbenchMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateProjectTestbench>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateProjectTestbench>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['generateProjectTestbench'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateProjectTestbench>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  generateProjectTestbench(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateProjectTestbenchMutationResult = NonNullable<Awaited<ReturnType<typeof generateProjectTestbench>>>
+
+    export type GenerateProjectTestbenchMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary AI-generated Verilog testbench with stimulus vectors and coverage summary
+ */
+export const useGenerateProjectTestbench = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateProjectTestbench>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateProjectTestbench>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getGenerateProjectTestbenchMutationOptions(options));
+    }
+

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ChipDesign } from './chipDesign';
+import type { DesignFinding } from './designFinding';
 
 export interface ChipProject {
   id: number;
@@ -22,6 +23,14 @@ export interface ChipProject {
   xdcConstraints: string | null;
   /** @nullable */
   sdcConstraints: string | null;
+  /** @nullable */
+  hdlReview: DesignFinding[] | null;
+  /** @nullable */
+  designCritique: DesignFinding[] | null;
+  /** @nullable */
+  testbench: string | null;
+  /** @nullable */
+  testbenchSummary: string | null;
   locked: boolean;
   /** @nullable */
   lockedCategory: string | null;

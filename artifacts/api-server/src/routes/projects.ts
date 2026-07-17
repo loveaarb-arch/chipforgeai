@@ -5,11 +5,15 @@ import { eq } from "drizzle-orm";
 import {
   CreateProjectBody,
   CreateProjectResponse,
+  CritiqueProjectDesignParams,
+  CritiqueProjectDesignResponse,
   DeleteProjectParams,
   GenerateProjectConstraintsParams,
   GenerateProjectConstraintsResponse,
   GenerateProjectHdlParams,
   GenerateProjectHdlResponse,
+  GenerateProjectTestbenchParams,
+  GenerateProjectTestbenchResponse,
   GetProjectParams,
   GetProjectResponse,
   GetProjectVersionParams,
@@ -21,6 +25,8 @@ import {
   ListProjectsResponse,
   RestoreProjectVersionParams,
   RestoreProjectVersionResponse,
+  ReviewProjectHdlParams,
+  ReviewProjectHdlResponse,
   SaveProjectVersionBody,
   SaveProjectVersionParams,
   SaveProjectVersionResponse,
@@ -41,9 +47,12 @@ import { logger } from "../lib/logger";
 import {
   buildLockedProjectMessage,
   buildRefusalMessage,
+  critiqueDesign,
   generateArchitecture,
   generateConstraints,
   generateHdl,
+  generateTestbench,
+  reviewHdl,
   runSafetyCheck,
   validateDesign,
 } from "../lib/design";
@@ -143,12 +152,15 @@ router.patch("/projects/:id/design", async (req, res) => {
       encryptedDesign: encryptDesign({
         components: body.components,
         connections: body.connections,
-        // Manual structural edits invalidate previously generated HDL/netlist
-        // and constraints — they must be regenerated against the new design.
+        // Manual structural edits invalidate all generated outputs.
         hdlCode: null,
         netlist: null,
         xdcConstraints: null,
         sdcConstraints: null,
+        hdlReview: null,
+        designCritique: null,
+        testbench: null,
+        testbenchSummary: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
@@ -368,11 +380,15 @@ router.post("/projects/:id/chat", async (req, res) => {
       encryptedDesign: encryptDesign({
         components: design.components,
         connections: design.connections,
-        // AI architecture changes invalidate HDL and constraints.
+        // AI architecture changes invalidate all generated outputs.
         hdlCode: null,
         netlist: null,
         xdcConstraints: null,
         sdcConstraints: null,
+        hdlReview: null,
+        designCritique: null,
+        testbench: null,
+        testbenchSummary: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
@@ -433,15 +449,90 @@ router.post("/projects/:id/hdl", async (req, res) => {
         connections: design.connections,
         hdlCode,
         netlist: JSON.stringify(netlist),
-        // Regenerating HDL invalidates previously generated constraints —
-        // the user must re-run Generate Constraints after this.
+        // Regenerating HDL invalidates constraints, review, and testbench.
         xdcConstraints: null,
         sdcConstraints: null,
+        hdlReview: null,
+        designCritique: design.designCritique,
+        testbench: null,
+        testbenchSummary: null,
       }),
     })
     .where(eq(chipProjectsTable.id, id))
     .returning();
   res.json(GenerateProjectHdlResponse.parse(toProjectResponse(updated!)));
+});
+
+router.post("/projects/:id/review-hdl", async (req, res) => {
+  const { id } = ReviewProjectHdlParams.parse(req.params);
+  const result = await loadOwnedProject(id, req.userId!);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+  const design = decryptDesign(result.project.encryptedDesign);
+  if (!design.hdlCode) {
+    res.status(400).json({ error: "Generate HDL first — the reviewer needs HDL to analyse." });
+    return;
+  }
+  const { findings } = await reviewHdl(
+    { components: design.components, connections: design.connections },
+    design.hdlCode,
+  );
+  const [updated] = await db
+    .update(chipProjectsTable)
+    .set({ encryptedDesign: encryptDesign({ ...design, hdlReview: findings }) })
+    .where(eq(chipProjectsTable.id, id))
+    .returning();
+  res.json(ReviewProjectHdlResponse.parse(toProjectResponse(updated!)));
+});
+
+router.post("/projects/:id/critique", async (req, res) => {
+  const { id } = CritiqueProjectDesignParams.parse(req.params);
+  const result = await loadOwnedProject(id, req.userId!);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+  const design = decryptDesign(result.project.encryptedDesign);
+  if (design.components.length === 0) {
+    res.status(400).json({ error: "Add components to the design before running a critique." });
+    return;
+  }
+  const { findings } = await critiqueDesign({
+    components: design.components,
+    connections: design.connections,
+  });
+  const [updated] = await db
+    .update(chipProjectsTable)
+    .set({ encryptedDesign: encryptDesign({ ...design, designCritique: findings }) })
+    .where(eq(chipProjectsTable.id, id))
+    .returning();
+  res.json(CritiqueProjectDesignResponse.parse(toProjectResponse(updated!)));
+});
+
+router.post("/projects/:id/testbench", async (req, res) => {
+  const { id } = GenerateProjectTestbenchParams.parse(req.params);
+  const result = await loadOwnedProject(id, req.userId!);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+  const design = decryptDesign(result.project.encryptedDesign);
+  if (!design.hdlCode) {
+    res.status(400).json({ error: "Generate HDL first — the testbench is derived from the HDL." });
+    return;
+  }
+  const { testbench, testbenchSummary } = await generateTestbench(
+    { components: design.components, connections: design.connections },
+    design.hdlCode,
+  );
+  const [updated] = await db
+    .update(chipProjectsTable)
+    .set({ encryptedDesign: encryptDesign({ ...design, testbench, testbenchSummary }) })
+    .where(eq(chipProjectsTable.id, id))
+    .returning();
+  res.json(GenerateProjectTestbenchResponse.parse(toProjectResponse(updated!)));
 });
 
 router.post("/projects/:id/constraints", async (req, res) => {

@@ -510,6 +510,133 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /projects/{id}/review-hdl:
+    post:
+      operationId: reviewProjectHdl
+      tags: [design]
+      summary: AI review of the generated HDL for real code-level issues
+      description: >
+        Runs a second AI pass over the generated Verilog HDL to detect issues
+        that deterministic structural checks cannot see — undriven signals,
+        combinational loops, implicit latches, missing resets, timing risks,
+        and naming conflicts. Returns structured findings with severity levels.
+        Requires HDL to have been generated first.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The project with HDL review findings stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChipProject"
+        "400":
+          description: HDL has not been generated yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /projects/{id}/critique:
+    post:
+      operationId: critiqueProjectDesign
+      tags: [design]
+      summary: AI architectural critique of the block-diagram design
+      description: >
+        Analyses the block diagram for structural and architectural problems —
+        bottlenecks, missing pipeline stages, unreachable components, fan-out
+        issues — before HDL is generated. Returns structured findings with
+        severity levels.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The project with design critique findings stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChipProject"
+        "400":
+          description: Design has no components to critique
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /projects/{id}/testbench:
+    post:
+      operationId: generateProjectTestbench
+      tags: [design]
+      summary: AI-generated Verilog testbench with stimulus vectors and coverage summary
+      description: >
+        Produces a Verilog testbench module with clock/reset stimulus, input
+        vectors, and expected output checks derived from the design and its
+        HDL. Also returns a plain-language summary of coverage and a logic
+        correctness assessment. Requires HDL to have been generated first.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: The project with testbench and summary stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChipProject"
+        "400":
+          description: HDL has not been generated yet
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -527,6 +654,22 @@ components:
           type: string
       required:
         - error
+
+    DesignFinding:
+      type: object
+      description: A single finding from an AI review pass (HDL review or design critique)
+      properties:
+        severity:
+          type: string
+          enum: [error, warning, info]
+        category:
+          type: string
+        message:
+          type: string
+      required:
+        - severity
+        - category
+        - message
 
     ChipComponent:
       type: object
@@ -651,6 +794,18 @@ components:
           type: ["string", "null"]
         sdcConstraints:
           type: ["string", "null"]
+        hdlReview:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/DesignFinding"
+        designCritique:
+          type: ["array", "null"]
+          items:
+            $ref: "#/components/schemas/DesignFinding"
+        testbench:
+          type: ["string", "null"]
+        testbenchSummary:
+          type: ["string", "null"]
         locked:
           type: boolean
         lockedCategory:
@@ -671,6 +826,10 @@ components:
         - netlist
         - xdcConstraints
         - sdcConstraints
+        - hdlReview
+        - designCritique
+        - testbench
+        - testbenchSummary
         - locked
         - lockedCategory
         - createdAt

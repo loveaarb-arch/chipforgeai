@@ -73,6 +73,18 @@ export const CreateProjectResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -117,6 +129,18 @@ export const GetProjectResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -169,6 +193,18 @@ export const UpdateProjectResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -245,6 +281,18 @@ export const UpdateProjectDesignResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -391,6 +439,18 @@ export const RestoreProjectVersionResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -476,6 +536,18 @@ export const SendProjectChatMessageResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -538,6 +610,18 @@ export const GenerateProjectHdlResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
@@ -583,6 +667,189 @@ export const GenerateProjectConstraintsResponse = zod.object({
   "netlist": zod.string().nullable(),
   "xdcConstraints": zod.string().nullable(),
   "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Runs a second AI pass over the generated Verilog HDL to detect issues that deterministic structural checks cannot see — undriven signals, combinational loops, implicit latches, missing resets, timing risks, and naming conflicts. Returns structured findings with severity levels. Requires HDL to have been generated first.
+ * @summary AI review of the generated HDL for real code-level issues
+ */
+export const ReviewProjectHdlParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReviewProjectHdlResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "currentVersionNumber": zod.number(),
+  "design": zod.object({
+  "components": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "label": zod.string(),
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "bitWidth": zod.number().nullable(),
+  "properties": zod.record(zod.string(), zod.string())
+}).describe('A single block in the chip\'s architecture (e.g. register, ALU, memory, I\/O port)')),
+  "connections": zod.array(zod.object({
+  "id": zod.string(),
+  "fromComponentId": zod.string(),
+  "fromPort": zod.string().nullable(),
+  "toComponentId": zod.string(),
+  "toPort": zod.string().nullable(),
+  "label": zod.string().nullable()
+}).describe('A wire connecting two components'))
+}),
+  "hdlCode": zod.string().nullable(),
+  "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Analyses the block diagram for structural and architectural problems — bottlenecks, missing pipeline stages, unreachable components, fan-out issues — before HDL is generated. Returns structured findings with severity levels.
+ * @summary AI architectural critique of the block-diagram design
+ */
+export const CritiqueProjectDesignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CritiqueProjectDesignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "currentVersionNumber": zod.number(),
+  "design": zod.object({
+  "components": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "label": zod.string(),
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "bitWidth": zod.number().nullable(),
+  "properties": zod.record(zod.string(), zod.string())
+}).describe('A single block in the chip\'s architecture (e.g. register, ALU, memory, I\/O port)')),
+  "connections": zod.array(zod.object({
+  "id": zod.string(),
+  "fromComponentId": zod.string(),
+  "fromPort": zod.string().nullable(),
+  "toComponentId": zod.string(),
+  "toPort": zod.string().nullable(),
+  "label": zod.string().nullable()
+}).describe('A wire connecting two components'))
+}),
+  "hdlCode": zod.string().nullable(),
+  "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
+  "locked": zod.boolean(),
+  "lockedCategory": zod.string().nullable(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * Produces a Verilog testbench module with clock/reset stimulus, input vectors, and expected output checks derived from the design and its HDL. Also returns a plain-language summary of coverage and a logic correctness assessment. Requires HDL to have been generated first.
+ * @summary AI-generated Verilog testbench with stimulus vectors and coverage summary
+ */
+export const GenerateProjectTestbenchParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GenerateProjectTestbenchResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().nullable(),
+  "currentVersionNumber": zod.number(),
+  "design": zod.object({
+  "components": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "label": zod.string(),
+  "x": zod.number(),
+  "y": zod.number(),
+  "width": zod.number(),
+  "height": zod.number(),
+  "bitWidth": zod.number().nullable(),
+  "properties": zod.record(zod.string(), zod.string())
+}).describe('A single block in the chip\'s architecture (e.g. register, ALU, memory, I\/O port)')),
+  "connections": zod.array(zod.object({
+  "id": zod.string(),
+  "fromComponentId": zod.string(),
+  "fromPort": zod.string().nullable(),
+  "toComponentId": zod.string(),
+  "toPort": zod.string().nullable(),
+  "label": zod.string().nullable()
+}).describe('A wire connecting two components'))
+}),
+  "hdlCode": zod.string().nullable(),
+  "netlist": zod.string().nullable(),
+  "xdcConstraints": zod.string().nullable(),
+  "sdcConstraints": zod.string().nullable(),
+  "hdlReview": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "designCritique": zod.array(zod.object({
+  "severity": zod.enum(['error', 'warning', 'info']),
+  "category": zod.string(),
+  "message": zod.string()
+}).describe('A single finding from an AI review pass (HDL review or design critique)')).nullable(),
+  "testbench": zod.string().nullable(),
+  "testbenchSummary": zod.string().nullable(),
   "locked": zod.boolean(),
   "lockedCategory": zod.string().nullable(),
   "createdAt": zod.coerce.date(),

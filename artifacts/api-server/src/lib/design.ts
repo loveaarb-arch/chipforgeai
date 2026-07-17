@@ -318,6 +318,201 @@ Respond with strict JSON: { "xdc": string, "sdc": string }`,
   };
 }
 
+export interface DesignFinding {
+  severity: "error" | "warning" | "info";
+  category: string;
+  message: string;
+}
+
+const VALID_SEVERITIES = new Set(["error", "warning", "info"]);
+
+/**
+ * Sanitizes raw LLM finding output before it is persisted. Drops entries that
+ * are not objects or are missing a message string, and coerces unrecognised
+ * severity values to "info" so a model returning a bad enum never bricks the
+ * project on a subsequent GET.
+ */
+export function normalizeFindings(raw: unknown): DesignFinding[] {
+  if (!Array.isArray(raw)) return [];
+  const out: DesignFinding[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const r = item as Record<string, unknown>;
+    const message = typeof r.message === "string" ? r.message.trim() : null;
+    if (!message) continue; // drop entries with no message
+    const severity = VALID_SEVERITIES.has(r.severity as string)
+      ? (r.severity as DesignFinding["severity"])
+      : "info";
+    const category =
+      typeof r.category === "string" && r.category.trim()
+        ? r.category.trim()
+        : "general";
+    out.push({ severity, category, message });
+  }
+  return out;
+}
+
+/**
+ * AI HDL reviewer — runs a second AI pass over generated Verilog to catch
+ * real HDL-level issues that deterministic structural checks can't see:
+ * undriven signals, combinational loops, implicit latches, timing risks, etc.
+ * Returns structured findings with severity levels for display in the HDL tab.
+ */
+export async function reviewHdl(
+  design: ChipDesignData,
+  hdlCode: string,
+): Promise<{ findings: DesignFinding[] }> {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 4096,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are a senior digital design engineer performing a code review of AI-generated Verilog HDL. Your job is to identify real, specific issues in the code — not generic advice.
+
+Analyze the HDL for:
+- Undriven or floating signals (wires assigned nowhere)
+- Combinational feedback loops (logic that feeds back on itself without a register)
+- Implicit latches (incomplete if/case statements in always blocks)
+- Missing or incorrect sensitivity lists
+- Clock domain crossings without synchronizers
+- Timing risks (long combinational paths)
+- Naming conflicts or reserved keyword collisions
+- Syntax issues or incomplete module port declarations
+- Missing reset conditions on registers/flip-flops
+- Bit-width mismatches between assignments
+
+For each issue found, categorize it and rate its severity:
+- "error": will prevent synthesis or cause functional failure
+- "warning": may cause functional issues or synthesis warnings, should be addressed
+- "info": style/best-practice improvement, low risk
+
+Be specific — reference signal names, module names, or line patterns from the actual HDL. If the HDL looks clean and well-formed, return a small number of "info" findings noting what's good.
+
+Respond with strict JSON: { "findings": [{ "severity": "error"|"warning"|"info", "category": string, "message": string }] }`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify({ design, hdlCode }),
+      },
+    ],
+  });
+
+  const parsed = extractJson(response.choices[0]?.message?.content) as {
+    findings?: unknown;
+  };
+
+  return { findings: normalizeFindings(parsed.findings) };
+}
+
+/**
+ * AI design critic — analyses the block-diagram architecture (not the HDL)
+ * for structural and architectural problems. Runs before HDL generation so
+ * engineers can fix the diagram first. Returns the same DesignFinding format
+ * for a unified display pattern across all three AI review features.
+ */
+export async function critiqueDesign(
+  design: ChipDesignData,
+): Promise<{ findings: DesignFinding[] }> {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 4096,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are a senior chip architect reviewing a block-diagram design. Your job is to flag real architectural problems — not generic commentary.
+
+Analyze the block diagram for:
+- Bottlenecks: single components doing too many things, or a bus/mux that will be saturated
+- Missing pipeline stages: long combinational chains that need register stages for timing closure
+- Redundant components: duplicate logic that could be shared
+- Unreachable components: components with no path to/from I/O
+- Missing components: sequential designs without explicit clock/reset sources
+- Fan-out problems: one output driving too many inputs without buffering
+- Fan-in problems: too many inputs to a single combinational block
+- Asymmetric designs: e.g. unbalanced tree structures that will cause routing pressure
+- Missing error/status signaling for controllers or FSMs
+- Design clarity issues: ambiguous or non-standard component naming
+
+Rate each finding:
+- "error": fundamental flaw that will make synthesis fail or the design nonfunctional
+- "warning": architectural weakness that will cause problems in timing, area, or power
+- "info": improvement opportunity — not a blocker, but worth considering
+
+Be specific — reference the actual component labels and connection patterns from the design. If the architecture looks solid, say so with a few "info" findings.
+
+Respond with strict JSON: { "findings": [{ "severity": "error"|"warning"|"info", "category": string, "message": string }] }`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify(design),
+      },
+    ],
+  });
+
+  const parsed = extractJson(response.choices[0]?.message?.content) as {
+    findings?: unknown;
+  };
+
+  return { findings: normalizeFindings(parsed.findings) };
+}
+
+/**
+ * AI testbench generator — produces a Verilog testbench with stimulus vectors
+ * and expected outputs for the design, plus a plain-language summary of what
+ * the test covers and whether the logic appears correct. No simulation is
+ * actually run — the AI reasons about correctness from the design and HDL.
+ */
+export async function generateTestbench(
+  design: ChipDesignData,
+  hdlCode: string,
+): Promise<{ testbench: string; testbenchSummary: string }> {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    max_completion_tokens: 8192,
+    response_format: { type: "json_object" },
+    messages: [
+      {
+        role: "system",
+        content: `You are a senior verification engineer. Given a chip block-diagram design and its Verilog HDL, produce:
+
+1. "testbench": a complete Verilog testbench module (\`tb_<module_name>\`) that:
+   - Instantiates the DUT (design under test) from the HDL
+   - Generates clock and reset stimulus
+   - Applies meaningful input vectors that cover the key functional paths
+   - Uses \`$display\` / \`$monitor\` to log expected vs actual outputs
+   - Uses \`$finish\` to terminate cleanly
+   - Includes comments explaining each test case
+   - Is syntactically valid Verilog that would run in a standard simulator
+
+2. "testbenchSummary": a plain-language paragraph (3-5 sentences) explaining:
+   - What the testbench covers (which inputs, which paths, which corner cases)
+   - What the expected behaviour is
+   - Whether the design logic appears correct based on your analysis (be honest — flag any logic you suspect is wrong)
+   - What the engineer should do to run it (general simulator guidance, not tool-specific)
+
+Respond with strict JSON: { "testbench": string, "testbenchSummary": string }`,
+      },
+      {
+        role: "user",
+        content: JSON.stringify({ design, hdlCode }),
+      },
+    ],
+  });
+
+  const parsed = extractJson(response.choices[0]?.message?.content) as {
+    testbench?: string;
+    testbenchSummary?: string;
+  };
+
+  return {
+    testbench: parsed.testbench ?? "",
+    testbenchSummary: parsed.testbenchSummary ?? "",
+  };
+}
+
 /**
  * Deterministic structural checks — never hallucinated, always computed
  * directly from the design graph.

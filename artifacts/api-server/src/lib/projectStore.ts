@@ -18,6 +18,10 @@ export interface StoredDesign {
   netlist: string | null;
   xdcConstraints: string | null;
   sdcConstraints: string | null;
+  hdlReview: import("./design").DesignFinding[] | null;
+  designCritique: import("./design").DesignFinding[] | null;
+  testbench: string | null;
+  testbenchSummary: string | null;
 }
 
 export const EMPTY_DESIGN: StoredDesign = {
@@ -27,6 +31,10 @@ export const EMPTY_DESIGN: StoredDesign = {
   netlist: null,
   xdcConstraints: null,
   sdcConstraints: null,
+  hdlReview: null,
+  designCritique: null,
+  testbench: null,
+  testbenchSummary: null,
 };
 
 export function encryptDesign(design: StoredDesign): string {
@@ -44,6 +52,10 @@ export function decryptDesign(encrypted: string): StoredDesign {
     connections: normalizeConnections(design.connections),
     xdcConstraints: design.xdcConstraints ?? null,
     sdcConstraints: design.sdcConstraints ?? null,
+    hdlReview: design.hdlReview ?? null,
+    designCritique: design.designCritique ?? null,
+    testbench: design.testbench ?? null,
+    testbenchSummary: design.testbenchSummary ?? null,
   };
 }
 
@@ -88,6 +100,10 @@ export function toProjectResponse(project: ChipProjectRow) {
     netlist: design.netlist,
     xdcConstraints: design.xdcConstraints,
     sdcConstraints: design.sdcConstraints,
+    hdlReview: design.hdlReview,
+    designCritique: design.designCritique,
+    testbench: design.testbench,
+    testbenchSummary: design.testbenchSummary,
     locked: project.locked,
     lockedCategory: project.lockedCategory,
     createdAt: project.createdAt,

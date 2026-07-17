@@ -13,6 +13,24 @@ export interface ErrorResponse {
   error: string;
 }
 
+export type DesignFindingSeverity = typeof DesignFindingSeverity[keyof typeof DesignFindingSeverity];
+
+
+export const DesignFindingSeverity = {
+  error: 'error',
+  warning: 'warning',
+  info: 'info',
+} as const;
+
+/**
+ * A single finding from an AI review pass (HDL review or design critique)
+ */
+export interface DesignFinding {
+  severity: DesignFindingSeverity;
+  category: string;
+  message: string;
+}
+
 export type ChipComponentProperties = {[key: string]: string};
 
 /**
@@ -77,6 +95,14 @@ export interface ChipProject {
   xdcConstraints: string | null;
   /** @nullable */
   sdcConstraints: string | null;
+  /** @nullable */
+  hdlReview: DesignFinding[] | null;
+  /** @nullable */
+  designCritique: DesignFinding[] | null;
+  /** @nullable */
+  testbench: string | null;
+  /** @nullable */
+  testbenchSummary: string | null;
   locked: boolean;
   /** @nullable */
   lockedCategory: string | null;

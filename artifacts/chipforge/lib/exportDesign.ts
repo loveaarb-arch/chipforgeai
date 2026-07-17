@@ -103,6 +103,30 @@ ${PACKAGE_DISCLAIMER}`;
 
   body += section('Validation report', validationSection);
 
+  if (project.designCritique && project.designCritique.length > 0) {
+    const critiqueText = project.designCritique
+      .map((f) => `- [${f.severity.toUpperCase()}] [${f.category}] ${f.message}`)
+      .join('\n');
+    body += section('AI design critique', critiqueText);
+  }
+
+  if (project.hdlReview && project.hdlReview.length > 0) {
+    const reviewText = project.hdlReview
+      .map((f) => `- [${f.severity.toUpperCase()}] [${f.category}] ${f.message}`)
+      .join('\n');
+    body += section('AI HDL review', reviewText);
+  }
+
+  if (project.testbench) {
+    if (project.testbenchSummary) {
+      body += section('Testbench coverage summary', project.testbenchSummary);
+    }
+    body += section(
+      'Generated testbench',
+      '```verilog\n' + project.testbench + '\n```',
+    );
+  }
+
   if (project.xdcConstraints) {
     body += section(
       'Constraints — XDC (Xilinx)',

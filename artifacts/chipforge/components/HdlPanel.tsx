@@ -10,8 +10,11 @@ import {
   getGetProjectQueryKey,
   useGenerateProjectConstraints,
   useGenerateProjectHdl,
+  useGenerateProjectTestbench,
+  useReviewProjectHdl,
   useValidateProjectDesign,
   type ChipProject,
+  type DesignFinding,
 } from '@workspace/api-client-react';
 
 interface Props {
@@ -33,8 +36,10 @@ export function HdlPanel({ projectId, project }: Props) {
   const [isExporting, setIsExporting] = useState(false);
   const [xdcExpanded, setXdcExpanded] = useState(true);
   const [sdcExpanded, setSdcExpanded] = useState(true);
+  const [testbenchExpanded, setTestbenchExpanded] = useState(true);
   const [xdcCopied, setXdcCopied] = useState(false);
   const [sdcCopied, setSdcCopied] = useState(false);
+  const [testbenchCopied, setTestbenchCopied] = useState(false);
 
   const handleCopy = async (text: string, setCopied: (v: boolean) => void) => {
     await Clipboard.setStringAsync(text);
@@ -49,6 +54,20 @@ export function HdlPanel({ projectId, project }: Props) {
     },
   });
   const generateConstraints = useGenerateProjectConstraints({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+      },
+    },
+  });
+  const reviewHdl = useReviewProjectHdl({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
+      },
+    },
+  });
+  const generateTestbench = useGenerateProjectTestbench({
     mutation: {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: getGetProjectQueryKey(projectId) });
@@ -112,6 +131,124 @@ export function HdlPanel({ projectId, project }: Props) {
           No HDL generated yet for the current design.
         </Text>
       )}
+
+      {/* ── AI HDL Review ─────────────────────────────────── */}
+      <View style={[styles.exportSection, { borderColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          AI HDL review
+        </Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          A second AI pass over the generated Verilog — catches undriven
+          signals, combinational loops, implicit latches, missing resets, and
+          timing risks. Requires HDL to be generated first.
+        </Text>
+        {!project.hdlCode ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            Generate HDL above before running a review.
+          </Text>
+        ) : (
+          <PrimaryButton
+            title={project.hdlReview ? 'Re-run HDL review' : 'Review HDL'}
+            onPress={() => reviewHdl.mutate({ id: projectId })}
+            loading={reviewHdl.isPending}
+            disabled={!project.hdlCode}
+            variant="secondary"
+          />
+        )}
+        {project.hdlReview && project.hdlReview.length === 0 ? (
+          <View style={[styles.findingRow, { borderColor: colors.border }]}>
+            <Feather name="check-circle" size={16} color={colors.primary} />
+            <Text style={[styles.findingText, { color: colors.foreground, marginLeft: 8 }]}>
+              No issues found — HDL looks clean.
+            </Text>
+          </View>
+        ) : null}
+        {(project.hdlReview ?? []).map((finding: DesignFinding, i: number) => {
+          const color =
+            finding.severity === 'error'
+              ? colors.destructive
+              : finding.severity === 'warning'
+                ? colors.warning
+                : colors.primary;
+          const icon =
+            finding.severity === 'error' ? 'x-circle' : finding.severity === 'warning' ? 'alert-triangle' : 'info';
+          return (
+            <View key={i} style={[styles.findingRow, { borderColor: colors.border }]}>
+              <Feather name={icon as any} size={16} color={color} />
+              <Text style={[styles.findingText, { color: colors.foreground }]}>
+                [{finding.category}] {finding.message}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+
+      {/* ── Testbench ──────────────────────────────────────── */}
+      <View style={[styles.exportSection, { borderColor: colors.border }]}>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          Testbench
+        </Text>
+        <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          Generates a Verilog testbench with clock/reset stimulus, input
+          vectors, and expected output checks — plus a plain-language summary
+          of what the test covers and whether the logic appears correct.
+          Requires HDL to be generated first.
+        </Text>
+        {!project.hdlCode ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            Generate HDL above before generating a testbench.
+          </Text>
+        ) : (
+          <PrimaryButton
+            title={project.testbench ? 'Regenerate testbench' : 'Generate testbench'}
+            onPress={() => generateTestbench.mutate({ id: projectId })}
+            loading={generateTestbench.isPending}
+            disabled={!project.hdlCode}
+            variant="secondary"
+          />
+        )}
+        {project.testbenchSummary ? (
+          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+            {project.testbenchSummary}
+          </Text>
+        ) : null}
+        {project.testbench ? (
+          <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.codeHeader}>
+              <Pressable
+                onPress={() => setTestbenchExpanded((v) => !v)}
+                style={styles.codeHeaderLeft}
+              >
+                <Feather name="terminal" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.codeHeaderText, { color: colors.mutedForeground, flex: 1 }]}>
+                  testbench.v
+                </Text>
+                <Feather
+                  name={testbenchExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color={colors.mutedForeground}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => handleCopy(project.testbench!, setTestbenchCopied)}
+                style={styles.copyButton}
+                hitSlop={8}
+              >
+                {testbenchCopied ? (
+                  <Text style={[styles.copiedText, { color: colors.mutedForeground }]}>Copied!</Text>
+                ) : (
+                  <Feather name="copy" size={14} color={colors.mutedForeground} />
+                )}
+              </Pressable>
+            </View>
+            {testbenchExpanded ? (
+              <Text selectable style={[styles.codeText, { color: colors.foreground }]}>
+                {project.testbench}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
 
       {project.netlist ? (
         <View style={[styles.codeBlock, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -293,6 +430,15 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     gap: 10,
   },
+  findingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+  },
+  findingText: { flex: 1, fontSize: 13, lineHeight: 19 },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
