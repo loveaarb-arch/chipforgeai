@@ -147,7 +147,7 @@ export default function SignInScreen() {
           keyboardType="email-address"
           value={emailAddress}
           onChangeText={setEmailAddress}
-          placeholder="you@example.com"
+          placeholder=""
           errorMessage={errors.fields.identifier?.message}
         />
         <AuthTextField
@@ -155,7 +155,7 @@ export default function SignInScreen() {
           secureTextEntry
           value={password}
           onChangeText={setPassword}
-          placeholder="••••••••"
+          placeholder=""
           errorMessage={errors.fields.password?.message}
         />
 
