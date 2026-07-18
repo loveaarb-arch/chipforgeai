@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+    alignSelf: 'center',
   },
   errorCenter: { paddingHorizontal: 32, gap: 14 },
   handoffBanner: {
