@@ -145,7 +145,7 @@ export default function ProjectWorkspaceScreen() {
                 },
               ]}
             >
-              <Feather name="trash-2" size={16} color={colors.destructive} />
+              <Feather name="x" size={18} color={colors.destructive} />
             </Pressable>
           ),
         }}
