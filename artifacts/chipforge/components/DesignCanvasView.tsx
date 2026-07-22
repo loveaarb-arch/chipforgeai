@@ -217,11 +217,18 @@ function nextId(prefix: string) {
 // ─── DesignCanvasView ─────────────────────────────────────────────────────────
 
 interface Props {
-  design:   ChipDesign;
-  onChange: (design: ChipDesign) => void;
-  saving?:  boolean;
-  grid?:    boolean;
-  snap?:    boolean;
+  design:      ChipDesign;
+  onChange:    (design: ChipDesign) => void;
+  saving?:     boolean;
+  grid?:       boolean;
+  snap?:       boolean;
+  darkCanvas?: boolean;
+  /** Hide the built-in toolbar (used when BuildWorkspace provides its own) */
+  hideToolbar?: boolean;
+  /** When set, overrides internal zoom state (controlled from outside) */
+  externalScale?: number;
+  /** Called when the user taps a component — receives its id */
+  onSelectComponent?: (id: string) => void;
 }
 
 export function DesignCanvasView({
@@ -230,9 +237,19 @@ export function DesignCanvasView({
   saving,
   grid = true,
   snap = true,
+  darkCanvas = false,
+  hideToolbar = false,
+  externalScale,
+  onSelectComponent,
 }: Props) {
   const colors              = useColors();
-  const [scale, setScale]   = useState(1);
+  const [internalScale, setInternalScale] = useState(1);
+  const scale = externalScale ?? internalScale;
+  const setScale = (updater: number | ((s: number) => number)) => {
+    if (externalScale === undefined) {
+      setInternalScale(updater as (s: number) => number);
+    }
+  };
   const [editing, setEditing] = useState<ChipComponent | null>(null);
 
   // ── Bezier wire paths ──────────────────────────────────────────────────────
@@ -307,49 +324,58 @@ export function DesignCanvasView({
     setEditing(null);
   };
 
+  // ── Derived colors ─────────────────────────────────────────────────────────
+  const canvasBg   = darkCanvas ? '#080c10' : colors.background;
+  const gridColor  = darkCanvas ? 'rgba(255,255,255,0.10)' : colors.border;
+  const toolbarBg  = darkCanvas ? '#0d1117' : colors.background;
+  const toolbarBorder = darkCanvas ? '#1e2a38' : colors.border;
+  const fgColor    = darkCanvas ? '#c9d8eb' : colors.foreground;
+  const mutedColor = darkCanvas ? '#4a6080' : colors.mutedForeground;
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <View style={[styles.root, { backgroundColor: canvasBg }]}>
 
-      {/* Toolbar */}
-      <View style={[styles.toolbar, { borderBottomColor: colors.border }]}>
-        <Pressable
-          onPress={handleAddComponent}
-          style={[styles.toolbarBtn, { backgroundColor: colors.primary }]}
-        >
-          <Feather name="plus" size={14} color={colors.primaryForeground} />
-          <Text style={[styles.toolbarBtnText, { color: colors.primaryForeground }]}>
-            Add block
-          </Text>
-        </Pressable>
+      {/* Toolbar — hidden when BuildWorkspace provides its own */}
+      {!hideToolbar && (
+        <View style={[styles.toolbar, { borderBottomColor: toolbarBorder, backgroundColor: toolbarBg }]}>
+          <Pressable
+            onPress={handleAddComponent}
+            style={[styles.toolbarBtn, { backgroundColor: colors.primary }]}
+          >
+            <Feather name="plus" size={14} color={colors.primaryForeground} />
+            <Text style={[styles.toolbarBtnText, { color: colors.primaryForeground }]}>
+              Add block
+            </Text>
+          </Pressable>
 
-        <View style={styles.zoomGroup}>
-          <Pressable
-            onPress={() => setScale((s) => Math.max(0.3, Math.round((s - 0.15) * 100) / 100))}
-            style={[styles.zoomBtn, { borderColor: colors.border }]}
-          >
-            <Feather name="minus" size={13} color={colors.foreground} />
-          </Pressable>
-          <Text style={[styles.zoomLabel, { color: colors.mutedForeground }]}>
-            {Math.round(scale * 100)}%
+          <View style={styles.zoomGroup}>
+            <Pressable
+              onPress={() => setScale((s) => Math.max(0.3, Math.round((s - 0.15) * 100) / 100))}
+              style={[styles.zoomBtn, { borderColor: toolbarBorder }]}
+            >
+              <Feather name="minus" size={13} color={fgColor} />
+            </Pressable>
+            <Text style={[styles.zoomLabel, { color: mutedColor }]}>
+              {Math.round(scale * 100)}%
+            </Text>
+            <Pressable
+              onPress={() => setScale((s) => Math.min(2.5, Math.round((s + 0.15) * 100) / 100))}
+              style={[styles.zoomBtn, { borderColor: toolbarBorder }]}
+            >
+              <Feather name="plus" size={13} color={fgColor} />
+            </Pressable>
+          </View>
+
+          {saving && (
+            <Text style={{ color: mutedColor, fontSize: 11 }}>Saving…</Text>
+          )}
+
+          <Text style={[styles.componentCount, { color: mutedColor }]}>
+            {design.components.length} blk · {design.connections.length} wire
           </Text>
-          <Pressable
-            onPress={() => setScale((s) => Math.min(2.5, Math.round((s + 0.15) * 100) / 100))}
-            style={[styles.zoomBtn, { borderColor: colors.border }]}
-          >
-            <Feather name="plus" size={13} color={colors.foreground} />
-          </Pressable>
         </View>
-
-        {saving && (
-          <Text style={{ color: colors.mutedForeground, fontSize: 11 }}>Saving…</Text>
-        )}
-
-        <Text style={[styles.componentCount, { color: colors.mutedForeground }]}>
-          {design.components.length} block{design.components.length !== 1 ? 's' : ''} ·{' '}
-          {design.connections.length} wire{design.connections.length !== 1 ? 's' : ''}
-        </Text>
-      </View>
+      )}
 
       {/* Scrollable canvas */}
       <ScrollView style={{ flex: 1 }}>
@@ -359,6 +385,7 @@ export function DesignCanvasView({
               style={{
                 width:           CANVAS_SIZE,
                 height:          CANVAS_SIZE,
+                backgroundColor: canvasBg,
                 transform:       [{ scale }],
                 transformOrigin: '0 0',
               }}
@@ -372,7 +399,7 @@ export function DesignCanvasView({
                 {/* Dot grid */}
                 {grid &&
                   GRID_DOTS.map(({ cx, cy }) => (
-                    <Circle key={`g-${cx}-${cy}`} cx={cx} cy={cy} r={1} fill={colors.border} />
+                    <Circle key={`g-${cx}-${cy}`} cx={cx} cy={cy} r={1} fill={gridColor} />
                   ))}
 
                 {/* Bezier connections */}
@@ -409,7 +436,10 @@ export function DesignCanvasView({
                   component={c}
                   scale={scale}
                   onDragEnd={updateComponentPosition}
-                  onPress={setEditing}
+                  onPress={(comp) => {
+                    setEditing(comp);
+                    onSelectComponent?.(comp.id);
+                  }}
                 />
               ))}
             </View>
