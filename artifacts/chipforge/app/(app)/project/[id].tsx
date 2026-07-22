@@ -12,6 +12,7 @@ import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { ChatPanel } from '@/components/ChatPanel';
+import { ComponentLibraryPanel } from '@/components/ComponentLibraryPanel';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
 import { ValidationPanel } from '@/components/ValidationPanel';
 import { HdlPanel } from '@/components/HdlPanel';
@@ -26,10 +27,11 @@ import {
   type ChipDesign,
 } from '@workspace/api-client-react';
 
-type Tab = 'chat' | 'diagram' | 'validate' | 'hdl' | 'versions';
+type Tab = 'chat' | 'build' | 'diagram' | 'validate' | 'hdl' | 'versions';
 
 const TABS: { key: Tab; label: string; icon: keyof typeof Feather.glyphMap }[] = [
   { key: 'chat', label: 'Chat', icon: 'message-circle' },
+  { key: 'build', label: 'Build', icon: 'box' },
   { key: 'diagram', label: 'Diagram', icon: 'git-merge' },
   { key: 'validate', label: 'Validate', icon: 'check-square' },
   { key: 'hdl', label: 'HDL', icon: 'code' },
@@ -211,6 +213,13 @@ export default function ProjectWorkspaceScreen() {
             design={localDesign}
             onChange={handleDesignChange}
             saving={updateDesign.isPending}
+          />
+        )}
+        {tab === 'build' && localDesign && (
+          <ComponentLibraryPanel
+            design={localDesign}
+            onChange={handleDesignChange}
+            onGoToDiagram={() => setTab('diagram')}
           />
         )}
         {tab === 'validate' && <ValidationPanel projectId={projectId} project={project} />}
