@@ -1,8 +1,19 @@
 /**
- * BuildWorkspace — KiCad-style split layout.
+ * BuildWorkspace — KiCad-style EDA layout.
  *
- * Left:  black grid canvas (DesignCanvasView in darkCanvas mode, flex: 1)
- * Right: white EDA panel (~148 px) — Layers, Components, Design, Properties
+ * ┌──────────────────────────────┬───────────────┐
+ * │  black canvas toolbar        │  Visibles      │
+ * ├──────────────────────────────│  Layer│Render  │
+ * │                              │  ─────────────│
+ * │   BLACK GRID WORKSPACE       │  ■ Metal 1  ☑ │
+ * │   (chip lives here)          │  ■ Metal 2  ☑ │
+ * │                              │  …             │
+ * │                              │  ─── PARTS ───│
+ * │                              │  tile tile     │
+ * │                              │  ─── TOOLS ───│
+ * ├──────────────────────────────│  DRC ERC …     │
+ * │  status bar                  │                │
+ * └──────────────────────────────┴───────────────┘
  */
 
 import React, { useState } from 'react';
@@ -11,7 +22,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from 'react-native';
@@ -19,7 +29,7 @@ import { Feather } from '@expo/vector-icons';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
 import type { ChipComponent, ChipDesign } from '@workspace/api-client-react';
 
-// ─── Palette colours (used only in the right panel) ───────────────────────────
+// ─── Colours ──────────────────────────────────────────────────────────────────
 
 const TYPE_COLOR: Record<string, string> = {
   logic_gate:  '#818cf8',
@@ -46,12 +56,12 @@ function runDRC(design: ChipDesign): string {
   const seqTypes = ['flip_flop', 'register', 'memory'];
   for (const c of design.components)
     if (seqTypes.includes(c.type) && !design.connections.some((cn) => cn.toComponentId === c.id))
-      issues.push(`⚠ "${c.label}" has no inputs — needs CLK`);
+      issues.push(`⚠ "${c.label}" has no inputs`);
   if (design.components.length > 0 && !design.components.some((c) => c.type === 'io_port'))
     issues.push('⚠ No I/O port found — add input/output pins');
   return issues.length === 0
     ? '✓ No DRC violations.\n\nAll structural checks passed.'
-    : `Found ${issues.length} issue${issues.length > 1 ? 's' : ''}:\n\n${issues.join('\n\n')}`;
+    : `${issues.length} issue${issues.length > 1 ? 's' : ''}:\n\n${issues.join('\n\n')}`;
 }
 
 function runERC(design: ChipDesign): string {
@@ -63,7 +73,7 @@ function runERC(design: ChipDesign): string {
   fanOut.forEach((count, id) => {
     if (count > 4) {
       const comp = byId.get(id);
-      if (comp) issues.push(`⚠ "${comp.label}" drives ${count} loads — high fan-out`);
+      if (comp) issues.push(`⚠ "${comp.label}" — high fan-out (${count})`);
     }
   });
   const fwdMap = new Map<string, Set<string>>();
@@ -79,7 +89,7 @@ function runERC(design: ChipDesign): string {
     issues.push('⚠ No wires — all components are unconnected');
   return issues.length === 0
     ? '✓ No ERC violations.\n\nAll electrical checks passed.'
-    : `Found ${issues.length} issue${issues.length > 1 ? 's' : ''}:\n\n${issues.join('\n\n')}`;
+    : `${issues.length} issue${issues.length > 1 ? 's' : ''}:\n\n${issues.join('\n\n')}`;
 }
 
 function autoRoute(design: ChipDesign): ChipDesign {
@@ -114,34 +124,33 @@ function autoRoute(design: ChipDesign): ChipDesign {
   for (const layer of layers) {
     const layerW = Math.max(...layer.map((id) => byId.get(id)?.width ?? 140));
     let y = PAD_Y;
-    for (const id of layer) {
-      newPos.set(id, { x, y });
-      y += (byId.get(id)?.height ?? 80) + PAD_Y;
-    }
+    for (const id of layer) { newPos.set(id, { x, y }); y += (byId.get(id)?.height ?? 80) + PAD_Y; }
     x += layerW + PAD_X + 80;
   }
   return {
     ...design,
-    components: design.components.map((c) => {
-      const pos = newPos.get(c.id);
-      return pos ? { ...c, x: pos.x, y: pos.y } : c;
-    }),
+    components: design.components.map((c) => { const p = newPos.get(c.id); return p ? { ...c, ...p } : c; }),
   };
 }
 
 // ─── Layer data ───────────────────────────────────────────────────────────────
 
-interface Layer { id: string; name: string; color: string; visible: boolean }
-const DEFAULT_LAYERS: Layer[] = [
-  { id: 'metal1',  name: 'Metal 1',     color: '#22d3ee', visible: true  },
-  { id: 'metal2',  name: 'Metal 2',     color: '#818cf8', visible: true  },
-  { id: 'poly',    name: 'Poly',        color: '#f59e0b', visible: true  },
-  { id: 'ndiff',   name: 'N-Diff',      color: '#34d399', visible: true  },
-  { id: 'pdiff',   name: 'P-Diff',      color: '#fb7185', visible: false },
-  { id: 'contact', name: 'Contact',     color: '#a3a3a3', visible: true  },
+interface LayerDef { id: string; name: string; color: string; visible: boolean; active?: boolean }
+const DEFAULT_LAYERS: LayerDef[] = [
+  { id: 'metal1',  name: 'Metal 1',  color: '#e05252', visible: true,  active: true },
+  { id: 'metal2',  name: 'Metal 2',  color: '#5490e0', visible: true  },
+  { id: 'poly',    name: 'Poly',     color: '#34d399', visible: true  },
+  { id: 'ndiff',   name: 'N‑Diff',   color: '#a78bfa', visible: true  },
+  { id: 'pdiff',   name: 'P‑Diff',   color: '#fbbf24', visible: true  },
+  { id: 'contact', name: 'Contact',  color: '#94a3b8', visible: true  },
+  { id: 'nwell',   name: 'N‑Well',   color: '#22d3ee', visible: false },
+  { id: 'silkF',   name: 'Silk_F',   color: '#f0f0f0', visible: true  },
+  { id: 'silkB',   name: 'Silk_B',   color: '#c0c0c0', visible: false },
+  { id: 'maskF',   name: 'Mask_F',   color: '#fb7185', visible: true  },
+  { id: 'pcbedge', name: 'PCB_Edges',color: '#facc15', visible: true  },
 ];
 
-// ─── Component palette data ───────────────────────────────────────────────────
+// ─── Component palette ────────────────────────────────────────────────────────
 
 interface CompDef {
   type: ChipComponent['type'];
@@ -151,38 +160,23 @@ interface CompDef {
   bits: number | null;
 }
 const COMP_DEFS: CompDef[] = [
-  { type: 'logic_gate',  label: 'AND',     symbol: '&',    w: 80,  h: 56,  bits: 1 },
-  { type: 'logic_gate',  label: 'OR',      symbol: '≥1',   w: 80,  h: 56,  bits: 1 },
-  { type: 'logic_gate',  label: 'XOR',     symbol: '=1',   w: 80,  h: 56,  bits: 1 },
-  { type: 'logic_gate',  label: 'NOT',     symbol: '1̄',   w: 64,  h: 48,  bits: 1 },
-  { type: 'logic_gate',  label: 'NAND',    symbol: '&̄',   w: 80,  h: 56,  bits: 1 },
-  { type: 'logic_gate',  label: 'NOR',     symbol: '≥1̄',  w: 80,  h: 56,  bits: 1 },
-  { type: 'flip_flop',   label: 'FF',      symbol: 'D▷',   w: 96,  h: 72,  bits: 1 },
-  { type: 'multiplexer', label: 'MUX',     symbol: 'MUX',  w: 96,  h: 80,  bits: 1 },
-  { type: 'alu',         label: 'DEC',     symbol: 'DEC',  w: 96,  h: 80,  bits: 1 },
-  { type: 'register',    label: 'REG',     symbol: 'REG',  w: 112, h: 72,  bits: 8 },
-  { type: 'memory',      label: 'RAM',     symbol: 'RAM',  w: 128, h: 80,  bits: 8 },
-  { type: 'clock',       label: 'CLK',     symbol: '⏱',   w: 72,  h: 56,  bits: null },
-  { type: 'io_port',     label: 'IN',      symbol: '▶I',   w: 64,  h: 48,  bits: 1 },
-  { type: 'io_port',     label: 'OUT',     symbol: 'O▶',   w: 64,  h: 48,  bits: 1 },
-  { type: 'io_port',     label: 'VDD',     symbol: 'VDD',  w: 48,  h: 48,  bits: null },
-  { type: 'io_port',     label: 'GND',     symbol: 'GND',  w: 48,  h: 48,  bits: null },
+  { type: 'logic_gate',  label: 'AND',  symbol: '&',   w: 80,  h: 56,  bits: 1 },
+  { type: 'logic_gate',  label: 'OR',   symbol: '≥1',  w: 80,  h: 56,  bits: 1 },
+  { type: 'logic_gate',  label: 'XOR',  symbol: '=1',  w: 80,  h: 56,  bits: 1 },
+  { type: 'logic_gate',  label: 'NOT',  symbol: '1̄',  w: 64,  h: 48,  bits: 1 },
+  { type: 'logic_gate',  label: 'NAND', symbol: '&̄',  w: 80,  h: 56,  bits: 1 },
+  { type: 'logic_gate',  label: 'NOR',  symbol: '≥̄',  w: 80,  h: 56,  bits: 1 },
+  { type: 'flip_flop',   label: 'FF',   symbol: 'D▷',  w: 96,  h: 72,  bits: 1 },
+  { type: 'multiplexer', label: 'MUX',  symbol: 'MUX', w: 96,  h: 80,  bits: 1 },
+  { type: 'alu',         label: 'DEC',  symbol: 'DEC', w: 96,  h: 80,  bits: 1 },
+  { type: 'register',    label: 'REG',  symbol: 'REG', w: 112, h: 72,  bits: 8 },
+  { type: 'memory',      label: 'RAM',  symbol: 'RAM', w: 128, h: 80,  bits: 8 },
+  { type: 'clock',       label: 'CLK',  symbol: '⏱',  w: 72,  h: 56,  bits: null },
+  { type: 'io_port',     label: 'IN',   symbol: '▶I',  w: 64,  h: 48,  bits: 1 },
+  { type: 'io_port',     label: 'OUT',  symbol: 'O▶',  w: 64,  h: 48,  bits: 1 },
+  { type: 'io_port',     label: 'VDD',  symbol: 'VDD', w: 48,  h: 48,  bits: null },
+  { type: 'io_port',     label: 'GND',  symbol: 'GND', w: 48,  h: 48,  bits: null },
 ];
-
-// ─── Right panel sub-components ───────────────────────────────────────────────
-
-function PanelSection({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(true);
-  return (
-    <View>
-      <Pressable style={s.secHeader} onPress={() => setOpen((o) => !o)}>
-        <Text style={s.secTitle}>{title}</Text>
-        <Feather name={open ? 'chevron-up' : 'chevron-down'} size={11} color="#6b7280" />
-      </Pressable>
-      {open && children}
-    </View>
-  );
-}
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -211,21 +205,22 @@ export function BuildWorkspace({
   onGridChange,
   onSnapChange,
 }: Props) {
-  const [layers, setLayers] = useState<Layer[]>(DEFAULT_LAYERS);
-  const [scale, setScale]   = useState(1);
+  const [layers, setLayers]       = useState<LayerDef[]>(DEFAULT_LAYERS);
+  const [activeLayer, setActive]  = useState('metal1');
+  const [panelTab, setPanelTab]   = useState<'layer' | 'render'>('layer');
+  const [scale, setScale]         = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selectedComp = design.components.find((c) => c.id === selectedId) ?? null;
 
-  // Place a new component from the palette
   function placeComponent(def: CompDef) {
     const id = `comp_${Date.now().toString(36)}`;
     const newComp: ChipComponent = {
       id,
       type:       def.type,
       label:      def.label,
-      x:          60,
-      y:          60 + design.components.length * 24,
+      x:          60 + (design.components.length % 6) * 20,
+      y:          60 + (design.components.length % 8) * 16,
       width:      def.w,
       height:     def.h,
       bitWidth:   def.bits ?? null,
@@ -239,250 +234,364 @@ export function BuildWorkspace({
     setLayers((ls) => ls.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l)));
   }
 
+  const blks  = design.components.length;
+  const wires = design.connections.length;
+  const nets  = new Set(design.connections.map((c) => c.id)).size;
+
   return (
     <View style={s.root}>
 
-      {/* ── Left: canvas ─────────────────────────────────────────────────── */}
-      <View style={s.canvasArea}>
+      {/* ── LEFT: canvas column ─────────────────────────────────────────── */}
+      <View style={s.canvasCol}>
 
-        {/* Thin canvas toolbar */}
+        {/* Canvas mini-toolbar */}
         <View style={s.canvasBar}>
-          <Pressable
-            style={s.zoomBtn}
-            onPress={() => setScale((sc) => Math.max(0.25, Math.round((sc - 0.15) * 100) / 100))}
-          >
-            <Feather name="minus" size={12} color="#8aa4c0" />
+          <Pressable style={s.zBtn} onPress={() => setScale((v) => Math.max(0.25, +((v - 0.15).toFixed(2))))}>
+            <Feather name="minus" size={11} color="#5a7a9a" />
           </Pressable>
-          <Text style={s.zoomLabel}>{Math.round(scale * 100)}%</Text>
-          <Pressable
-            style={s.zoomBtn}
-            onPress={() => setScale((sc) => Math.min(3, Math.round((sc + 0.15) * 100) / 100))}
-          >
-            <Feather name="plus" size={12} color="#8aa4c0" />
+          <Text style={s.zLabel}>{Math.round(scale * 100)}%</Text>
+          <Pressable style={s.zBtn} onPress={() => setScale((v) => Math.min(3, +((v + 0.15).toFixed(2))))}>
+            <Feather name="plus" size={11} color="#5a7a9a" />
           </Pressable>
 
-          <Text style={s.canvasStats}>
-            {design.components.length} blk · {design.connections.length} wire
-          </Text>
+          <View style={s.barSep} />
 
-          {saving && <Text style={s.savingLabel}>Saving…</Text>}
+          <Pressable style={s.barToggle} onPress={() => onGridChange(!grid)}>
+            <View style={[s.barToggleDot, grid && s.barToggleDotOn]} />
+            <Text style={s.barToggleLabel}>Grid</Text>
+          </Pressable>
+          <Pressable style={s.barToggle} onPress={() => onSnapChange(!snap)}>
+            <View style={[s.barToggleDot, snap && s.barToggleDotOn]} />
+            <Text style={s.barToggleLabel}>Snap</Text>
+          </Pressable>
+
+          {saving && <Text style={s.savingDot}>●</Text>}
         </View>
 
-        {/* Canvas */}
-        <DesignCanvasView
-          design={design}
-          onChange={onChange}
-          grid={grid}
-          snap={snap}
-          darkCanvas
-          hideToolbar
-          externalScale={scale}
-          onSelectComponent={setSelectedId}
-        />
+        {/* Canvas — pure black, dark mode */}
+        <View style={{ flex: 1 }}>
+          <DesignCanvasView
+            design={design}
+            onChange={onChange}
+            grid={grid}
+            snap={snap}
+            darkCanvas
+            hideToolbar
+            externalScale={scale}
+            onSelectComponent={setSelectedId}
+          />
+        </View>
+
+        {/* Status bar — KiCad-style bottom strip */}
+        <View style={s.statusBar}>
+          <StatusChip label="Blks"  value={String(blks)}  />
+          <StatusChip label="Wires" value={String(wires)} />
+          <StatusChip label="Nets"  value={String(nets)}  accent />
+          <StatusChip label="Uncon" value={String(Math.max(0, blks - (wires > 0 ? blks : 0)))} />
+          <View style={{ flex: 1 }} />
+          {selectedComp && (
+            <Text style={s.statusCoords}>
+              {selectedComp.label}  x {Math.round(selectedComp.x)}  y {Math.round(selectedComp.y)}
+            </Text>
+          )}
+        </View>
       </View>
 
-      {/* ── Right: white EDA panel ────────────────────────────────────────── */}
-      <ScrollView style={s.panel} contentContainerStyle={s.panelContent} bounces={false}>
+      {/* ── RIGHT: Visibles panel ───────────────────────────────────────── */}
+      <View style={s.panel}>
 
-        {/* LAYERS */}
-        <PanelSection title="LAYERS">
-          {layers.map((l) => (
-            <Pressable
-              key={l.id}
-              style={s.layerRow}
-              onPress={() => toggleLayer(l.id)}
-            >
-              <View style={[s.layerSwatch, { backgroundColor: l.color }]} />
-              <Text style={[s.layerName, !l.visible && s.layerHidden]}>{l.name}</Text>
-              <Feather
-                name={l.visible ? 'eye' : 'eye-off'}
-                size={11}
-                color={l.visible ? '#374151' : '#d1d5db'}
-              />
-            </Pressable>
-          ))}
-        </PanelSection>
+        {/* Panel header */}
+        <View style={s.panelHeader}>
+          <Text style={s.panelTitle}>Visibles</Text>
+        </View>
 
-        <View style={s.divider} />
+        {/* Layer / Render tabs */}
+        <View style={s.tabRow}>
+          <Pressable
+            style={[s.panelTab, panelTab === 'layer' && s.panelTabActive]}
+            onPress={() => setPanelTab('layer')}
+          >
+            <Text style={[s.panelTabText, panelTab === 'layer' && s.panelTabTextActive]}>Layer</Text>
+          </Pressable>
+          <Pressable
+            style={[s.panelTab, panelTab === 'render' && s.panelTabActive]}
+            onPress={() => setPanelTab('render')}
+          >
+            <Text style={[s.panelTabText, panelTab === 'render' && s.panelTabTextActive]}>Render</Text>
+          </Pressable>
+        </View>
 
-        {/* COMPONENTS */}
-        <PanelSection title="COMPONENTS">
-          <View style={s.compGrid}>
-            {COMP_DEFS.map((def, i) => {
-              const col = TYPE_COLOR[def.type] ?? '#6b7280';
-              return (
-                <Pressable key={i} style={s.compTile} onPress={() => placeComponent(def)}>
-                  <View style={[s.compSymbolBox, { borderColor: col + '60', backgroundColor: col + '12' }]}>
-                    <Text style={[s.compSymbol, { color: col }]}>{def.symbol}</Text>
-                  </View>
-                  <Text style={s.compLabel} numberOfLines={1}>{def.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </PanelSection>
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} bounces={false}>
 
-        <View style={s.divider} />
-
-        {/* DESIGN */}
-        <PanelSection title="DESIGN">
-          <View style={s.toggleRow}>
-            <Text style={s.toggleLabel}>Grid</Text>
-            <Switch
-              value={grid}
-              onValueChange={onGridChange}
-              thumbColor="#fff"
-              trackColor={{ false: '#d1d5db', true: '#3b82f6' }}
-              style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-            />
-          </View>
-          <View style={s.toggleRow}>
-            <Text style={s.toggleLabel}>Snap</Text>
-            <Switch
-              value={snap}
-              onValueChange={onSnapChange}
-              thumbColor="#fff"
-              trackColor={{ false: '#d1d5db', true: '#3b82f6' }}
-              style={{ transform: [{ scaleX: 0.7 }, { scaleY: 0.7 }] }}
-            />
-          </View>
-
-          {/* Action buttons */}
-          {([
-            { icon: 'check-circle' as const, label: 'DRC',        onPress: () => Alert.alert('DRC', runDRC(design)) },
-            { icon: 'zap'          as const, label: 'ERC',        onPress: () => Alert.alert('ERC', runERC(design)) },
-            { icon: 'share-2'      as const, label: 'Auto Route', onPress: () => onChange(autoRoute(design)) },
-            { icon: 'cpu'          as const, label: 'AI Assist',  onPress: onAiAssist, accent: true },
-            { icon: 'shield'       as const, label: 'Validate',   onPress: onValidate, accent: true },
-          ] as { icon: React.ComponentProps<typeof Feather>['name']; label: string; onPress?: () => void; accent?: boolean }[]).map((btn) => (
-            <Pressable
-              key={btn.label}
-              style={({ pressed }) => [
-                s.actionBtn,
-                btn.accent && s.actionBtnAccent,
-                pressed && s.actionBtnPressed,
-              ]}
-              onPress={btn.onPress}
-            >
-              <Feather name={btn.icon} size={11} color={btn.accent ? '#fff' : '#374151'} />
-              <Text style={[s.actionBtnText, btn.accent && s.actionBtnTextAccent]}>
-                {btn.label}
-              </Text>
-            </Pressable>
-          ))}
-        </PanelSection>
-
-        <View style={s.divider} />
-
-        {/* PROPERTIES */}
-        <PanelSection title="PROPERTIES">
-          {!selectedComp ? (
-            <Text style={s.emptyProps}>Tap a component to see its properties.</Text>
-          ) : (
+          {/* ── LAYER TAB ─────────────────────────────────────────────── */}
+          {panelTab === 'layer' && (
             <>
-              <PropRow label="ID"    value={selectedComp.id.slice(0, 12)} />
-              <PropRow label="Type"  value={selectedComp.type.replace('_', ' ')} />
-              <PropRow label="Label" value={selectedComp.label} />
-              <PropRow label="X"     value={String(Math.round(selectedComp.x))} />
-              <PropRow label="Y"     value={String(Math.round(selectedComp.y))} />
-              <PropRow label="W"     value={String(selectedComp.width)} />
-              <PropRow label="H"     value={String(selectedComp.height)} />
-              {selectedComp.bitWidth != null && (
-                <PropRow label="Bits" value={String(selectedComp.bitWidth)} />
+              {layers.map((l) => (
+                <Pressable
+                  key={l.id}
+                  style={[s.layerRow, l.id === activeLayer && s.layerRowActive]}
+                  onPress={() => setActive(l.id)}
+                >
+                  {/* Colored swatch — double-border style like KiCad */}
+                  <View style={[s.swatch, { backgroundColor: l.color }]}>
+                    {l.id === activeLayer && <View style={s.swatchInner} />}
+                  </View>
+                  <Text style={[s.layerName, !l.visible && s.layerNameHidden]} numberOfLines={1}>
+                    {l.name}
+                  </Text>
+                  {/* Checkbox */}
+                  <Pressable onPress={() => toggleLayer(l.id)} hitSlop={6} style={s.checkbox}>
+                    <View style={[s.checkboxBox, l.visible && s.checkboxChecked]}>
+                      {l.visible && <Feather name="check" size={8} color="#fff" />}
+                    </View>
+                  </Pressable>
+                </Pressable>
+              ))}
+            </>
+          )}
+
+          {/* ── RENDER TAB (component palette + tools) ─────────────────── */}
+          {panelTab === 'render' && (
+            <>
+              {/* Section: Parts */}
+              <View style={s.renderSection}>
+                <Text style={s.renderSectionTitle}>PARTS</Text>
+              </View>
+              <View style={s.compGrid}>
+                {COMP_DEFS.map((def, i) => {
+                  const col = TYPE_COLOR[def.type] ?? '#6b7280';
+                  return (
+                    <Pressable key={i} style={s.compTile} onPress={() => placeComponent(def)}>
+                      <View style={[s.compBox, { borderColor: col + '70', backgroundColor: col + '18' }]}>
+                        <Text style={[s.compSym, { color: col }]}>{def.symbol}</Text>
+                      </View>
+                      <Text style={s.compLbl} numberOfLines={1}>{def.label}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
+              {/* Section: Tools */}
+              <View style={s.renderSection}>
+                <Text style={s.renderSectionTitle}>TOOLS</Text>
+              </View>
+
+              {([
+                { icon: 'check-circle' as const, label: 'DRC',       cb: () => Alert.alert('DRC', runDRC(design)) },
+                { icon: 'zap'          as const, label: 'ERC',       cb: () => Alert.alert('ERC', runERC(design)) },
+                { icon: 'share-2'      as const, label: 'Auto Route',cb: () => onChange(autoRoute(design)) },
+                { icon: 'cpu'          as const, label: 'AI Assist', cb: onAiAssist,  accent: true },
+                { icon: 'shield'       as const, label: 'Validate',  cb: onValidate,  accent: true },
+              ] as { icon: React.ComponentProps<typeof Feather>['name']; label: string; cb?: () => void; accent?: boolean }[]).map((btn) => (
+                <Pressable
+                  key={btn.label}
+                  style={({ pressed }) => [s.toolBtn, btn.accent && s.toolBtnAccent, pressed && { opacity: 0.7 }]}
+                  onPress={btn.cb}
+                >
+                  <Feather name={btn.icon} size={10} color={btn.accent ? '#fff' : '#374151'} />
+                  <Text style={[s.toolBtnText, btn.accent && s.toolBtnTextAccent]}>{btn.label}</Text>
+                </Pressable>
+              ))}
+
+              {/* Properties */}
+              {selectedComp && (
+                <>
+                  <View style={s.renderSection}>
+                    <Text style={s.renderSectionTitle}>PROPERTIES</Text>
+                  </View>
+                  <View style={s.propsBlock}>
+                    <PropRow k="Type"  v={selectedComp.type.replace('_', ' ')} />
+                    <PropRow k="Label" v={selectedComp.label} />
+                    <PropRow k="X"     v={String(Math.round(selectedComp.x))} />
+                    <PropRow k="Y"     v={String(Math.round(selectedComp.y))} />
+                    <PropRow k="W"     v={String(selectedComp.width)} />
+                    <PropRow k="H"     v={String(selectedComp.height)} />
+                    {selectedComp.bitWidth != null && (
+                      <PropRow k="Bits" v={String(selectedComp.bitWidth)} />
+                    )}
+                  </View>
+                </>
               )}
             </>
           )}
-        </PanelSection>
 
-        <View style={{ height: 32 }} />
-      </ScrollView>
+          <View style={{ height: 24 }} />
+        </ScrollView>
+      </View>
     </View>
   );
 }
 
-function PropRow({ label, value }: { label: string; value: string }) {
+// ─── Small helpers ────────────────────────────────────────────────────────────
+
+function StatusChip({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <View style={s.statusChip}>
+      <Text style={s.statusLabel}>{label}</Text>
+      <Text style={[s.statusValue, accent && s.statusValueAccent]}>{value}</Text>
+    </View>
+  );
+}
+
+function PropRow({ k, v }: { k: string; v: string }) {
   return (
     <View style={s.propRow}>
-      <Text style={s.propKey}>{label}</Text>
-      <Text style={s.propVal} numberOfLines={1}>{value}</Text>
+      <Text style={s.propKey}>{k}</Text>
+      <Text style={s.propVal} numberOfLines={1}>{v}</Text>
     </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const PANEL_W = 148;
+const PANEL_W  = 152;
+const BAR_H    = 28;
+const STATUS_H = 22;
+
+// Panel colours (light, like KiCad's Visibles pane)
+const P_BG      = '#f0f0f0';
+const P_BORDER  = '#b8b8b8';
+const P_ACTIVE  = '#d8e8ff';
+const P_TEXT    = '#1a1a1a';
+const P_MUTED   = '#6b7280';
+const P_TAB_ACT = '#ffffff';
+
+// Canvas colours
+const C_BG      = '#000000';
+const C_BAR_BG  = '#0d1117';
+const C_BAR_BD  = '#1e2a38';
+const C_STATUS  = '#0a0f18';
 
 const s = StyleSheet.create({
-  root:        { flex: 1, flexDirection: 'row', backgroundColor: '#080c10' },
+  root: { flex: 1, flexDirection: 'row', backgroundColor: C_BG },
 
-  // Canvas side
-  canvasArea:  { flex: 1, flexDirection: 'column' },
+  // ── Canvas column ──────────────────────────────────────────────────────────
+  canvasCol: { flex: 1, flexDirection: 'column', backgroundColor: C_BG },
+
   canvasBar: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    paddingHorizontal: 10, paddingVertical: 5,
-    backgroundColor: '#0d1117',
-    borderBottomWidth: 1, borderBottomColor: '#1e2a38',
+    height: BAR_H,
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    paddingHorizontal: 8,
+    backgroundColor: C_BAR_BG,
+    borderBottomWidth: 1, borderBottomColor: C_BAR_BD,
   },
-  zoomBtn:     { padding: 4, borderRadius: 4 },
-  zoomLabel:   { fontSize: 10, color: '#6b8aaa', minWidth: 30, textAlign: 'center' },
-  canvasStats: { fontSize: 10, color: '#3d5a78', marginLeft: 4 },
-  savingLabel: { fontSize: 10, color: '#3b82f6', marginLeft: 'auto' },
+  zBtn:      { padding: 3, borderRadius: 3 },
+  zLabel:    { fontSize: 10, color: '#5a7a9a', minWidth: 28, textAlign: 'center', fontVariant: ['tabular-nums'] },
+  barSep:    { width: 1, height: 14, backgroundColor: C_BAR_BD, marginHorizontal: 4 },
+  barToggle: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 2 },
+  barToggleDot:   { width: 6, height: 6, borderRadius: 3, backgroundColor: '#2d3f54' },
+  barToggleDotOn: { backgroundColor: '#3b82f6' },
+  barToggleLabel: { fontSize: 9, color: '#4a6080' },
+  savingDot: { fontSize: 8, color: '#3b82f6', marginLeft: 4 },
 
-  // Right panel
+  statusBar: {
+    height: STATUS_H,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    paddingHorizontal: 8,
+    backgroundColor: C_STATUS,
+    borderTopWidth: 1, borderTopColor: '#0f1923',
+  },
+  statusChip:        { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  statusLabel:       { fontSize: 9, color: '#2d4a66' },
+  statusValue:       { fontSize: 9, color: '#4a7aaa', fontVariant: ['tabular-nums'] },
+  statusValueAccent: { color: '#e05252' },
+  statusCoords:      { fontSize: 9, color: '#2d4a66', fontVariant: ['tabular-nums'] },
+
+  // ── Right panel ────────────────────────────────────────────────────────────
   panel: {
-    width:           PANEL_W,
-    backgroundColor: '#ffffff',
-    borderLeftWidth: 1,
-    borderLeftColor: '#e5e7eb',
+    width: PANEL_W,
+    backgroundColor: P_BG,
+    borderLeftWidth: 1, borderLeftColor: P_BORDER,
+    flexDirection: 'column',
   },
-  panelContent: { paddingBottom: 16 },
-  divider:      { height: 1, backgroundColor: '#e5e7eb', marginVertical: 2 },
 
-  // Section header
-  secHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 10, paddingVertical: 6,
-    backgroundColor: '#f9fafb',
+  panelHeader: {
+    height: 20,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    backgroundColor: '#d8d8d8',
+    borderBottomWidth: 1, borderBottomColor: P_BORDER,
   },
-  secTitle: { fontSize: 9, fontWeight: '700', letterSpacing: 0.8, color: '#6b7280' },
+  panelTitle: { fontSize: 10, fontWeight: '700', color: P_TEXT, letterSpacing: 0.3 },
 
-  // Layers
-  layerRow:    { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 5 },
-  layerSwatch: { width: 10, height: 10, borderRadius: 2, flexShrink: 0 },
-  layerName:   { flex: 1, fontSize: 11, color: '#111827' },
-  layerHidden: { color: '#9ca3af' },
+  tabRow: {
+    flexDirection: 'row',
+    backgroundColor: '#c8c8c8',
+    borderBottomWidth: 1, borderBottomColor: P_BORDER,
+  },
+  panelTab: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    paddingVertical: 5,
+    borderRightWidth: 1, borderRightColor: P_BORDER,
+    backgroundColor: '#c8c8c8',
+  },
+  panelTabActive:     { backgroundColor: P_TAB_ACT, borderBottomColor: P_TAB_ACT },
+  panelTabText:       { fontSize: 10, color: '#555', fontWeight: '400' },
+  panelTabTextActive: { color: P_TEXT, fontWeight: '600' },
 
-  // Component grid
-  compGrid:  { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 8, paddingVertical: 4, gap: 4 },
-  compTile:  { width: 60, alignItems: 'center', gap: 2, paddingVertical: 4 },
-  compSymbolBox: {
-    width: 44, height: 32,
-    borderRadius: 5, borderWidth: 1,
+  // Layer rows — compact, KiCad-style
+  layerRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 6, paddingVertical: 3,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#ddd',
+    gap: 5,
+    backgroundColor: P_BG,
+  },
+  layerRowActive: { backgroundColor: P_ACTIVE },
+
+  swatch: {
+    width: 12, height: 12, borderRadius: 2, flexShrink: 0,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: 'rgba(0,0,0,0.25)',
+  },
+  swatchInner: {
+    width: 4, height: 4, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.7)',
+  },
+
+  layerName:       { flex: 1, fontSize: 10, color: P_TEXT },
+  layerNameHidden: { color: '#b0b0b0' },
+
+  checkbox:        { padding: 2 },
+  checkboxBox: {
+    width: 12, height: 12, borderRadius: 2,
+    borderWidth: 1, borderColor: '#9ca3af',
+    backgroundColor: '#fff',
     alignItems: 'center', justifyContent: 'center',
   },
-  compSymbol: { fontSize: 12, fontWeight: '700' },
-  compLabel:  { fontSize: 9, color: '#374151', textAlign: 'center' },
+  checkboxChecked: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
 
-  // Design toggles
-  toggleRow:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10, paddingVertical: 2 },
-  toggleLabel: { fontSize: 11, color: '#374151' },
+  // Render tab — parts grid
+  renderSection: {
+    paddingHorizontal: 8, paddingVertical: 4,
+    backgroundColor: '#e0e0e0',
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: P_BORDER,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: P_BORDER,
+  },
+  renderSectionTitle: { fontSize: 9, fontWeight: '700', color: P_MUTED, letterSpacing: 0.8 },
 
-  // Action buttons
-  actionBtn: {
+  compGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 4, gap: 3 },
+  compTile: { width: 66, alignItems: 'center', gap: 2, paddingVertical: 3 },
+  compBox: {
+    width: 50, height: 30, borderRadius: 4, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  compSym: { fontSize: 11, fontWeight: '700' },
+  compLbl: { fontSize: 8, color: '#374151', textAlign: 'center' },
+
+  // Tool buttons
+  toolBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
-    marginHorizontal: 10, marginTop: 4, paddingHorizontal: 8, paddingVertical: 6,
-    borderRadius: 6, borderWidth: 1, borderColor: '#e5e7eb',
+    marginHorizontal: 6, marginTop: 3, paddingHorizontal: 7, paddingVertical: 5,
+    borderRadius: 4, borderWidth: 1, borderColor: '#d1d5db',
     backgroundColor: '#f9fafb',
   },
-  actionBtnAccent:     { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  actionBtnPressed:    { opacity: 0.7 },
-  actionBtnText:       { fontSize: 11, color: '#374151', flex: 1 },
-  actionBtnTextAccent: { color: '#ffffff' },
+  toolBtnAccent:     { backgroundColor: '#2563eb', borderColor: '#1d4ed8' },
+  toolBtnText:       { fontSize: 10, color: '#374151', flex: 1 },
+  toolBtnTextAccent: { color: '#ffffff' },
 
   // Properties
-  emptyProps:  { fontSize: 10, color: '#9ca3af', paddingHorizontal: 10, paddingVertical: 8, fontStyle: 'italic' },
-  propRow:     { flexDirection: 'row', paddingHorizontal: 10, paddingVertical: 3, gap: 4 },
-  propKey:     { fontSize: 10, color: '#6b7280', width: 32, flexShrink: 0 },
-  propVal:     { fontSize: 10, color: '#111827', flex: 1 },
+  propsBlock: { paddingHorizontal: 8, paddingVertical: 4 },
+  propRow:    { flexDirection: 'row', paddingVertical: 2, gap: 4 },
+  propKey:    { fontSize: 9, color: P_MUTED, width: 28, flexShrink: 0 },
+  propVal:    { fontSize: 9, color: P_TEXT, flex: 1 },
 });
