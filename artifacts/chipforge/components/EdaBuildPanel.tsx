@@ -13,6 +13,7 @@
 
 import React, { useState, useCallback } from 'react';
 import {
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,6 +25,139 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import type { ChipComponent, ChipDesign } from '@workspace/api-client-react';
+
+// ─── DRC / ERC / Auto-Route ───────────────────────────────────────────────────
+
+function runDRC(design: ChipDesign): string {
+  const issues: string[] = [];
+  const connectedIds = new Set([
+    ...design.connections.map((c) => c.fromComponentId),
+    ...design.connections.map((c) => c.toComponentId),
+  ]);
+
+  for (const c of design.components) {
+    if (!connectedIds.has(c.id))
+      issues.push(`⚠ "${c.label}" — floating component (no connections)`);
+  }
+
+  const seqTypes = ['flip_flop', 'register', 'memory'];
+  for (const c of design.components) {
+    if (seqTypes.includes(c.type)) {
+      const hasInput = design.connections.some((conn) => conn.toComponentId === c.id);
+      if (!hasInput)
+        issues.push(`⚠ Sequential block "${c.label}" has no inputs — needs CLK`);
+    }
+  }
+
+  const hasIO = design.components.some((c) => c.type === 'io_port');
+  if (design.components.length > 0 && !hasIO)
+    issues.push('⚠ No I/O port found — add input/output pins to complete the interface');
+
+  return issues.length === 0
+    ? '✓ No DRC violations found.\n\nYour design passes all structural checks.'
+    : `Found ${issues.length} issue${issues.length > 1 ? 's' : ''}:\n\n${issues.join('\n\n')}`;
+}
+
+function runERC(design: ChipDesign): string {
+  const issues: string[] = [];
+  const byId = new Map(design.components.map((c) => [c.id, c]));
+
+  // High fan-out check
+  const fanOut = new Map<string, number>();
+  for (const conn of design.connections)
+    fanOut.set(conn.fromComponentId, (fanOut.get(conn.fromComponentId) ?? 0) + 1);
+  fanOut.forEach((count, id) => {
+    if (count > 4) {
+      const comp = byId.get(id);
+      if (comp) issues.push(`⚠ "${comp.label}" drives ${count} loads — high fan-out, consider buffering`);
+    }
+  });
+
+  // Combinational loop (direct A→B→A)
+  const fwdMap = new Map<string, Set<string>>();
+  for (const conn of design.connections) {
+    if (!fwdMap.has(conn.fromComponentId)) fwdMap.set(conn.fromComponentId, new Set());
+    fwdMap.get(conn.fromComponentId)!.add(conn.toComponentId);
+  }
+  for (const [from, tos] of fwdMap) {
+    for (const to of tos) {
+      if (fwdMap.get(to)?.has(from)) {
+        const a = byId.get(from)?.label ?? from;
+        const b = byId.get(to)?.label ?? to;
+        issues.push(`⚠ Possible combinational loop: "${a}" ↔ "${b}"`);
+      }
+    }
+  }
+
+  // No wires at all
+  if (design.components.length > 1 && design.connections.length === 0)
+    issues.push('⚠ No wires in design — all components are unconnected');
+
+  return issues.length === 0
+    ? '✓ No ERC violations found.\n\nYour design passes all electrical rule checks.'
+    : `Found ${issues.length} issue${issues.length > 1 ? 's' : ''}:\n\n${issues.join('\n\n')}`;
+}
+
+function autoRoute(design: ChipDesign): ChipDesign {
+  if (design.components.length === 0) return design;
+
+  // Build in-degree and adjacency for topological sort
+  const inDeg = new Map<string, number>(design.components.map((c) => [c.id, 0]));
+  const outEdges = new Map<string, string[]>(design.components.map((c) => [c.id, []]));
+
+  for (const conn of design.connections) {
+    inDeg.set(conn.toComponentId, (inDeg.get(conn.toComponentId) ?? 0) + 1);
+    outEdges.get(conn.fromComponentId)?.push(conn.toComponentId);
+  }
+
+  // Kahn's topological layering
+  const layers: string[][] = [];
+  const visited = new Set<string>();
+  let queue = [...inDeg.entries()].filter(([, d]) => d === 0).map(([id]) => id);
+
+  while (queue.length > 0) {
+    layers.push(queue);
+    queue.forEach((id) => visited.add(id));
+    const next: string[] = [];
+    for (const id of queue) {
+      for (const nb of outEdges.get(id) ?? []) {
+        const nd = (inDeg.get(nb) ?? 1) - 1;
+        inDeg.set(nb, nd);
+        if (nd === 0 && !visited.has(nb)) next.push(nb);
+      }
+    }
+    queue = next;
+  }
+
+  // Anything in a cycle goes at the end
+  const unvisited = design.components.map((c) => c.id).filter((id) => !visited.has(id));
+  if (unvisited.length > 0) layers.push(unvisited);
+
+  // Assign grid-snapped positions layer by layer
+  const byId = new Map(design.components.map((c) => [c.id, c]));
+  const PAD_X = 60;
+  const PAD_Y = 36;
+  const newPos = new Map<string, { x: number; y: number }>();
+  let x = PAD_X;
+
+  for (const layer of layers) {
+    const layerW = Math.max(...layer.map((id) => byId.get(id)?.width ?? 140));
+    let y = PAD_Y;
+    for (const id of layer) {
+      newPos.set(id, { x, y });
+      y += (byId.get(id)?.height ?? 80) + PAD_Y;
+    }
+    x += layerW + PAD_X + 80; // 80 = wire breathing room
+  }
+
+  return {
+    ...design,
+    components: design.components.map((c) => {
+      const pos = newPos.get(c.id);
+      return pos ? { ...c, x: pos.x, y: pos.y } : c;
+    }),
+  };
+}
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -426,12 +560,24 @@ export function EdaBuildPanel({
               onToggle={() => onSnapChange(!snap)}
             />
             <View style={styles.actionGroup}>
-              <DesignActionBtn icon="check-circle"    label="Design Rule Check (DRC)" />
-              <DesignActionBtn icon="zap"             label="Electrical Rule Check (ERC)" />
-              <DesignActionBtn icon="share-2"         label="Auto Route" />
-              <DesignActionBtn icon="cpu"             label="AI Assistant"     accent onPress={onAiAssist} />
-              <DesignActionBtn icon="shield"          label="Validate Design"  accent onPress={onValidate} />
-              <DesignActionBtn icon="layout"          label="Switch to Diagram" onPress={onGoToDiagram} />
+              <DesignActionBtn
+                icon="check-circle"
+                label="Design Rule Check (DRC)"
+                onPress={() => Alert.alert('Design Rule Check', runDRC(design))}
+              />
+              <DesignActionBtn
+                icon="zap"
+                label="Electrical Rule Check (ERC)"
+                onPress={() => Alert.alert('Electrical Rule Check', runERC(design))}
+              />
+              <DesignActionBtn
+                icon="share-2"
+                label="Auto Route"
+                onPress={() => onChange(autoRoute(design))}
+              />
+              <DesignActionBtn icon="cpu"    label="AI Assistant"      accent onPress={onAiAssist} />
+              <DesignActionBtn icon="shield" label="Validate Design"   accent onPress={onValidate} />
+              <DesignActionBtn icon="layout" label="Switch to Diagram" onPress={onGoToDiagram} />
             </View>
           </View>
         )}
