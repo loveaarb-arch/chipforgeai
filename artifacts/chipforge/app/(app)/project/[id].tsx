@@ -46,6 +46,8 @@ export default function ProjectWorkspaceScreen() {
 
   const [tab, setTab] = useState<Tab>('chat');
   const [localDesign, setLocalDesign] = useState<ChipDesign | null>(null);
+  const [gridEnabled, setGridEnabled] = useState(true);
+  const [snapEnabled, setSnapEnabled] = useState(true);
 
   const queryClient = useQueryClient();
   const { data: project, isLoading, error } = useGetProject(projectId);
@@ -213,6 +215,8 @@ export default function ProjectWorkspaceScreen() {
             design={localDesign}
             onChange={handleDesignChange}
             saving={updateDesign.isPending}
+            grid={gridEnabled}
+            snap={snapEnabled}
           />
         )}
         {tab === 'build' && localDesign && (
@@ -222,6 +226,10 @@ export default function ProjectWorkspaceScreen() {
             onGoToDiagram={() => setTab('diagram')}
             onValidate={() => setTab('validate')}
             onAiAssist={() => setTab('chat')}
+            grid={gridEnabled}
+            snap={snapEnabled}
+            onGridChange={setGridEnabled}
+            onSnapChange={setSnapEnabled}
           />
         )}
         {tab === 'validate' && <ValidationPanel projectId={projectId} project={project} />}

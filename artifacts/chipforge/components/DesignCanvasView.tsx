@@ -6,7 +6,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import Svg, { Line } from 'react-native-svg';
+import Svg, { Line, Circle } from 'react-native-svg';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { ComponentEditModal } from '@/components/ComponentEditModal';
@@ -14,11 +14,15 @@ import type { ChipComponent, ChipConnection, ChipDesign } from '@workspace/api-c
 
 const CANVAS_SIZE = 1600;
 const TAP_SLOP = 4;
+const GRID_SIZE = 20;   // snap resolution in canvas units
+const GRID_VIS  = 40;   // visual dot spacing in canvas units
 
 interface Props {
   design: ChipDesign;
   onChange: (design: ChipDesign) => void;
   saving?: boolean;
+  grid?: boolean;
+  snap?: boolean;
 }
 
 function nextId(prefix: string) {
@@ -114,7 +118,23 @@ function ComponentNode({
   );
 }
 
-export function DesignCanvasView({ design, onChange, saving }: Props) {
+/** Snap a value to the nearest GRID_SIZE multiple */
+function snapToGrid(v: number) {
+  return Math.round(v / GRID_SIZE) * GRID_SIZE;
+}
+
+/** Build the list of dot positions once — same for every render */
+const GRID_DOTS: { cx: number; cy: number }[] = (() => {
+  const dots: { cx: number; cy: number }[] = [];
+  for (let x = 0; x <= CANVAS_SIZE; x += GRID_VIS) {
+    for (let y = 0; y <= CANVAS_SIZE; y += GRID_VIS) {
+      dots.push({ cx: x, cy: y });
+    }
+  }
+  return dots;
+})();
+
+export function DesignCanvasView({ design, onChange, saving, grid = true, snap = true }: Props) {
   const colors = useColors();
   const [scale, setScale] = useState(1);
   const [editing, setEditing] = useState<ChipComponent | null>(null);
@@ -138,9 +158,11 @@ export function DesignCanvasView({ design, onChange, saving }: Props) {
   }, [design]);
 
   const updateComponentPosition = (id: string, x: number, y: number) => {
+    const nx = snap ? snapToGrid(x) : x;
+    const ny = snap ? snapToGrid(y) : y;
     onChange({
       ...design,
-      components: design.components.map((c) => (c.id === id ? { ...c, x, y } : c)),
+      components: design.components.map((c) => (c.id === id ? { ...c, x: nx, y: ny } : c)),
     });
   };
 
@@ -229,6 +251,16 @@ export function DesignCanvasView({ design, onChange, saving }: Props) {
               }}
             >
               <Svg style={StyleSheet.absoluteFill} width={CANVAS_SIZE} height={CANVAS_SIZE}>
+                {/* Grid dots — rendered only when the grid toggle is on */}
+                {grid && GRID_DOTS.map(({ cx, cy }) => (
+                  <Circle
+                    key={`${cx}-${cy}`}
+                    cx={cx}
+                    cy={cy}
+                    r={1}
+                    fill={colors.border}
+                  />
+                ))}
                 {lines.map((line) => (
                   <Line
                     key={line.id}

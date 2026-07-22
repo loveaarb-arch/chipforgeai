@@ -45,11 +45,6 @@ interface ComponentDef {
   defaultBitWidth: number | null;
 }
 
-interface DesignSettings {
-  grid: boolean;
-  snap: boolean;
-}
-
 interface SelectedProps {
   width: string;
   height: string;
@@ -67,6 +62,10 @@ interface Props {
   onGoToDiagram: () => void;
   onValidate?: () => void;
   onAiAssist?: () => void;
+  grid: boolean;
+  snap: boolean;
+  onGridChange: (v: boolean) => void;
+  onSnapChange: (v: boolean) => void;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -314,7 +313,10 @@ function PropRow({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function EdaBuildPanel({ design, onChange, onGoToDiagram, onValidate, onAiAssist }: Props) {
+export function EdaBuildPanel({
+  design, onChange, onGoToDiagram, onValidate, onAiAssist,
+  grid, snap, onGridChange, onSnapChange,
+}: Props) {
   const colors = useColors();
 
   // Section open/close state
@@ -326,9 +328,6 @@ export function EdaBuildPanel({ design, onChange, onGoToDiagram, onValidate, onA
   // Layers
   const [layers,      setLayers]      = useState<Layer[]>(DEFAULT_LAYERS);
   const [activeLayer, setActiveLayer] = useState('metal1');
-
-  // Design settings
-  const [settings, setSettings] = useState<DesignSettings>({ grid: true, snap: true });
 
   // Last-placed component → drives Properties
   const [selectedProps, setSelectedProps] = useState<SelectedProps>({
@@ -418,13 +417,13 @@ export function EdaBuildPanel({ design, onChange, onGoToDiagram, onValidate, onA
           <View style={{ paddingBottom: 8 }}>
             <DesignToggleRow
               label="Grid"
-              value={settings.grid}
-              onToggle={() => setSettings(s => ({ ...s, grid: !s.grid }))}
+              value={grid}
+              onToggle={() => onGridChange(!grid)}
             />
             <DesignToggleRow
               label="Snap to Grid"
-              value={settings.snap}
-              onToggle={() => setSettings(s => ({ ...s, snap: !s.snap }))}
+              value={snap}
+              onToggle={() => onSnapChange(!snap)}
             />
             <View style={styles.actionGroup}>
               <DesignActionBtn icon="check-circle"    label="Design Rule Check (DRC)" />
