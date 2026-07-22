@@ -12,7 +12,7 @@ import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { ChatPanel } from '@/components/ChatPanel';
-import { ComponentLibraryPanel } from '@/components/ComponentLibraryPanel';
+import { EdaBuildPanel } from '@/components/EdaBuildPanel';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
 import { ValidationPanel } from '@/components/ValidationPanel';
 import { HdlPanel } from '@/components/HdlPanel';
@@ -216,10 +216,12 @@ export default function ProjectWorkspaceScreen() {
           />
         )}
         {tab === 'build' && localDesign && (
-          <ComponentLibraryPanel
+          <EdaBuildPanel
             design={localDesign}
             onChange={handleDesignChange}
             onGoToDiagram={() => setTab('diagram')}
+            onValidate={() => setTab('validate')}
+            onAiAssist={() => setTab('chat')}
           />
         )}
         {tab === 'validate' && <ValidationPanel projectId={projectId} project={project} />}
