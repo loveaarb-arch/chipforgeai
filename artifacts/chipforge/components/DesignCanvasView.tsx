@@ -38,14 +38,14 @@ interface TypeMeta {
 }
 
 const TYPE_META: Record<string, TypeMeta> = {
-  logic_gate:  { color: '#818cf8', short: 'GATE', inputs: ['A','B'],                outputs: ['Q']      },
-  flip_flop:   { color: '#22d3ee', short: 'FF',   inputs: ['D','CLK','RST'],        outputs: ['Q','~Q'] },
-  multiplexer: { color: '#fb923c', short: 'MUX',  inputs: ['A','B','SEL'],          outputs: ['Y']      },
-  alu:         { color: '#f59e0b', short: 'ALU',  inputs: ['A','B','Op'],           outputs: ['R','Cf'] },
-  register:    { color: '#34d399', short: 'REG',  inputs: ['D','CLK','EN'],         outputs: ['Q']      },
-  memory:      { color: '#a78bfa', short: 'MEM',  inputs: ['ADDR','DI','WE','CLK'], outputs: ['DO']     },
-  clock:       { color: '#fb7185', short: 'CLK',  inputs: [],                       outputs: ['CLK']    },
-  io_port:     { color: '#38bdf8', short: 'I/O',  inputs: [],                       outputs: ['IO']     },
+  logic_gate:  { color: '#00bcd4', short: 'GATE', inputs: ['A','B'],                outputs: ['Q']      },
+  flip_flop:   { color: '#e07020', short: 'FF',   inputs: ['D','CLK','RST'],        outputs: ['Q','~Q'] },
+  multiplexer: { color: '#9c27b0', short: 'MUX',  inputs: ['A','B','SEL'],          outputs: ['Y']      },
+  alu:         { color: '#d03030', short: 'ALU',  inputs: ['A','B','Op'],           outputs: ['R','Cf'] },
+  register:    { color: '#30a030', short: 'REG',  inputs: ['D','CLK','EN'],         outputs: ['Q']      },
+  memory:      { color: '#673ab7', short: 'MEM',  inputs: ['ADDR','DI','WE','CLK'], outputs: ['DO']     },
+  clock:       { color: '#f0c030', short: 'CLK',  inputs: [],                       outputs: ['CLK']    },
+  io_port:     { color: '#00e5ff', short: 'I/O',  inputs: [],                       outputs: ['IO']     },
 };
 
 function getTypeMeta(type: string): TypeMeta {
@@ -141,7 +141,7 @@ function ComponentNode({
       <Animated.View
         style={[
           styles.node,
-          { width: component.width, height: component.height, borderColor: color + '80' },
+          { width: component.width, height: component.height, borderColor: color + '80', shadowColor: color },
           animatedStyle,
         ]}
       >
@@ -325,8 +325,8 @@ export function DesignCanvasView({
   };
 
   // ── Derived colors ─────────────────────────────────────────────────────────
-  const canvasBg   = darkCanvas ? '#080c10' : colors.background;
-  const gridColor  = darkCanvas ? 'rgba(255,255,255,0.10)' : colors.border;
+  const canvasBg   = darkCanvas ? '#0B1220' : colors.background;
+  const gridColor  = darkCanvas ? 'rgba(0,200,180,0.12)' : colors.border;
   const toolbarBg  = darkCanvas ? '#0d1117' : colors.background;
   const toolbarBorder = darkCanvas ? '#1e2a38' : colors.border;
   const fgColor    = darkCanvas ? '#c9d8eb' : colors.foreground;
@@ -484,10 +484,14 @@ const styles = StyleSheet.create({
   // ── Node ──────────────────────────────────────────────────────────────────
   node: {
     position:        'absolute',
-    borderWidth:     1.5,
-    borderRadius:    10,
+    borderWidth:     1,
+    borderRadius:    6,
     backgroundColor: '#0d1829',
     overflow:        'hidden',
+    // iOS glow — shadowColor set per-component via inline style
+    shadowOpacity:   0.35,
+    shadowRadius:    8,
+    shadowOffset:    { width: 0, height: 0 },
   },
   nodeStripe: {
     position: 'absolute',
@@ -533,7 +537,7 @@ const styles = StyleSheet.create({
   },
   typeText:  { fontSize: 8, fontWeight: '700', letterSpacing: 1 },
   nodeLabel: {
-    fontSize: 11, fontWeight: '600',
+    fontSize: 12, fontWeight: '600',
     color: '#e6edf5', textAlign: 'center',
   },
   bitWidth: { fontSize: 8 },

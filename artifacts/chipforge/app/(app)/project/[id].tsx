@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -48,6 +48,19 @@ export default function ProjectWorkspaceScreen() {
   const [localDesign, setLocalDesign] = useState<ChipDesign | null>(null);
   const [gridEnabled, setGridEnabled] = useState(true);
   const [snapEnabled, setSnapEnabled] = useState(true);
+
+  // DRC warning count — computed live from current design
+  const drcWarnings = useMemo(() => {
+    if (!localDesign) return 0;
+    const conn = new Set([
+      ...localDesign.connections.map(c => c.fromComponentId),
+      ...localDesign.connections.map(c => c.toComponentId),
+    ]);
+    let n = 0;
+    for (const c of localDesign.components) if (!conn.has(c.id)) n++;
+    if (localDesign.components.length > 0 && !localDesign.components.some(c => c.type === 'io_port')) n++;
+    return n;
+  }, [localDesign]);
 
   const queryClient = useQueryClient();
   const { data: project, isLoading, error } = useGetProject(projectId);
@@ -139,18 +152,40 @@ export default function ProjectWorkspaceScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable
-              onPress={handleDelete}
-              hitSlop={10}
-              style={({ pressed }) => [
-                styles.headerIconButton,
-                {
-                  backgroundColor: pressed ? `${colors.destructive}33` : `${colors.destructive}1a`,
-                },
-              ]}
-            >
-              <Feather name="x" size={18} color={colors.destructive} />
-            </Pressable>
+            <View style={styles.headerRight}>
+              {/* Saved badge */}
+              <View style={[styles.badge, { backgroundColor: updateDesign.isPending ? '#1a3020' : '#0d2a1a' }]}>
+                <Feather name="check" size={10} color={updateDesign.isPending ? '#4a8a5a' : '#30c060'} />
+                <Text style={[styles.badgeTxt, { color: updateDesign.isPending ? '#4a8a5a' : '#30c060' }]}>
+                  {updateDesign.isPending ? 'Saving…' : 'Saved'}
+                </Text>
+              </View>
+              {/* AI Ready badge */}
+              <View style={[styles.badge, { backgroundColor: '#0d1e30' }]}>
+                <Feather name="cpu" size={10} color="#3090d0" />
+                <Text style={[styles.badgeTxt, { color: '#3090d0' }]}>AI Ready</Text>
+              </View>
+              {/* Warnings badge — only shown when there are DRC issues */}
+              {drcWarnings > 0 && (
+                <View style={[styles.badge, { backgroundColor: '#2a1a00' }]}>
+                  <Feather name="alert-triangle" size={10} color="#e0a030" />
+                  <Text style={[styles.badgeTxt, { color: '#e0a030' }]}>{drcWarnings} Warning{drcWarnings !== 1 ? 's' : ''}</Text>
+                </View>
+              )}
+              {/* ⋮ menu — contains Delete */}
+              <Pressable
+                hitSlop={10}
+                style={({ pressed }) => [styles.headerIconButton, pressed && { opacity: 0.6 }]}
+                onPress={() =>
+                  Alert.alert(project?.name ?? 'Project', 'Choose an action', [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Delete project', style: 'destructive', onPress: handleDelete },
+                  ])
+                }
+              >
+                <Feather name="more-vertical" size={20} color={colors.foreground} />
+              </Pressable>
+            </View>
           ),
         }}
       />
@@ -247,6 +282,21 @@ export default function ProjectWorkspaceScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginRight: 4,
+  },
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  badgeTxt: { fontSize: 10, fontWeight: '600' },
   headerIconButton: {
     width: 32,
     height: 32,
