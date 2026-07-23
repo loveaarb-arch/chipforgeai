@@ -253,10 +253,13 @@ export function BuildWorkspace({ design, onChange, saving, onValidate, onAiAssis
         <ScrollView style={s.panelBody} showsVerticalScrollIndicator={false} bounces={false}>
 
           {/* ── LAYER tab ─────────────────────────────────────────────── */}
-          {tab==='layer' && layers.map((l,i)=>(
-            <Pressable key={l.id}
-              style={[s.row, l.id===activeLayer&&s.rowActive, i===0&&{borderTopWidth:0}]}
-              onPress={()=>setActive(l.id)}>
+          {tab==='layer' && layers.map((l)=>(
+            <Pressable key={l.id} style={s.row} onPress={()=>setActive(l.id)}>
+
+              {/* ▶ active-layer indicator — blank gap when not active */}
+              <View style={s.rowIndicator}>
+                {l.id===activeLayer && <Text style={s.rowArrow}>▶</Text>}
+              </View>
 
               {/* Sharp coloured swatch — NO border radius */}
               <View style={[s.swatch,{backgroundColor:l.color}]}/>
@@ -267,7 +270,7 @@ export function BuildWorkspace({ design, onChange, saving, onValidate, onAiAssis
 
               {/* Square Windows-style checkbox */}
               <Pressable hitSlop={8} onPress={()=>setLayers(ls=>ls.map(x=>x.id===l.id?{...x,visible:!x.visible}:x))}>
-                <View style={[s.chk, l.visible&&s.chkOn]}>
+                <View style={s.chk}>
                   {l.visible && <Text style={s.chkMark}>✓</Text>}
                 </View>
               </Pressable>
@@ -356,8 +359,7 @@ function Stat({label,val,red}:{label:string;val:number;red?:boolean}){
 
 const PW   = 160;   // panel width
 const P_WHITE = '#ffffff';
-const P_BGROW = '#f8f8f8';  // row bg
-const P_ACTIVE= '#cce4ff';  // selected row (like KiCad blue highlight)
+const P_BGROW = '#ffffff';  // pure white rows — no off-white
 const P_BD    = '#a0a0a0';  // panel border colour
 const P_DARK  = '#1a1a1a';
 const P_MUTED = '#666666';
@@ -450,32 +452,34 @@ const s = StyleSheet.create({
   // Scrollable body
   panelBody: { flex:1, backgroundColor:P_WHITE },
 
-  // ── Layer rows — ultra-compact, sharp corners everywhere ───────────────────
+  // ── Layer rows — ultra-compact, sharp corners, NO visible separators ────────
   row: {
     flexDirection:'row', alignItems:'center',
-    height:20,                              // fixed 20 px rows like KiCad
-    paddingHorizontal:5, gap:5,
+    height:20,
+    paddingRight:5, gap:4,
     backgroundColor:P_BGROW,
-    borderTopWidth:StyleSheet.hairlineWidth, borderTopColor:'#e0e0e0',
+    // no border — rows are flush like KiCad
   },
-  rowActive: { backgroundColor:P_ACTIVE },
+
+  // Active-layer indicator column (holds ▶ or blank space)
+  rowIndicator: { width:12, alignItems:'center', justifyContent:'center' },
+  rowArrow:     { fontSize:8, color:P_DARK, lineHeight:20 },
 
   // Sharp-cornered coloured swatch (NO borderRadius — KiCad uses square)
-  swatch: { width:13, height:13, borderRadius:0, flexShrink:0 },
+  swatch: { width:14, height:11, borderRadius:0, flexShrink:0 },
 
   layerName:    { flex:1, fontSize:10, color:P_DARK },
-  layerNameOff: { color:'#b0b0b0' },
+  layerNameOff: { color:'#b8b8b8' },
 
-  // Square Windows-style checkbox (NO borderRadius)
+  // Square Windows-style checkbox — white bg, dark border, ✓ in dark ink
   chk: {
     width:13, height:13, borderRadius:0,
-    borderWidth:1, borderColor:'#808080',
-    backgroundColor:'#fff',
+    borderWidth:1, borderColor:'#707070',
+    backgroundColor:'#ffffff',
     alignItems:'center', justifyContent:'center',
     flexShrink:0,
   },
-  chkOn:   { backgroundColor:'#f8f8f8' },
-  chkMark: { fontSize:9, color:'#1a1a1a', lineHeight:12, marginTop:-1 },
+  chkMark: { fontSize:9, color:'#1a1a1a', lineHeight:12 },
 
   // ── Render tab ─────────────────────────────────────────────────────────────
   rSecHeader: {
