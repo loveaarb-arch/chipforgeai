@@ -268,10 +268,10 @@ export function BuildWorkspace({ design, onChange, saving, onValidate, onAiAssis
                 {l.name}
               </Text>
 
-              {/* Square Windows-style checkbox */}
+              {/* Square Windows-style checkbox — View-drawn to avoid emoji coloring */}
               <Pressable hitSlop={8} onPress={()=>setLayers(ls=>ls.map(x=>x.id===l.id?{...x,visible:!x.visible}:x))}>
                 <View style={s.chk}>
-                  {l.visible && <Text style={s.chkMark}>✓</Text>}
+                  {l.visible && <View style={s.chkInner}/>}
                 </View>
               </Pressable>
             </Pressable>
@@ -479,7 +479,7 @@ const s = StyleSheet.create({
     alignItems:'center', justifyContent:'center',
     flexShrink:0,
   },
-  chkMark: { fontSize:9, color:'#1a1a1a', lineHeight:12 },
+  chkInner: { width:7, height:7, backgroundColor:'#1a1a1a' },
 
   // ── Render tab ─────────────────────────────────────────────────────────────
   rSecHeader: {
