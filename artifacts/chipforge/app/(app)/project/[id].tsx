@@ -12,6 +12,8 @@ import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
+import { useSubscription } from '@/lib/revenuecat';
+import { PaywallModal } from '@/components/PaywallModal';
 import { ChatPanel } from '@/components/ChatPanel';
 import { BuildWorkspace } from '@/components/BuildWorkspace';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
@@ -46,6 +48,7 @@ export default function ProjectWorkspaceScreen() {
   const navigation = useNavigation();
 
   const { isMobile } = useBreakpoint();
+  const { isSubscribed, isLoading: subLoading } = useSubscription();
   const [tab, setTab] = useState<Tab>('chat');
   const [localDesign, setLocalDesign] = useState<ChipDesign | null>(null);
   const [gridEnabled, setGridEnabled] = useState(true);
@@ -178,6 +181,8 @@ export default function ProjectWorkspaceScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Paywall — shown when RevenueCat confirms user is not subscribed */}
+      <PaywallModal visible={!subLoading && !isSubscribed} />
       <Stack.Screen
         options={{
           headerRight: () => (

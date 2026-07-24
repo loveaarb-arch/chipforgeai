@@ -1,5 +1,13 @@
 import React, { useEffect } from 'react';
-import { Platform, useWindowDimensions, View, Text, StyleSheet } from 'react-native';
+import { Alert, Platform, useWindowDimensions, View, Text, StyleSheet } from 'react-native';
+import { initializeRevenueCat, SubscriptionProvider } from '@/lib/revenuecat';
+
+try {
+  initializeRevenueCat();
+} catch (err: any) {
+  // Keys not yet set — silently skip during development before seed script is run
+  console.warn("RevenueCat init skipped:", err?.message ?? "Unknown error");
+}
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
