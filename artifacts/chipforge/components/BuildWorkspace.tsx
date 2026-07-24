@@ -363,18 +363,9 @@ export function BuildWorkspace({
 
         {/* LEFT TOOL RAIL */}
         <View style={s.toolRail}>
-          {TOOLS.map(t => {
-            const active = activeTool === t.id;
-            return (
-              <Pressable key={t.id} style={[s.toolBtn, active && s.toolBtnActive]}
-                onPress={() => cycleTool(t.id)}>
-                <Feather name={t.icon} size={18} color={active ? ACCENT : '#4a6a8a'}/>
-                <Text style={[s.toolLabel, active && s.toolLabelActive]} numberOfLines={1}>
-                  {t.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {TOOLS.map(t => (
+            <ToolButton key={t.id} tool={t} active={activeTool === t.id} onPress={cycleTool} />
+          ))}
           <View style={{flex:1}}/>
           {/* Divider + ERC/DRC shortcuts */}
           <View style={s.railDiv}/>
@@ -442,26 +433,12 @@ export function BuildWorkspace({
 
             <ScrollView style={s.panelScroll} showsVerticalScrollIndicator={false} bounces={false}>
               {layers.map(l => (
-                <View key={l.id} style={s.layerRow}>
-                  {/* Color swatch */}
-                  <View style={[s.swatch, {backgroundColor: l.color}]}/>
-                  {/* Name */}
-                  <Text style={[s.layerName, !l.visible && s.layerNameOff]} numberOfLines={1}>
-                    {l.name}
-                  </Text>
-                  {/* Eye toggle */}
-                  <Pressable hitSlop={8}
-                    onPress={() => setLayers(ls => ls.map(x => x.id === l.id ? {...x, visible: !x.visible} : x))}>
-                    <Feather name={l.visible ? 'eye' : 'eye-off'} size={14}
-                      color={l.visible ? '#555' : '#c0c0c0'}/>
-                  </Pressable>
-                  {/* Lock toggle */}
-                  <Pressable hitSlop={8}
-                    onPress={() => setLayers(ls => ls.map(x => x.id === l.id ? {...x, locked: !x.locked} : x))}>
-                    <Feather name={l.locked ? 'lock' : 'unlock'} size={14}
-                      color={l.locked ? '#555' : '#c0c0c0'}/>
-                  </Pressable>
-                </View>
+                <LayerRow
+                  key={l.id}
+                  layer={l}
+                  onToggleVisible={() => setLayers(ls => ls.map(x => x.id === l.id ? {...x, visible: !x.visible} : x))}
+                  onToggleLocked={() => setLayers(ls => ls.map(x => x.id === l.id ? {...x, locked: !x.locked} : x))}
+                />
               ))}
 
               {/* + Add Layer */}
@@ -576,6 +553,54 @@ function PartsPanel({
 
 // ─── Small helpers ────────────────────────────────────────────────────────────
 
+function LayerRow({
+  layer, onToggleVisible, onToggleLocked,
+}: {
+  layer: LayerDef;
+  onToggleVisible: () => void;
+  onToggleLocked: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <View
+      style={[s.layerRow, hovered && s.layerRowHover]}
+      // @ts-ignore — React Native Web supports onMouseEnter/Leave on View
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <View style={[s.swatch, {backgroundColor: layer.color}]}/>
+      <Text style={[s.layerName, !layer.visible && s.layerNameOff]} numberOfLines={1}>
+        {layer.name}
+      </Text>
+      <Pressable hitSlop={8} onPress={onToggleVisible}>
+        <Feather name={layer.visible ? 'eye' : 'eye-off'} size={14}
+          color={layer.visible ? '#555' : '#c0c0c0'}/>
+      </Pressable>
+      <Pressable hitSlop={8} onPress={onToggleLocked}>
+        <Feather name={layer.locked ? 'lock' : 'unlock'} size={14}
+          color={layer.locked ? '#555' : '#c0c0c0'}/>
+      </Pressable>
+    </View>
+  );
+}
+
+function ToolButton({ tool, active, onPress }: { tool: ToolDef; active: boolean; onPress: (id: ToolId) => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Pressable
+      style={[s.toolBtn, active && s.toolBtnActive, !active && hovered && s.toolBtnHover]}
+      onPress={() => onPress(tool.id)}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+    >
+      <Feather name={tool.icon} size={18} color={active ? ACCENT : '#4a6a8a'}/>
+      <Text style={[s.toolLabel, active && s.toolLabelActive]} numberOfLines={1}>
+        {tool.label}
+      </Text>
+    </Pressable>
+  );
+}
+
 function ActionBtn({
   icon, label, onPress, accent,
 }: {
@@ -584,8 +609,14 @@ function ActionBtn({
   onPress: () => void;
   accent?: boolean;
 }) {
+  const [hovered, setHovered] = useState(false);
   return (
-    <Pressable style={({pressed}) => [s.abBtn, pressed && {opacity:.7}]} onPress={onPress}>
+    <Pressable
+      style={({pressed}) => [s.abBtn, (hovered || pressed) && s.abBtnHover, pressed && {opacity:.7}]}
+      onPress={onPress}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+    >
       <Feather name={icon} size={13} color={accent ? '#7a9aba' : '#4a6a8a'}/>
       <Text style={[s.abBtnTxt, accent && {color:'#7a9aba'}]}>{label}</Text>
     </Pressable>
@@ -632,6 +663,7 @@ const s = StyleSheet.create({
     borderRadius: 6,
   },
   abBtnTxt: { fontSize: 11, color: '#4a6a8a' },
+  abBtnHover: { backgroundColor: 'rgba(255,255,255,0.06)' },
   abDiv:    { width:1, height:20, backgroundColor: DARK_BORD, marginHorizontal: 4 },
   abPicker: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
@@ -661,6 +693,7 @@ const s = StyleSheet.create({
     borderRadius: 8, gap: 2,
   },
   toolBtnActive: { backgroundColor: ACCENT + '20' },
+  toolBtnHover:  { backgroundColor: 'rgba(255,255,255,0.06)' },
   toolLabel:      { fontSize: 7, color: '#4a6a8a', textAlign: 'center' },
   toolLabelActive:{ color: ACCENT },
   railDiv:        { width: 32, height: 1, backgroundColor: DARK_BORD, marginVertical: 4 },
@@ -730,6 +763,7 @@ const s = StyleSheet.create({
   swatch:       { width: 14, height: 14, borderRadius: 2, flexShrink: 0 },
   layerName:    { flex:1, fontSize: 11, color: PANEL_TXT },
   layerNameOff: { color: '#c0c0c0' },
+  layerRowHover: { backgroundColor: 'rgba(0,0,0,0.04)' },
 
   addLayerRow: {
     flexDirection: 'row', alignItems: 'center', gap: 6,

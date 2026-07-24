@@ -41,6 +41,35 @@ const TABS: { key: Tab; label: string; icon: keyof typeof Feather.glyphMap }[] =
   { key: 'versions', label: 'Versions', icon: 'clock' },
 ];
 
+function SidebarTabItem({
+  tab, active, primary, mutedForeground, onPress,
+}: {
+  tab: { key: Tab; label: string; icon: keyof typeof Feather.glyphMap };
+  active: boolean;
+  primary: string;
+  mutedForeground: string;
+  onPress: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+      style={[
+        styles.sidebarItem,
+        active && { backgroundColor: primary + '18' },
+        !active && hovered && { backgroundColor: 'rgba(255,255,255,0.06)' },
+      ]}
+    >
+      <Feather name={tab.icon} size={16} color={active ? primary : mutedForeground} />
+      <Text style={[styles.sidebarLabel, { color: active ? primary : mutedForeground, fontWeight: active ? '600' : '400' }]}>
+        {tab.label}
+      </Text>
+    </Pressable>
+  );
+}
+
 export default function ProjectWorkspaceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const projectId = Number(id);
@@ -244,21 +273,16 @@ export default function ProjectWorkspaceScreen() {
           {/* Sidebar */}
           <View style={[styles.sidebar, { backgroundColor: colors.card, borderRightColor: colors.border }]}>
             <View style={[styles.sidebarSep, { borderBottomColor: colors.border }]} />
-            {TABS.map((t) => {
-              const active = t.key === tab;
-              return (
-                <Pressable
-                  key={t.key}
-                  onPress={() => setTab(t.key)}
-                  style={[styles.sidebarItem, active && { backgroundColor: colors.primary + '18' }]}
-                >
-                  <Feather name={t.icon} size={16} color={active ? colors.primary : colors.mutedForeground} />
-                  <Text style={[styles.sidebarLabel, { color: active ? colors.primary : colors.mutedForeground, fontWeight: active ? '600' : '400' }]}>
-                    {t.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {TABS.map((t) => (
+              <SidebarTabItem
+                key={t.key}
+                tab={t}
+                active={t.key === tab}
+                primary={colors.primary}
+                mutedForeground={colors.mutedForeground}
+                onPress={() => setTab(t.key)}
+              />
+            ))}
           </View>
 
           {/* Content area */}
