@@ -7,9 +7,10 @@
  *   StatsBar      (full width, dark)
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -223,8 +224,54 @@ export function BuildWorkspace({
   const [showRender,  setRender]   = useState(false);
   const [selectedId,  setId]       = useState<string | null>(null);
 
+  const canvasWrapRef = useRef<View>(null);
   const sel = design.components.find(c => c.id === selectedId) ?? null;
   const blks  = design.components.length;
+
+  // ── Scroll-wheel zoom (web only) ───────────────────────────────────────────
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const el = canvasWrapRef.current as unknown as HTMLElement;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setScale(v => Math.max(0.25, Math.min(3, +((v - e.deltaY / 400).toFixed(2)))));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
+  // ── Keyboard shortcuts (web only) ─────────────────────────────────────────
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const doc = typeof document !== 'undefined' ? document : null;
+    if (!doc) return;
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedId) {
+          onChange({
+            components:  design.components.filter(c => c.id !== selectedId),
+            connections: design.connections.filter(
+              cn => cn.fromComponentId !== selectedId && cn.toComponentId !== selectedId,
+            ),
+          });
+          setId(null);
+        }
+      } else if (e.key === 'Escape') {
+        setId(null);
+      } else if (e.key === '+' || e.key === '=') {
+        setScale(v => Math.min(3, +((v + 0.15).toFixed(2))));
+      } else if (e.key === '-') {
+        setScale(v => Math.max(0.25, +((v - 0.15).toFixed(2))));
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault(); // design auto-saves on every change
+      }
+    };
+    doc.addEventListener('keydown', onKey);
+    return () => doc.removeEventListener('keydown', onKey);
+  }, [design, selectedId, onChange]);
   const nets  = new Set(design.connections.map(c => c.fromComponentId + c.toComponentId)).size;
   const drcCount = (() => {
     const r = runDRC(design);
@@ -346,7 +393,7 @@ export function BuildWorkspace({
         </View>
 
         {/* CANVAS */}
-        <View style={s.canvasWrap}>
+        <View ref={canvasWrapRef} style={s.canvasWrap}>
           <DesignCanvasView
             design={design} onChange={onChange}
             grid={grid} snap={snap}

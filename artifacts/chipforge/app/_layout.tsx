@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Platform, useWindowDimensions, View, Text, StyleSheet } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -28,13 +29,36 @@ const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 
 const queryClient = new QueryClient();
 
+function MinWidthGuard({ children }: { children: React.ReactNode }) {
+  const { width } = useWindowDimensions();
+  if (Platform.OS === 'web' && width < 480) {
+    return (
+      <View style={guard.root}>
+        <Text style={guard.icon}>🖥</Text>
+        <Text style={guard.title}>Window too narrow</Text>
+        <Text style={guard.body}>Please widen your browser window or open ChipForge on a larger screen.</Text>
+      </View>
+    );
+  }
+  return <>{children}</>;
+}
+
+const guard = StyleSheet.create({
+  root:  { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0B1220', padding: 32, gap: 12 },
+  icon:  { fontSize: 40 },
+  title: { fontSize: 18, fontWeight: '700', color: '#e6edf5', textAlign: 'center' },
+  body:  { fontSize: 14, color: '#4a6a8a', textAlign: 'center', lineHeight: 22 },
+});
+
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerBackTitle: 'Back' }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(app)" options={{ headerShown: false }} />
-    </Stack>
+    <MinWidthGuard>
+      <Stack screenOptions={{ headerBackTitle: 'Back' }}>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      </Stack>
+    </MinWidthGuard>
   );
 }
 

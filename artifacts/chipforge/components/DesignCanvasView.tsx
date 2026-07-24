@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ScrollView, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -143,6 +143,7 @@ function ComponentNode({
           styles.node,
           { width: component.width, height: component.height, borderColor: color + '80', shadowColor: color },
           animatedStyle,
+          Platform.OS === 'web' ? ({ cursor: 'pointer' } as object) : undefined,
         ]}
       >
         {/* Left accent stripe */}
@@ -332,9 +333,12 @@ export function DesignCanvasView({
   const fgColor    = darkCanvas ? '#c9d8eb' : colors.foreground;
   const mutedColor = darkCanvas ? '#4a6080' : colors.mutedForeground;
 
+  // Web cursor style on the canvas root
+  const webCanvasCursor = Platform.OS === 'web' ? ({ cursor: 'crosshair' } as object) : undefined;
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <View style={[styles.root, { backgroundColor: canvasBg }]}>
+    <View style={[styles.root, { backgroundColor: canvasBg }, webCanvasCursor]}>
 
       {/* Toolbar — hidden when BuildWorkspace provides its own */}
       {!hideToolbar && (

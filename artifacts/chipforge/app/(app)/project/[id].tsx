@@ -11,6 +11,7 @@ import {
 import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { ChatPanel } from '@/components/ChatPanel';
 import { BuildWorkspace } from '@/components/BuildWorkspace';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
@@ -44,6 +45,7 @@ export default function ProjectWorkspaceScreen() {
   const colors = useColors();
   const navigation = useNavigation();
 
+  const { isMobile } = useBreakpoint();
   const [tab, setTab] = useState<Tab>('chat');
   const [localDesign, setLocalDesign] = useState<ChipDesign | null>(null);
   const [gridEnabled, setGridEnabled] = useState(true);
@@ -123,6 +125,33 @@ export default function ProjectWorkspaceScreen() {
     ]);
   };
 
+  // Shared tab content — rendered in both mobile and desktop branches
+  const tabContent = (
+    <>
+      {tab === 'chat' && <ChatPanel projectId={projectId} locked={project?.locked ?? false} />}
+      {tab === 'diagram' && localDesign && (
+        <DesignCanvasView
+          design={localDesign} onChange={handleDesignChange}
+          saving={updateDesign.isPending} grid={gridEnabled} snap={snapEnabled}
+        />
+      )}
+      {tab === 'build' && localDesign && (
+        <BuildWorkspace
+          design={localDesign} onChange={handleDesignChange}
+          saving={updateDesign.isPending}
+          onValidate={() => setTab('validate')} onAiAssist={() => setTab('chat')}
+          grid={gridEnabled} snap={snapEnabled}
+          onGridChange={setGridEnabled} onSnapChange={setSnapEnabled}
+        />
+      )}
+      {tab === 'validate' && project && <ValidationPanel projectId={projectId} project={project} />}
+      {tab === 'hdl'      && project && <HdlPanel projectId={projectId} project={project} />}
+      {tab === 'versions' && project && (
+        <VersionsPanel projectId={projectId} currentVersionNumber={project.currentVersionNumber} />
+      )}
+    </>
+  );
+
   if (isLoading) {
     return (
       <View style={[styles.center, { backgroundColor: colors.background }]}>
@@ -168,92 +197,78 @@ export default function ProjectWorkspaceScreen() {
         }}
       />
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={[styles.tabBar, { borderBottomColor: colors.border }]}
-      >
-        {TABS.map((t) => {
-          const active = t.key === tab;
-          return (
-            <Pressable
-              key={t.key}
-              onPress={() => setTab(t.key)}
-              style={[
-                styles.tabItem,
-                active && { borderBottomColor: colors.primary, borderBottomWidth: 2 },
-              ]}
-            >
-              <Feather
-                name={t.icon}
-                size={15}
-                color={active ? colors.primary : colors.mutedForeground}
-              />
-              <Text
-                style={{
-                  marginLeft: 6,
-                  color: active ? colors.primary : colors.mutedForeground,
-                  fontWeight: active ? '600' : '400',
-                  fontSize: 13,
-                }}
-              >
-                {t.label}
-              </Text>
+      {isMobile ? (
+        /* ── MOBILE: horizontal tab strip then content ── */
+        <>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={[styles.tabBar, { borderBottomColor: colors.border }]}
+          >
+            {TABS.map((t) => {
+              const active = t.key === tab;
+              return (
+                <Pressable
+                  key={t.key}
+                  onPress={() => setTab(t.key)}
+                  style={[
+                    styles.tabItem,
+                    active && { borderBottomColor: colors.primary, borderBottomWidth: 2 },
+                  ]}
+                >
+                  <Feather name={t.icon} size={15} color={active ? colors.primary : colors.mutedForeground} />
+                  <Text style={{ marginLeft: 6, color: active ? colors.primary : colors.mutedForeground, fontWeight: active ? '600' : '400', fontSize: 13 }}>
+                    {t.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+          {tab === 'chat' && !project.locked && localDesign && localDesign.components.length > 0 && (
+            <Pressable onPress={() => setTab('hdl')} style={[styles.handoffBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <Feather name="upload" size={16} color={colors.primary} />
+              <Text style={[styles.handoffText, { color: colors.foreground }]}>Ready to send this to a manufacturer? Go to the HDL tab to generate HDL and export a design package you can share.</Text>
+              <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
             </Pressable>
-          );
-        })}
-      </ScrollView>
+          )}
+          <View style={{ flex: 1 }}>{tabContent}</View>
+        </>
+      ) : (
+        /* ── DESKTOP/TABLET: vertical sidebar + content side by side ── */
+        <View style={{ flex: 1, flexDirection: 'row' }}>
+          {/* Sidebar */}
+          <View style={[styles.sidebar, { backgroundColor: colors.card, borderRightColor: colors.border }]}>
+            <View style={[styles.sidebarSep, { borderBottomColor: colors.border }]} />
+            {TABS.map((t) => {
+              const active = t.key === tab;
+              return (
+                <Pressable
+                  key={t.key}
+                  onPress={() => setTab(t.key)}
+                  style={[styles.sidebarItem, active && { backgroundColor: colors.primary + '18' }]}
+                >
+                  <Feather name={t.icon} size={16} color={active ? colors.primary : colors.mutedForeground} />
+                  <Text style={[styles.sidebarLabel, { color: active ? colors.primary : colors.mutedForeground, fontWeight: active ? '600' : '400' }]}>
+                    {t.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
-      {tab === 'chat' && !project.locked && localDesign && localDesign.components.length > 0 && (
-        <Pressable
-          onPress={() => setTab('hdl')}
-          style={[
-            styles.handoffBanner,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Feather name="upload" size={16} color={colors.primary} />
-          <Text style={[styles.handoffText, { color: colors.foreground }]}>
-            Ready to send this to a manufacturer? Go to the HDL tab to generate
-            HDL and export a design package you can share.
-          </Text>
-          <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
-        </Pressable>
+          {/* Content area */}
+          <View style={{ flex: 1 }}>
+            {tab === 'chat' && !project.locked && localDesign && localDesign.components.length > 0 && (
+              <Pressable onPress={() => setTab('hdl')} style={[styles.handoffBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <Feather name="upload" size={16} color={colors.primary} />
+                <Text style={[styles.handoffText, { color: colors.foreground }]}>Ready to send this to a manufacturer? Go to the HDL tab to generate HDL and export a design package you can share.</Text>
+                <Feather name="chevron-right" size={16} color={colors.mutedForeground} />
+              </Pressable>
+            )}
+            <View style={{ flex: 1 }}>{tabContent}</View>
+          </View>
+        </View>
       )}
-
-      <View style={{ flex: 1 }}>
-        {tab === 'chat' && <ChatPanel projectId={projectId} locked={project.locked} />}
-        {tab === 'diagram' && localDesign && (
-          <DesignCanvasView
-            design={localDesign}
-            onChange={handleDesignChange}
-            saving={updateDesign.isPending}
-            grid={gridEnabled}
-            snap={snapEnabled}
-          />
-        )}
-        {tab === 'build' && localDesign && (
-          <BuildWorkspace
-            design={localDesign}
-            onChange={handleDesignChange}
-            saving={updateDesign.isPending}
-            onValidate={() => setTab('validate')}
-            onAiAssist={() => setTab('chat')}
-            grid={gridEnabled}
-            snap={snapEnabled}
-            onGridChange={setGridEnabled}
-            onSnapChange={setSnapEnabled}
-          />
-        )}
-        {tab === 'validate' && <ValidationPanel projectId={projectId} project={project} />}
-        {tab === 'hdl' && <HdlPanel projectId={projectId} project={project} />}
-        {tab === 'versions' && (
-          <VersionsPanel
-            projectId={projectId}
-            currentVersionNumber={project.currentVersionNumber}
-          />
-        )}
-      </View>
     </View>
   );
 }
@@ -301,4 +316,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  // Desktop sidebar
+  sidebar: {
+    width: 180,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    paddingTop: 8,
+  },
+  sidebarSep: { borderBottomWidth: StyleSheet.hairlineWidth, marginBottom: 8 },
+  sidebarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    gap: 10,
+    borderRadius: 0,
+  },
+  sidebarLabel: { fontSize: 13 },
 });
