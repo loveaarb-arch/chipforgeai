@@ -152,40 +152,18 @@ export default function ProjectWorkspaceScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <View style={styles.headerRight}>
-              {/* Saved badge */}
-              <View style={[styles.badge, { backgroundColor: updateDesign.isPending ? '#1a3020' : '#0d2a1a' }]}>
-                <Feather name="check" size={10} color={updateDesign.isPending ? '#4a8a5a' : '#30c060'} />
-                <Text style={[styles.badgeTxt, { color: updateDesign.isPending ? '#4a8a5a' : '#30c060' }]}>
-                  {updateDesign.isPending ? 'Saving…' : 'Saved'}
-                </Text>
-              </View>
-              {/* AI Ready badge */}
-              <View style={[styles.badge, { backgroundColor: '#0d1e30' }]}>
-                <Feather name="cpu" size={10} color="#3090d0" />
-                <Text style={[styles.badgeTxt, { color: '#3090d0' }]}>AI Ready</Text>
-              </View>
-              {/* Warnings badge — only shown when there are DRC issues */}
-              {drcWarnings > 0 && (
-                <View style={[styles.badge, { backgroundColor: '#2a1a00' }]}>
-                  <Feather name="alert-triangle" size={10} color="#e0a030" />
-                  <Text style={[styles.badgeTxt, { color: '#e0a030' }]}>{drcWarnings} Warning{drcWarnings !== 1 ? 's' : ''}</Text>
-                </View>
-              )}
-              {/* ⋮ menu — contains Delete */}
-              <Pressable
-                hitSlop={10}
-                style={({ pressed }) => [styles.headerIconButton, pressed && { opacity: 0.6 }]}
-                onPress={() =>
-                  Alert.alert(project?.name ?? 'Project', 'Choose an action', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete project', style: 'destructive', onPress: handleDelete },
-                  ])
-                }
-              >
-                <Feather name="more-vertical" size={20} color={colors.foreground} />
-              </Pressable>
-            </View>
+            <Pressable
+              hitSlop={10}
+              style={({ pressed }) => [styles.headerIconButton, pressed && { opacity: 0.6 }]}
+              onPress={() =>
+                Alert.alert(project?.name ?? 'Project', 'Choose an action', [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Delete project', style: 'destructive', onPress: handleDelete },
+                ])
+              }
+            >
+              <Feather name="more-vertical" size={20} color={colors.foreground} />
+            </Pressable>
           ),
         }}
       />
