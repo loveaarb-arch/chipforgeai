@@ -467,12 +467,6 @@ export function BuildWorkspace({
         <StatCol icon="cpu"       label="Components" val={String(blks)}    />
         <View style={s.statDiv}/>
         <StatCol icon="git-merge" label="Nets"        val={String(nets)}    />
-        <View style={s.statDiv}/>
-        <StatCol icon="alert-triangle" label="Errors"  val={String(drcCount)} red={drcCount > 0}/>
-        <View style={s.statDiv}/>
-        <StatCol icon="grid"      label="Grid"        val={gridLabel}       />
-        <View style={s.statDiv}/>
-        <StatCol icon="zoom-in"   label="Zoom"        val={zoomLabel}       />
       </View>
     </View>
   );
