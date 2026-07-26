@@ -98,7 +98,9 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <GestureHandlerRootView>
                 <KeyboardProvider>
-                  <RootLayoutNav />
+                  <SubscriptionProvider>
+                    <RootLayoutNav />
+                  </SubscriptionProvider>
                 </KeyboardProvider>
               </GestureHandlerRootView>
             </QueryClientProvider>
