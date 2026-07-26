@@ -62,8 +62,10 @@ function useSubscriptionContext() {
     onSuccess: () => customerInfoQuery.refetch(),
   });
 
-  // In Expo Go / web: treat as subscribed so the app is fully navigable during testing
+  // In dev / Expo Go / web: treat as subscribed so the app is fully navigable during testing.
+  // Paywall only enforced in production native builds.
   const isSubscribed =
+    __DEV__ ||
     IS_EXPO_GO ||
     Platform.OS === "web" ||
     customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
