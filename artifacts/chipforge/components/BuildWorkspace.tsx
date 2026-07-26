@@ -627,7 +627,7 @@ function StatCol({
 }) {
   return (
     <View style={s.statCol}>
-      <Feather name={icon} size={11} color={red ? '#a03030' : '#283848'}/>
+      <Feather name={icon} size={11} color={red ? '#e05555' : '#7eb8e8'}/>
       <View>
         <Text style={[s.statVal, red && {color:'#c04040'}]}>{val}</Text>
         <Text style={s.statLbl}>{label}</Text>
@@ -808,6 +808,6 @@ const s = StyleSheet.create({
   },
   statCol: { flex:1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   statDiv: { width:1, height:18, backgroundColor: '#1a2535', marginHorizontal: 4 },
-  statVal: { fontSize: 11, fontWeight: '600', color: '#5a8ab0' },
-  statLbl: { fontSize: 9, color: '#283848' },
+  statVal: { fontSize: 11, fontWeight: '700', color: '#e6edf5' },
+  statLbl: { fontSize: 9, color: '#7eb8e8' },
 });
