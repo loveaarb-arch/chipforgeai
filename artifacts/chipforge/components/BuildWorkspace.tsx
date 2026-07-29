@@ -396,16 +396,16 @@ export function BuildWorkspace({
           {/* Floating zoom controls — bottom-right */}
           <View style={s.floatZoom}>
             <Pressable style={s.fzBtn}
-              onPress={() => setScale(v => Math.min(3, +((v + 0.15).toFixed(2))))}>
-              <Text style={s.fzTxt}>+</Text>
+              onPress={() => setScale(v => Math.max(0.25, +((v - 0.15).toFixed(2))))}>
+              <Text style={s.fzTxt}>−</Text>
             </Pressable>
             <Pressable style={[s.fzBtn, s.fzMid]}
               onPress={() => setScale(1)}>
               <Text style={[s.fzTxt, {fontSize:9}]}>{zoomLabel}</Text>
             </Pressable>
             <Pressable style={s.fzBtn}
-              onPress={() => setScale(v => Math.max(0.25, +((v - 0.15).toFixed(2))))}>
-              <Text style={s.fzTxt}>−</Text>
+              onPress={() => setScale(v => Math.min(3, +((v + 0.15).toFixed(2))))}>
+              <Text style={s.fzTxt}>+</Text>
             </Pressable>
           </View>
 
@@ -698,7 +698,7 @@ const s = StyleSheet.create({
   // Floating zoom pill (bottom-right)
   floatZoom: {
     position: 'absolute', right: 12, bottom: 12,
-    flexDirection: 'column',
+    flexDirection: 'row',
     backgroundColor: '#0d1525',
     borderRadius: 10,
     borderWidth: 1, borderColor: DARK_BORD,
@@ -708,7 +708,7 @@ const s = StyleSheet.create({
     width: 36, height: 36,
     alignItems: 'center', justifyContent: 'center',
   },
-  fzMid:{ borderTopWidth:1, borderBottomWidth:1, borderColor: DARK_BORD },
+  fzMid:{ borderLeftWidth:1, borderRightWidth:1, borderColor: DARK_BORD, minWidth: 48 },
   fzTxt: { fontSize: 16, color: '#7a9aba', lineHeight: 20 },
 
   // Grid / Snap toggles (bottom-left)
