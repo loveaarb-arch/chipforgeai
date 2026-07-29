@@ -321,17 +321,18 @@ export function BuildWorkspace({
 
         <View style={s.abDiv}/>
 
-        {/* Zoom picker */}
-        <Pressable style={s.abPicker}
-          onPress={() => {
-            const steps = [0.5, 0.75, 1, 1.25, 1.5, 2];
-            const idx = steps.findIndex(v => v >= scale);
-            setScale(steps[(idx + 1) % steps.length]);
-          }}>
-          <Feather name="zoom-in" size={13} color="#7a9aba"/>
+        {/* Zoom − / % / + */}
+        <View style={s.zoomRow}>
+          <Pressable style={s.zoomStepBtn}
+            onPress={() => setScale(v => Math.max(0.25, +((v - 0.25).toFixed(2))))}>
+            <Text style={s.zoomStepTxt}>−</Text>
+          </Pressable>
           <Text style={s.abPickerTxt}>{zoomLabel}</Text>
-          <Feather name="chevron-down" size={10} color="#4a6a8a"/>
-        </Pressable>
+          <Pressable style={s.zoomStepBtn}
+            onPress={() => setScale(v => Math.min(3, +((v + 0.25).toFixed(2))))}>
+            <Text style={s.zoomStepTxt}>+</Text>
+          </Pressable>
+        </View>
 
         {/* Grid picker */}
         <Pressable style={s.abPicker}
@@ -666,7 +667,11 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'transparent',
   },
   abPickerOn:  { borderColor: ACCENT + '40', backgroundColor: ACCENT + '12' },
-  abPickerTxt: { fontSize: 11, color: '#7a9aba', minWidth: 36 },
+  abPickerTxt: { fontSize: 11, color: '#7a9aba', minWidth: 36, textAlign: 'center' },
+  zoomRow: { flexDirection: 'row', alignItems: 'center', gap: 2, paddingHorizontal: 4 },
+  zoomStepBtn: { width: 26, height: 28, alignItems: 'center', justifyContent: 'center',
+    borderRadius: 5, backgroundColor: '#0d1525', borderWidth: 1, borderColor: '#1a2535' },
+  zoomStepTxt: { fontSize: 15, color: '#7a9aba', lineHeight: 18 },
 
   // ── Middle row ──────────────────────────────────────────────────────────────
   middle: { flex:1, flexDirection:'row' },
