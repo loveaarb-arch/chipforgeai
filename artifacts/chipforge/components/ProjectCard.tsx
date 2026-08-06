@@ -1,8 +1,13 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import type { ChipProjectSummary } from '@workspace/api-client-react';
+
+// Deterministic accent per project — cycles through EDA-style signal colours
+const ACCENTS = ['#22d3ee', '#22c55e', '#a78bfa', '#f59e0b', '#f87171'];
+function accentFor(id: number) {
+  return ACCENTS[id % ACCENTS.length];
+}
 
 interface Props {
   project: ChipProjectSummary;
@@ -11,6 +16,12 @@ interface Props {
 
 export function ProjectCard({ project, onPress }: Props) {
   const colors = useColors();
+  const accent = accentFor(project.id);
+
+  const versionLabel =
+    project.currentVersionNumber > 0
+      ? `v${project.currentVersionNumber}`
+      : 'unsaved';
 
   return (
     <Pressable
@@ -20,33 +31,40 @@ export function ProjectCard({ project, onPress }: Props) {
         {
           backgroundColor: colors.card,
           borderColor: colors.border,
-          opacity: pressed ? 0.85 : 1,
+          opacity: pressed ? 0.82 : 1,
         },
       ]}
     >
-      <View style={styles.row}>
-        <View style={styles.info}>
+      {/* Left accent bar */}
+      <View style={[styles.accent, { backgroundColor: accent }]} />
+
+      <View style={styles.body}>
+        <View style={styles.top}>
           <Text
             style={[styles.name, { color: colors.foreground }]}
             numberOfLines={1}
           >
             {project.name}
           </Text>
-          {project.description ? (
-            <Text
-              style={[styles.description, { color: colors.mutedForeground }]}
-              numberOfLines={2}
-            >
-              {project.description}
+          <View style={[styles.versionPill, { borderColor: colors.border }]}>
+            <Text style={[styles.versionText, { color: colors.mutedForeground }]}>
+              {versionLabel}
             </Text>
-          ) : null}
-          <Text style={[styles.meta, { color: colors.mutedForeground }]}>
-            {project.currentVersionNumber > 0
-              ? `v${project.currentVersionNumber} saved`
-              : 'No saved versions yet'}
-          </Text>
+          </View>
         </View>
-        <Feather name="chevron-right" size={20} color={colors.mutedForeground} />
+
+        {project.description ? (
+          <Text
+            style={[styles.description, { color: colors.mutedForeground }]}
+            numberOfLines={1}
+          >
+            {project.description}
+          </Text>
+        ) : (
+          <Text style={[styles.description, { color: colors.border }]}>
+            No description
+          </Text>
+        )}
       </View>
     </Pressable>
   );
@@ -54,23 +72,47 @@ export function ProjectCard({ project, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
+    flexDirection: 'row',
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 8,
+    marginBottom: 10,
+    overflow: 'hidden',
   },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  info: { flex: 1, marginRight: 8 },
+  accent: {
+    width: 3,
+    alignSelf: 'stretch',
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    gap: 4,
+  },
+  top: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
   name: {
-    fontSize: 16,
+    flex: 1,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 4,
     fontFamily: 'Inter_600SemiBold',
   },
+  versionPill: {
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  versionText: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    letterSpacing: 0.4,
+  },
   description: {
-    fontSize: 13,
-    marginBottom: 6,
+    fontSize: 12,
     fontFamily: 'Inter_400Regular',
   },
-  meta: { fontSize: 12, fontFamily: 'Inter_400Regular' },
 });

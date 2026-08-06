@@ -52,54 +52,40 @@ export default function SignInScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: colors.background }}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={[styles.title, { color: colors.foreground }]}>
-            Verify this device
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            We sent a verification code to {emailAddress}. Enter it below to
-            finish signing in.
-          </Text>
-
-          <AuthTextField
-            label="Verification code"
-            value={code}
-            onChangeText={setCode}
-            keyboardType="numeric"
-            placeholder=""
-            errorMessage={errors.fields.code?.message}
-          />
-
-          {globalError ? (
-            <Text style={[styles.globalError, { color: colors.destructive }]}>
-              {globalError}
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          <View style={styles.formCard}>
+            <Text style={[styles.title, { color: colors.foreground }]}>Verify device</Text>
+            <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+              A code was sent to {emailAddress}. Enter it below.
             </Text>
-          ) : null}
-
-          <PrimaryButton
-            title="Verify"
-            onPress={handleVerifyClientTrust}
-            loading={fetchStatus === 'fetching'}
-            disabled={!code}
-          />
-
-          <View style={styles.footerRow}>
-            <Text
-              style={{ color: colors.primary, fontWeight: '600' }}
-              onPress={() => signIn.mfa.sendEmailCode()}
-            >
-              Resend code
-            </Text>
-            <Text style={{ color: colors.mutedForeground }}>{'   '}</Text>
-            <Text
-              style={{ color: colors.primary, fontWeight: '600' }}
-              onPress={() => signIn.reset()}
-            >
-              Start over
-            </Text>
+            <AuthTextField
+              label="Verification code"
+              value={code}
+              onChangeText={setCode}
+              keyboardType="numeric"
+              placeholder=""
+              errorMessage={errors.fields.code?.message}
+            />
+            {globalError ? (
+              <Text style={[styles.globalError, { color: colors.destructive }]}>{globalError}</Text>
+            ) : null}
+            <PrimaryButton
+              title="Verify"
+              onPress={handleVerifyClientTrust}
+              loading={fetchStatus === 'fetching'}
+              disabled={!code}
+            />
+            <View style={styles.footerRow}>
+              <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}
+                onPress={() => signIn.mfa.sendEmailCode()}>
+                Resend
+              </Text>
+              <Text style={{ color: colors.border }}>{'  ·  '}</Text>
+              <Text style={{ color: colors.mutedForeground, fontSize: 13 }}
+                onPress={() => signIn.reset()}>
+                Start over
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -111,63 +97,64 @@ export default function SignInScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1, backgroundColor: colors.background }}
     >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+
+        {/* Brand */}
         <View style={styles.brand}>
-          <View style={[styles.logoMark, { borderColor: colors.primary }]}>
-            <View style={[styles.logoDot, { backgroundColor: colors.primary }]} />
+          <View style={[styles.logoWrap, { borderColor: colors.border }]}>
+            <View style={[styles.logoGrid, { borderColor: colors.primary + '40' }]}>
+              <View style={[styles.logoDot, { backgroundColor: colors.primary }]} />
+              <View style={[styles.logoDot, { backgroundColor: colors.primary + '50' }]} />
+              <View style={[styles.logoDot, { backgroundColor: colors.primary + '50' }]} />
+              <View style={[styles.logoDot, { backgroundColor: colors.primary }]} />
+            </View>
           </View>
-          <Text style={[styles.appName, { color: colors.foreground }]}>
-            Chip Forge AI
-          </Text>
+          <Text style={[styles.appName, { color: colors.foreground }]}>ChipForge</Text>
           <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
-            Describe a chip. Watch it take shape.
+            AI-powered chip design
           </Text>
         </View>
 
-        <Text style={[styles.title, { color: colors.foreground }]}>
-          Welcome back
-        </Text>
+        {/* Form */}
+        <View style={[styles.formCard, { borderColor: colors.border, backgroundColor: colors.card }]}>
+          <Text style={[styles.formTitle, { color: colors.foreground }]}>Sign in</Text>
 
-        <AuthTextField
-          label="Email address"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          value={emailAddress}
-          onChangeText={setEmailAddress}
-          placeholder=""
-          errorMessage={errors.fields.identifier?.message}
-        />
-        <AuthTextField
-          label="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-          placeholder=""
-          errorMessage={errors.fields.password?.message}
-        />
+          <AuthTextField
+            label="Email"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={emailAddress}
+            onChangeText={setEmailAddress}
+            placeholder=""
+            errorMessage={errors.fields.identifier?.message}
+          />
+          <AuthTextField
+            label="Password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            placeholder=""
+            errorMessage={errors.fields.password?.message}
+          />
 
-        {globalError ? (
-          <Text style={[styles.globalError, { color: colors.destructive }]}>
-            {globalError}
-          </Text>
-        ) : null}
+          {globalError ? (
+            <Text style={[styles.globalError, { color: colors.destructive }]}>{globalError}</Text>
+          ) : null}
 
-        <PrimaryButton
-          title="Sign in"
-          onPress={handleSubmit}
-          loading={fetchStatus === 'fetching'}
-          disabled={!emailAddress || !password}
-        />
+          <PrimaryButton
+            title="Sign in"
+            onPress={handleSubmit}
+            loading={fetchStatus === 'fetching'}
+            disabled={!emailAddress || !password}
+          />
+        </View>
 
         <View style={styles.footerRow}>
-          <Text style={{ color: colors.mutedForeground }}>
-            Don&apos;t have an account?{' '}
+          <Text style={{ color: colors.mutedForeground, fontSize: 13 }}>
+            No account?{' '}
           </Text>
           <Link href="/(auth)/sign-up">
-            <Text style={{ color: colors.primary, fontWeight: '600' }}>
+            <Text style={{ color: colors.primary, fontWeight: '600', fontSize: 13 }}>
               Sign up
             </Text>
           </Link>
@@ -178,40 +165,53 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
-  brand: { alignItems: 'center', marginBottom: 40 },
-  logoMark: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    borderWidth: 2,
+  container: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 20 },
+
+  brand: { alignItems: 'center', gap: 8, marginBottom: 4 },
+  logoWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 4,
   },
-  logoDot: { width: 14, height: 14, borderRadius: 4 },
-  appName: { fontSize: 24, fontWeight: '700', fontFamily: 'Inter_700Bold' },
-  tagline: { fontSize: 14, marginTop: 4, fontFamily: 'Inter_400Regular' },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 24,
-    fontFamily: 'Inter_700Bold',
-  },
-  subtitle: {
-    fontSize: 14,
-    marginBottom: 20,
-    marginTop: -12,
-    fontFamily: 'Inter_400Regular',
-  },
-  footerRow: {
+  logoGrid: {
+    width: 28,
+    height: 28,
+    borderRadius: 4,
+    borderWidth: 1,
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
+    flexWrap: 'wrap',
+    padding: 5,
+    gap: 4,
   },
-  globalError: {
-    fontSize: 13,
+  logoDot: { width: 7, height: 7, borderRadius: 2 },
+  appName: { fontSize: 20, fontWeight: '700', fontFamily: 'Inter_700Bold', letterSpacing: -0.3 },
+  tagline: { fontSize: 13, fontFamily: 'Inter_400Regular' },
+
+  formCard: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 20,
+    gap: 4,
+  },
+  formTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
     marginBottom: 12,
+  },
+
+  title: { fontSize: 20, fontWeight: '700', fontFamily: 'Inter_700Bold', marginBottom: 4 },
+  subtitle: { fontSize: 13, marginBottom: 16, fontFamily: 'Inter_400Regular', lineHeight: 19 },
+
+  footerRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 4 },
+
+  globalError: {
+    fontSize: 12,
+    marginBottom: 8,
     textAlign: 'center',
     fontFamily: 'Inter_400Regular',
   },

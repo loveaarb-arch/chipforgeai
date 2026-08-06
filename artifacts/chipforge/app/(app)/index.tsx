@@ -52,20 +52,34 @@ export default function ProjectListScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.greeting, { color: colors.mutedForeground }]}>
-            Welcome{user?.firstName ? `, ${user.firstName}` : ''}
-          </Text>
-          <Text style={[styles.title, { color: colors.foreground }]}>
-            Your chips
-          </Text>
+
+      {/* Header */}
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <View style={styles.headerLeft}>
+          {/* Logo mark */}
+          <View style={[styles.logoMark, { borderColor: colors.primary + '60' }]}>
+            <View style={[styles.logoInner, { backgroundColor: colors.primary }]} />
+            <View style={[styles.logoCorner, { borderColor: colors.primary }]} />
+          </View>
+          <View>
+            <Text style={[styles.appLabel, { color: colors.mutedForeground }]}>
+              CHIPFORGE
+            </Text>
+            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+              {user?.firstName ? `${user.firstName}'s designs` : 'Designs'}
+            </Text>
+          </View>
         </View>
-        <Pressable onPress={() => signOut()} hitSlop={10}>
-          <Feather name="log-out" size={20} color={colors.mutedForeground} />
+        <Pressable
+          onPress={() => signOut()}
+          hitSlop={12}
+          style={[styles.signOutBtn, { borderColor: colors.border }]}
+        >
+          <Feather name="log-out" size={14} color={colors.mutedForeground} />
         </Pressable>
       </View>
 
+      {/* List */}
       <FlatList
         data={projects ?? []}
         keyExtractor={(item) => String(item.id)}
@@ -78,36 +92,49 @@ export default function ProjectListScreen() {
             onPress={() => router.push(`/(app)/project/${item.id}`)}
           />
         )}
+        ListHeaderComponent={
+          <View style={styles.listHeader}>
+            <Text style={[styles.listCount, { color: colors.mutedForeground }]}>
+              {projects ? `${projects.length} project${projects.length !== 1 ? 's' : ''}` : ''}
+            </Text>
+            <Pressable
+              onPress={() => setModalVisible(true)}
+              style={[styles.newBtn, { backgroundColor: colors.primary }]}
+            >
+              <Feather name="plus" size={13} color={colors.primaryForeground} />
+              <Text style={[styles.newBtnText, { color: colors.primaryForeground }]}>
+                New project
+              </Text>
+            </Pressable>
+          </View>
+        }
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.empty}>
-              <Feather name="cpu" size={36} color={colors.mutedForeground} />
+              <View style={[styles.emptyIcon, { borderColor: colors.border }]}>
+                <Feather name="cpu" size={22} color={colors.mutedForeground} />
+              </View>
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-                No chips yet
+                No projects yet
               </Text>
-              <Text
-                style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
-              >
-                Create a project and describe the chip you want to build in
-                plain language.
+              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
+                Create a project and describe the chip you want to build.
               </Text>
             </View>
           ) : null
         }
       />
 
-      <Pressable
-        onPress={() => setModalVisible(true)}
-        style={[styles.fab, { backgroundColor: colors.primary }]}
-      >
-        <Feather name="plus" size={26} color={colors.primaryForeground} />
-      </Pressable>
-
+      {/* New project modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <View style={styles.modalHandle} />
             <Text style={[styles.modalTitle, { color: colors.foreground }]}>
-              New chip project
+              New project
+            </Text>
+            <Text style={[styles.modalSubtitle, { color: colors.mutedForeground }]}>
+              You can describe the chip in Chat once it's created.
             </Text>
             <AuthTextField
               label="Name"
@@ -122,18 +149,23 @@ export default function ProjectListScreen() {
               placeholder="What is this chip for?"
               multiline
             />
-            <PrimaryButton
-              title="Create project"
-              onPress={handleCreate}
-              loading={createProject.isPending}
-              disabled={!name.trim()}
-            />
-            <Pressable
-              onPress={() => setModalVisible(false)}
-              style={styles.cancelButton}
-            >
-              <Text style={{ color: colors.mutedForeground }}>Cancel</Text>
-            </Pressable>
+            <View style={styles.modalActions}>
+              <PrimaryButton
+                title="Create"
+                onPress={handleCreate}
+                loading={createProject.isPending}
+                disabled={!name.trim()}
+                style={styles.modalCreateBtn}
+              />
+              <Pressable
+                onPress={() => setModalVisible(false)}
+                style={[styles.cancelBtn, { borderColor: colors.border }]}
+              >
+                <Text style={[styles.cancelText, { color: colors.mutedForeground }]}>
+                  Cancel
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
@@ -143,66 +175,138 @@ export default function ProjectListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  // Header
   header: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingTop: 14,
+    paddingBottom: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  greeting: { fontSize: 13, fontFamily: 'Inter_400Regular' },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    marginTop: 2,
-    fontFamily: 'Inter_700Bold',
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  logoMark: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
   },
-  listContent: { padding: 20, paddingBottom: 100, flexGrow: 1 },
-  empty: { alignItems: 'center', marginTop: 80, paddingHorizontal: 32 },
-  emptyTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginTop: 14,
+  logoInner: { width: 10, height: 10, borderRadius: 2 },
+  logoCorner: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 5,
+    height: 5,
+    borderRadius: 1,
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  appLabel: {
+    fontSize: 9,
+    letterSpacing: 1.5,
     fontFamily: 'Inter_600SemiBold',
   },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    fontFamily: 'Inter_600SemiBold',
+    marginTop: 1,
+  },
+  signOutBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // List
+  listContent: { paddingHorizontal: 16, paddingBottom: 40, flexGrow: 1 },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  listCount: { fontSize: 12, fontFamily: 'Inter_400Regular', letterSpacing: 0.3 },
+  newBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 7,
+  },
+  newBtnText: { fontSize: 13, fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
+
+  // Empty state
+  empty: { alignItems: 'center', marginTop: 80, paddingHorizontal: 40, gap: 10 },
+  emptyIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyTitle: { fontSize: 15, fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
   emptySubtitle: {
     fontSize: 13,
     textAlign: 'center',
-    marginTop: 6,
+    lineHeight: 19,
     fontFamily: 'Inter_400Regular',
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 28,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
-  },
+
+  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 0,
     padding: 24,
-    paddingBottom: 36,
+    paddingBottom: 40,
+    gap: 4,
+  },
+  modalHandle: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: '#2a3a52',
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    marginBottom: 18,
     fontFamily: 'Inter_700Bold',
+    marginBottom: 2,
   },
-  cancelButton: { alignItems: 'center', marginTop: 12, padding: 8 },
+  modalSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    marginBottom: 16,
+  },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  modalCreateBtn: { flex: 1 },
+  cancelBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 13,
+  },
+  cancelText: { fontSize: 14, fontWeight: '600', fontFamily: 'Inter_600SemiBold' },
 });
