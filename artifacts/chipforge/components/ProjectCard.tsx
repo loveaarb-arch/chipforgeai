@@ -14,7 +14,7 @@ export function ProjectCard({ project, onPress }: Props) {
   const versionLabel =
     project.currentVersionNumber > 0
       ? `v${project.currentVersionNumber}`
-      : 'unsaved';
+      : null;
 
   return (
     <Pressable
@@ -36,11 +36,13 @@ export function ProjectCard({ project, onPress }: Props) {
           >
             {project.name}
           </Text>
-          <View style={[styles.versionPill, { borderColor: colors.border }]}>
-            <Text style={[styles.versionText, { color: colors.mutedForeground }]}>
-              {versionLabel}
-            </Text>
-          </View>
+          {versionLabel && (
+            <View style={[styles.versionPill, { borderColor: colors.border }]}>
+              <Text style={[styles.versionText, { color: colors.mutedForeground }]}>
+                {versionLabel}
+              </Text>
+            </View>
+          )}
         </View>
 
         {project.description ? (
