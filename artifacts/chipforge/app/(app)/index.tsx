@@ -55,21 +55,9 @@ export default function ProjectListScreen() {
 
       {/* Header */}
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <View style={styles.headerLeft}>
-          {/* Logo mark */}
-          <View style={[styles.logoMark, { borderColor: colors.primary + '60' }]}>
-            <View style={[styles.logoInner, { backgroundColor: colors.primary }]} />
-            <View style={[styles.logoCorner, { borderColor: colors.primary }]} />
-          </View>
-          <View>
-            <Text style={[styles.appLabel, { color: colors.mutedForeground }]}>
-              CHIPFORGE
-            </Text>
-            <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-              {user?.firstName ? `${user.firstName}'s designs` : 'Designs'}
-            </Text>
-          </View>
-        </View>
+        <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
+          {user?.firstName ? `${user.firstName}'s Designs` : 'Designs'}
+        </Text>
         <Pressable
           onPress={() => signOut()}
           hitSlop={12}
@@ -185,32 +173,6 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  logoMark: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  logoInner: { width: 10, height: 10, borderRadius: 2 },
-  logoCorner: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 5,
-    height: 5,
-    borderRadius: 1,
-    borderWidth: 1,
-    backgroundColor: 'transparent',
-  },
-  appLabel: {
-    fontSize: 9,
-    letterSpacing: 1.5,
-    fontFamily: 'Inter_600SemiBold',
   },
   sectionTitle: {
     fontSize: 15,

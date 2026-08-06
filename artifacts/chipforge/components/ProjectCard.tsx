@@ -3,12 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 import type { ChipProjectSummary } from '@workspace/api-client-react';
 
-// Deterministic accent per project — cycles through EDA-style signal colours
-const ACCENTS = ['#22d3ee', '#22c55e', '#a78bfa', '#f59e0b', '#f87171'];
-function accentFor(id: number) {
-  return ACCENTS[id % ACCENTS.length];
-}
-
 interface Props {
   project: ChipProjectSummary;
   onPress: () => void;
@@ -16,7 +10,6 @@ interface Props {
 
 export function ProjectCard({ project, onPress }: Props) {
   const colors = useColors();
-  const accent = accentFor(project.id);
 
   const versionLabel =
     project.currentVersionNumber > 0
@@ -35,9 +28,6 @@ export function ProjectCard({ project, onPress }: Props) {
         },
       ]}
     >
-      {/* Left accent bar */}
-      <View style={[styles.accent, { backgroundColor: accent }]} />
-
       <View style={styles.body}>
         <View style={styles.top}>
           <Text
@@ -77,10 +67,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
     overflow: 'hidden',
-  },
-  accent: {
-    width: 3,
-    alignSelf: 'stretch',
   },
   body: {
     flex: 1,
