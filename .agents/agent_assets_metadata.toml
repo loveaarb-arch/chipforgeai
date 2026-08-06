@@ -6,3 +6,10 @@ id = "xi83fTwQSuUXx9SdDkUZc"
 uri = "file://attached_assets/chipforge-qr.png"
 type = "image"
 title = "ChipForge dev server QR code"
+
+[[outputs]]
+id = "7UzzjALZTyEyPVrv9MYGx"
+uri = "file://attached_assets/logo_large.png"
+type = "image"
+title = "Logo (large)"
+description = "Resized to 512×512"
