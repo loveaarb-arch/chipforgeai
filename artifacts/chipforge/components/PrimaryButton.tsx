@@ -33,17 +33,13 @@ export function PrimaryButton({
       ? colors.primary
       : variant === 'destructive'
         ? colors.destructive
-        : 'transparent';
-
+        : colors.secondary;
   const textColor =
     variant === 'primary'
       ? colors.primaryForeground
       : variant === 'destructive'
         ? colors.destructiveForeground
-        : colors.mutedForeground;
-
-  const borderColor =
-    variant === 'secondary' ? colors.border : 'transparent';
+        : colors.secondaryForeground;
 
   return (
     <Pressable
@@ -51,16 +47,12 @@ export function PrimaryButton({
       disabled={isDisabled}
       style={({ pressed }) => [
         styles.button,
-        {
-          backgroundColor,
-          borderColor,
-          opacity: isDisabled ? 0.45 : pressed ? 0.88 : 1,
-        },
+        { backgroundColor, opacity: isDisabled ? 0.6 : pressed ? 0.85 : 1 },
         style,
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={textColor} size="small" />
+        <ActivityIndicator color={textColor} />
       ) : (
         <Text style={[styles.text, { color: textColor }]}>{title}</Text>
       )}
@@ -70,16 +62,14 @@ export function PrimaryButton({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingVertical: 13,
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    letterSpacing: 0.3,
     fontFamily: 'Inter_600SemiBold',
   },
 });
