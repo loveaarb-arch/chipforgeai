@@ -362,28 +362,6 @@ export function BuildWorkspace({
       {/* ═══════════════ MIDDLE ROW ═══════════════ */}
       <View style={s.middle}>
 
-        {/* LEFT TOOL RAIL */}
-        <View style={s.toolRail}>
-          {TOOLS.map(t => (
-            <ToolButton key={t.id} tool={t} active={activeTool === t.id} onPress={cycleTool} />
-          ))}
-          <View style={{flex:1}}/>
-          {/* Divider + ERC/DRC shortcuts */}
-          <View style={s.railDiv}/>
-          <Pressable style={s.toolBtn} onPress={() => Alert.alert('DRC', runDRC(design))}>
-            <Feather name="check-circle" size={16} color="#3d6a50"/>
-            <Text style={[s.toolLabel, {color:'#3d6a50'}]}>DRC</Text>
-          </Pressable>
-          <Pressable style={s.toolBtn} onPress={() => Alert.alert('ERC', runERC(design))}>
-            <Feather name="zap" size={16} color="#3d6a50"/>
-            <Text style={[s.toolLabel, {color:'#3d6a50'}]}>ERC</Text>
-          </Pressable>
-          <Pressable style={s.toolBtn} onPress={() => onChange(autoRoute(design))}>
-            <Feather name="share-2" size={16} color="#3d6a50"/>
-            <Text style={[s.toolLabel, {color:'#3d6a50'}]}>Route</Text>
-          </Pressable>
-        </View>
-
         {/* CANVAS */}
         <View ref={canvasWrapRef} style={s.canvasWrap}>
           <DesignCanvasView
