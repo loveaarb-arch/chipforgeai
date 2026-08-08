@@ -11,13 +11,26 @@
     "splash": {
       "image": "./assets/images/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#0d1117"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.chipforgeai.app"
+      "bundleIdentifier": "com.chipforgeai.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Chip Forge AI does not use the camera.",
+        "NSMicrophoneUsageDescription": "Chip Forge AI does not use the microphone.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyTracking": false
+      }
     },
-    "android": {},
+    "android": {
+      "package": "com.chipforgeai.app"
+    },
     "web": {
       "favicon": "./assets/images/icon.png"
     },
@@ -34,6 +47,11 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
     }
   }
 }
