@@ -27,3 +27,10 @@ uri = "file://attached_assets/screenshot_appstore2.png"
 type = "image"
 title = "App Store Screenshot (1284×2778, no crop)"
 description = "Ready to upload to App Store Connect"
+
+[[outputs]]
+id = "fcis5NPtplgxwUdYCU8vX"
+uri = "file://attached_assets/screenshot_appstore3.png"
+type = "image"
+title = "App Store Screenshot 2 (1284×2778, no crop)"
+description = "Ready to upload to App Store Connect"
