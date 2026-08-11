@@ -13,3 +13,10 @@ uri = "file://attached_assets/logo_large.png"
 type = "image"
 title = "Logo (large)"
 description = "Resized to 512×512"
+
+[[outputs]]
+id = "ED3Xj3YUQ5kYAcLiHasnK"
+uri = "file://attached_assets/screenshot_appstore.png"
+type = "image"
+title = "App Store Screenshot (1284×2778)"
+description = "Ready to upload to App Store Connect"
