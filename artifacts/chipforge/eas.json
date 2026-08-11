@@ -14,7 +14,10 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_DOMAIN": "chip-forge-ai.replit.app"
+      }
     }
   },
   "submit": {
