@@ -17,7 +17,6 @@ import { PaywallModal } from '@/components/PaywallModal';
 import { ChatPanel } from '@/components/ChatPanel';
 import { BuildWorkspace } from '@/components/BuildWorkspace';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
-import { Chip3DView } from '@/components/Chip3DView';
 import { ValidationPanel } from '@/components/ValidationPanel';
 import { HdlPanel } from '@/components/HdlPanel';
 import { VersionsPanel } from '@/components/VersionsPanel';
@@ -31,12 +30,11 @@ import {
   type ChipDesign,
 } from '@workspace/api-client-react';
 
-type Tab = 'chat' | 'build' | '3d' | 'diagram' | 'validate' | 'hdl' | 'versions';
+type Tab = 'chat' | 'build' | 'diagram' | 'validate' | 'hdl' | 'versions';
 
 const TABS: { key: Tab; label: string; icon: keyof typeof Feather.glyphMap }[] = [
   { key: 'chat',     label: 'Chat',     icon: 'message-circle' },
   { key: 'build',    label: 'Build',    icon: 'box'            },
-  { key: '3d',       label: '3D',       icon: 'layers'         },
   { key: 'diagram',  label: 'Diagram',  icon: 'git-merge'      },
   { key: 'validate', label: 'Validate', icon: 'check-square'   },
   { key: 'hdl',      label: 'HDL',      icon: 'code'           },
@@ -163,7 +161,6 @@ export default function ProjectWorkspaceScreen() {
   const tabContent = (
     <>
       {tab === 'chat' && <ChatPanel projectId={projectId} locked={project?.locked ?? false} />}
-      {tab === '3d' && localDesign && <Chip3DView design={localDesign} />}
       {tab === 'diagram' && localDesign && (
         <DesignCanvasView
           design={localDesign} onChange={handleDesignChange}
