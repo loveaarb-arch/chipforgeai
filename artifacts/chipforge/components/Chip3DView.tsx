@@ -26,18 +26,13 @@ import type { ChipComponent, ChipDesign } from '@workspace/api-client-react';
 const ISO_SCALE  = 0.08;     // design-px → ISO screen units
 const COS30      = 0.866025;
 const SIN30      = 0.5;
-const BOARD_W    = 2400;     // matches DesignCanvasView CANVAS_SIZE
-const BOARD_D    = 2400;
 const BOARD_H    = 5;        // PCB slab thickness
 const CHIP_H     = 18;       // IC package height above board
+const BOARD_PAD  = 80;       // padding around component bounding box
 
-// SVG viewBox: computed from iso extents of the board corners
-// iso(BOARD_W,0,*) → sx≈166  iso(0,BOARD_D,*) → sx≈-166
-// iso(*,*,0) lowest y; iso(0,0,BOARD_H+CHIP_H) highest y ≈ -2
-const VB_X = -175;
-const VB_Y = -24;
-const VB_W = 350;
-const VB_H = 290;
+// Empty-state board (no components)
+const EMPTY_BW   = 600;
+const EMPTY_BD   = 400;
 
 // ─── Colour palettes ──────────────────────────────────────────────────────────
 
@@ -108,45 +103,27 @@ function shade(hex: string, factor: number): string {
 
 // ─── Board component ──────────────────────────────────────────────────────────
 
-function Board() {
-  const bw = BOARD_W, bd = BOARD_D, bh = BOARD_H;
+function Board({ bw, bd }: { bw: number; bd: number }) {
+  const bh    = BOARD_H;
   const top   = '#1a5c2a';
-  const right  = '#0e3a1a';   // x=bw face (right side)
-  const front  = '#0b2d14';   // y=0 face (near side to viewer)
+  const right = '#0e3a1a';
+  const front = '#0b2d14';
+  const engPad = Math.min(20, bw * 0.06, bd * 0.06);
 
   return (
     <>
-      {/* Front face (y=0, near to viewer) */}
+      <Polygon points={polyPts([[0,0,0],[bw,0,0],[bw,0,bh],[0,0,bh]])}
+        fill={front} stroke="#0a2510" strokeWidth={0.4} />
+      <Polygon points={polyPts([[bw,0,0],[bw,bd,0],[bw,bd,bh],[bw,0,bh]])}
+        fill={right} stroke="#0a2510" strokeWidth={0.4} />
+      <Polygon points={polyPts([[0,0,bh],[bw,0,bh],[bw,bd,bh],[0,bd,bh]])}
+        fill={top} stroke="#1e6830" strokeWidth={0.5} />
       <Polygon
         points={polyPts([
-          [0,  0, 0], [bw, 0, 0],
-          [bw, 0, bh], [0, 0, bh],
+          [engPad,engPad,bh+0.1],[bw-engPad,engPad,bh+0.1],
+          [bw-engPad,bd-engPad,bh+0.1],[engPad,bd-engPad,bh+0.1],
         ])}
-        fill={front} stroke="#0a2510" strokeWidth={0.4}
-      />
-      {/* Right face (x=bw) */}
-      <Polygon
-        points={polyPts([
-          [bw, 0, 0], [bw, bd, 0],
-          [bw, bd, bh], [bw, 0, bh],
-        ])}
-        fill={right} stroke="#0a2510" strokeWidth={0.4}
-      />
-      {/* Top face */}
-      <Polygon
-        points={polyPts([
-          [0, 0, bh], [bw, 0, bh],
-          [bw, bd, bh], [0, bd, bh],
-        ])}
-        fill={top} stroke="#1e6830" strokeWidth={0.5}
-      />
-      {/* Board outline engraving (subtle darker border on top) */}
-      <Polygon
-        points={polyPts([
-          [30, 30, bh+0.1], [bw-30, 30, bh+0.1],
-          [bw-30, bd-30, bh+0.1], [30, bd-30, bh+0.1],
-        ])}
-        fill="none" stroke="#155020" strokeWidth={0.6} strokeDasharray="6,3"
+        fill="none" stroke="#155020" strokeWidth={0.5} strokeDasharray="4,2"
       />
     </>
   );
@@ -375,27 +352,58 @@ function DiscretePkg({ comp }: { comp: ChipComponent }) {
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyBoard() {
+  const bw = EMPTY_BW, bd = EMPTY_BD;
+  const c = iso(bw / 2, bd / 2, BOARD_H + 1);
   return (
     <>
-      <Board />
-      {/* Centred placeholder text on board top */}
-      {(() => {
-        const c = iso(BOARD_W / 2, BOARD_D / 2, BOARD_H + 1);
-        return (
-          <>
-            <SvgText x={c.sx} y={c.sy - 8} fontSize={7} fill="#2a7a3a"
-              textAnchor="middle" fontFamily="monospace">
-              NO COMPONENTS
-            </SvgText>
-            <SvgText x={c.sx} y={c.sy + 2} fontSize={5} fill="#1e5a2a"
-              textAnchor="middle">
-              Add chips in Parts panel or Chat
-            </SvgText>
-          </>
-        );
-      })()}
+      <Board bw={bw} bd={bd} />
+      <SvgText x={c.sx} y={c.sy - 6} fontSize={5} fill="#2a7a3a"
+        textAnchor="middle" fontFamily="monospace">NO COMPONENTS</SvgText>
+      <SvgText x={c.sx} y={c.sy + 3} fontSize={3.5} fill="#1e5a2a"
+        textAnchor="middle">Add chips in Parts panel or Chat</SvgText>
     </>
   );
+}
+
+// ─── Compute dynamic viewBox from component bounding box ─────────────────────
+
+function computeScene(components: ChipDesign['components']) {
+  if (components.length === 0) {
+    // Empty board
+    const bw = EMPTY_BW, bd = EMPTY_BD;
+    const corners = [
+      iso(0, 0, 0), iso(bw, 0, 0), iso(bw, bd, 0), iso(0, bd, 0),
+      iso(0, 0, BOARD_H + CHIP_H), iso(bw, 0, BOARD_H + CHIP_H),
+    ];
+    const margin = 10;
+    const sxMin = Math.min(...corners.map(p => p.sx)) - margin;
+    const sxMax = Math.max(...corners.map(p => p.sx)) + margin;
+    const syMin = Math.min(...corners.map(p => p.sy)) - margin;
+    const syMax = Math.max(...corners.map(p => p.sy)) + margin;
+    return { boardW: bw, boardD: bd, vbX: sxMin, vbY: syMin, vbW: sxMax - sxMin, vbH: syMax - syMin };
+  }
+
+  // Compute tight bounding box of all components
+  const maxCompH = Math.max(CHIP_H, ...components.map(c =>
+    DISCRETE_H[c.type] ?? CHIP_H
+  ));
+  const rawMaxX = Math.max(...components.map(c => c.x + c.width));
+  const rawMaxY = Math.max(...components.map(c => c.y + c.height));
+  const boardW  = rawMaxX + BOARD_PAD;
+  const boardD  = rawMaxY + BOARD_PAD;
+
+  // ISO extents of all 8 corners of the board volume
+  const topZ = BOARD_H + maxCompH + 4;
+  const corners = [
+    iso(0, 0, 0), iso(boardW, 0, 0), iso(boardW, boardD, 0), iso(0, boardD, 0),
+    iso(0, 0, topZ), iso(boardW, 0, topZ), iso(boardW, boardD, topZ), iso(0, boardD, topZ),
+  ];
+  const margin = 8;
+  const sxMin = Math.min(...corners.map(p => p.sx)) - margin;
+  const sxMax = Math.max(...corners.map(p => p.sx)) + margin;
+  const syMin = Math.min(...corners.map(p => p.sy)) - margin;
+  const syMax = Math.max(...corners.map(p => p.sy)) + margin;
+  return { boardW, boardD, vbX: sxMin, vbY: syMin, vbW: sxMax - sxMin, vbH: syMax - syMin };
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -431,20 +439,24 @@ export function Chip3DView({ design }: { design: ChipDesign }) {
     [design.connections, byId],
   );
 
+  // Dynamic board size + viewBox — recomputed whenever components change
+  const scene = useMemo(() => computeScene(design.components), [design.components]);
+  const { boardW, boardD, vbX, vbY, vbW, vbH } = scene;
+
   return (
     <View style={styles.root}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>3D Viewer</Text>
         <Text style={styles.headerSub}>
-          {design.components.length} ICs · {design.connections.length} nets
+          {design.components.length} components · {design.connections.length} nets
         </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
         <Svg
-          viewBox={`${VB_X} ${VB_Y} ${VB_W} ${VB_H}`}
-          style={styles.svg}
+          viewBox={`${vbX.toFixed(1)} ${vbY.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}`}
+          style={[styles.svg, { aspectRatio: vbW / vbH }]}
           preserveAspectRatio="xMidYMid meet"
         >
           <Defs>
@@ -455,14 +467,14 @@ export function Chip3DView({ design }: { design: ChipDesign }) {
           </Defs>
 
           {/* Background */}
-          <Rect x={VB_X} y={VB_Y} width={VB_W} height={VB_H} fill="url(#skyGrad)" />
+          <Rect x={vbX} y={vbY} width={vbW} height={vbH} fill="url(#skyGrad)" />
 
           {design.components.length === 0 ? (
             <EmptyBoard />
           ) : (
             <>
-              {/* Board */}
-              <Board />
+              {/* Board fitted to components */}
+              <Board bw={boardW} bd={boardD} />
 
               {/* Copper traces on board surface */}
               {traces.map(t => (
@@ -479,19 +491,9 @@ export function Chip3DView({ design }: { design: ChipDesign }) {
           )}
         </Svg>
 
-        {/* Legend */}
-        <View style={styles.legend}>
-          {Object.entries(ACCENT).map(([type, color]) => (
-            <View key={type} style={styles.legendRow}>
-              <View style={[styles.legendDot, { backgroundColor: color }]} />
-              <Text style={styles.legendTxt}>{SHORT[type]}</Text>
-            </View>
-          ))}
-        </View>
-
         {/* Hint */}
         <Text style={styles.hint}>
-          Isometric view • Edit components in the Build tab
+          Isometric view • Components shown at actual canvas positions
         </Text>
       </ScrollView>
     </View>
