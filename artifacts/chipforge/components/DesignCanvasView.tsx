@@ -33,13 +33,13 @@ const PIN_SPACING  = 16;          // vertical pitch between pins
 const BODY_PAD_X   = 12;
 const BODY_PAD_Y   = 10;
 
-// Signal-class colours (PCB convention)
+// Signal-class colours (PCB convention) — muted to avoid toy-like look
 const SIG = {
-  data:    '#22c55e',   // green
-  clock:   '#3b82f6',   // blue
-  power:   '#ef4444',   // red
-  control: '#eab308',   // yellow
-  misc:    '#94a3b8',   // slate
+  data:    '#1d9e5a',   // muted green
+  clock:   '#2d6fbd',   // muted blue
+  power:   '#c0392b',   // muted red
+  control: '#b8860b',   // muted gold
+  misc:    '#607a96',   // slate
 } as const;
 
 // ─── Type metadata ────────────────────────────────────────────────────────────
@@ -56,14 +56,14 @@ interface TypeMeta {
 }
 
 const TYPE_META: Record<string, TypeMeta> = {
-  logic_gate:  { accentColor:'#00bcd4', sigClass:'data',    short:'GATE', refPrefix:'U',  inputs:['A','B'],                outputs:['Q'],       topPins:2, bottomPins:2 },
-  flip_flop:   { accentColor:'#f59e0b', sigClass:'clock',   short:'FF',   refPrefix:'U',  inputs:['D','CLK','RST'],        outputs:['Q','~Q'],  topPins:2, bottomPins:2 },
-  multiplexer: { accentColor:'#a855f7', sigClass:'data',    short:'MUX',  refPrefix:'U',  inputs:['A','B','SEL'],          outputs:['Y'],       topPins:2, bottomPins:1 },
-  alu:         { accentColor:'#ef4444', sigClass:'data',    short:'ALU',  refPrefix:'U',  inputs:['A','B','Op'],           outputs:['R','Cf'],  topPins:3, bottomPins:2 },
-  register:    { accentColor:'#22c55e', sigClass:'data',    short:'REG',  refPrefix:'U',  inputs:['D','CLK','EN'],         outputs:['Q'],       topPins:2, bottomPins:2 },
-  memory:      { accentColor:'#8b5cf6', sigClass:'data',    short:'MEM',  refPrefix:'U',  inputs:['ADDR','DI','WE','CLK'],outputs:['DO'],      topPins:4, bottomPins:3 },
-  clock:       { accentColor:'#3b82f6', sigClass:'clock',   short:'CLK',  refPrefix:'Y',  inputs:[],                      outputs:['CLK'],     topPins:1, bottomPins:1 },
-  io_port:     { accentColor:'#06b6d4', sigClass:'control', short:'I/O',  refPrefix:'J',  inputs:[],                      outputs:['IO'],      topPins:2, bottomPins:2 },
+  logic_gate:  { accentColor:'#2d8fa8', sigClass:'data',    short:'GATE', refPrefix:'U',  inputs:['A','B'],                outputs:['Q'],       topPins:2, bottomPins:2 },
+  flip_flop:   { accentColor:'#a07820', sigClass:'clock',   short:'FF',   refPrefix:'U',  inputs:['D','CLK','RST'],        outputs:['Q','~Q'],  topPins:2, bottomPins:2 },
+  multiplexer: { accentColor:'#7040a8', sigClass:'data',    short:'MUX',  refPrefix:'U',  inputs:['A','B','SEL'],          outputs:['Y'],       topPins:2, bottomPins:1 },
+  alu:         { accentColor:'#b03030', sigClass:'data',    short:'ALU',  refPrefix:'U',  inputs:['A','B','Op'],           outputs:['R','Cf'],  topPins:3, bottomPins:2 },
+  register:    { accentColor:'#1d8040', sigClass:'data',    short:'REG',  refPrefix:'U',  inputs:['D','CLK','EN'],         outputs:['Q'],       topPins:2, bottomPins:2 },
+  memory:      { accentColor:'#5040a0', sigClass:'data',    short:'MEM',  refPrefix:'U',  inputs:['ADDR','DI','WE','CLK'],outputs:['DO'],      topPins:4, bottomPins:3 },
+  clock:       { accentColor:'#2060a8', sigClass:'clock',   short:'CLK',  refPrefix:'Y',  inputs:[],                      outputs:['CLK'],     topPins:1, bottomPins:1 },
+  io_port:     { accentColor:'#1878a0', sigClass:'control', short:'I/O',  refPrefix:'J',  inputs:[],                      outputs:['IO'],      topPins:2, bottomPins:2 },
 };
 
 function getMeta(type: string): TypeMeta {
@@ -572,16 +572,15 @@ const pcbStyles = StyleSheet.create({
     position:        'absolute',
     top:             0,
     borderWidth:     1,
-    borderRadius:    3,
-    backgroundColor: '#0a1628',
+    borderRadius:    2,
+    backgroundColor: '#08111e',
     alignItems:      'center',
     justifyContent:  'center',
     paddingHorizontal: BODY_PAD_X,
     paddingVertical:   BODY_PAD_Y,
     gap:             3,
-    // Shadow / glow — shadowColor set inline
-    shadowOpacity:   0.4,
-    shadowRadius:    10,
+    shadowOpacity:   0.25,
+    shadowRadius:    6,
     shadowOffset:    { width: 0, height: 0 },
     overflow:        'hidden',
   },

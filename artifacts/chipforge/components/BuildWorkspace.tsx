@@ -26,10 +26,10 @@ import type { ChipComponent, ChipDesign } from '@workspace/api-client-react';
 const BG        = '#0B1220';   // canvas / root background
 const DARK_SURF = '#0d1525';   // toolbar / rail surface
 const DARK_BORD = '#1a2840';   // borders on dark surfaces
-const PANEL_BG  = '#ffffff';
-const PANEL_BD  = '#d0d0d0';
-const PANEL_TXT = '#1a1a1a';
-const PANEL_MUT = '#666666';
+const PANEL_BG  = '#0d1525';
+const PANEL_BD  = '#1a2840';
+const PANEL_TXT = '#c9d8eb';
+const PANEL_MUT = '#4a6a8a';
 const ACCENT    = '#00bcd4';   // teal accent for active states
 
 // ─── Layer definitions ────────────────────────────────────────────────────────
@@ -105,14 +105,14 @@ const COMP_DEFS: CompDef[] = [
 ];
 
 const COMP_COLORS: Record<string, string> = {
-  logic_gate:  '#00bcd4',
-  flip_flop:   '#e07020',
-  multiplexer: '#9c27b0',
-  alu:         '#d03030',
-  register:    '#30a030',
-  memory:      '#673ab7',
-  clock:       '#f0c030',
-  io_port:     '#00e5ff',
+  logic_gate:  '#2d8fa8',
+  flip_flop:   '#a07820',
+  multiplexer: '#7040a8',
+  alu:         '#b03030',
+  register:    '#1d8040',
+  memory:      '#5040a0',
+  clock:       '#2060a8',
+  io_port:     '#1878a0',
 };
 
 // ─── Analysis helpers ─────────────────────────────────────────────────────────
@@ -547,11 +547,11 @@ function LayerRow({
       </Text>
       <Pressable hitSlop={8} onPress={onToggleVisible}>
         <Feather name={layer.visible ? 'eye' : 'eye-off'} size={14}
-          color={layer.visible ? '#555' : '#c0c0c0'}/>
+          color={layer.visible ? '#7a9aba' : '#2a4060'}/>
       </Pressable>
       <Pressable hitSlop={8} onPress={onToggleLocked}>
         <Feather name={layer.locked ? 'lock' : 'unlock'} size={14}
-          color={layer.locked ? '#555' : '#c0c0c0'}/>
+          color={layer.locked ? '#7a9aba' : '#2a4060'}/>
       </Pressable>
     </View>
   );
@@ -731,16 +731,16 @@ const s = StyleSheet.create({
   layerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 36,
+    height: 34,
     paddingHorizontal: 10,
     gap: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: PANEL_BD,
   },
-  swatch:       { width: 14, height: 14, borderRadius: 2, flexShrink: 0 },
+  swatch:       { width: 12, height: 12, borderRadius: 1, flexShrink: 0 },
   layerName:    { flex:1, fontSize: 11, color: PANEL_TXT },
-  layerNameOff: { color: '#c0c0c0' },
-  layerRowHover: { backgroundColor: 'rgba(0,0,0,0.04)' },
+  layerNameOff: { color: '#2a4060' },
+  layerRowHover: { backgroundColor: 'rgba(255,255,255,0.04)' },
 
   addLayerRow: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
@@ -753,26 +753,27 @@ const s = StyleSheet.create({
   partsSec:    {
     height: 24, justifyContent: 'center',
     paddingHorizontal: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#0a1220',
     borderTopWidth: 1, borderBottomWidth: 1, borderColor: PANEL_BD,
   },
   partsSecTxt: { fontSize: 9, fontWeight: '700', color: PANEL_MUT, letterSpacing: 0.7 },
 
   compGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 8, gap: 6 },
   compTile: { width: 64, alignItems: 'center', gap: 3 },
-  compBox:  { width: 50, height: 34, borderRadius: 6, borderWidth: 1,
-              alignItems: 'center', justifyContent: 'center' },
+  compBox:  { width: 50, height: 34, borderRadius: 2, borderWidth: 1,
+              alignItems: 'center', justifyContent: 'center',
+              backgroundColor: '#08111e' },
   compSym:  { fontSize: 11, fontWeight: '700' },
-  compLbl:  { fontSize: 9, color: '#374151', textAlign: 'center' },
+  compLbl:  { fontSize: 9, color: PANEL_MUT, textAlign: 'center' },
 
   bigToolBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     marginHorizontal: 10, marginVertical: 3,
     paddingHorizontal: 10, paddingVertical: 8,
     borderRadius: 6, borderWidth: 1, borderColor: PANEL_BD,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#0d1525',
   },
-  bigToolBtnAcc: { backgroundColor: '#2563eb', borderColor: '#1d4ed8' },
+  bigToolBtnAcc: { backgroundColor: '#0d3060', borderColor: '#1a5099' },
   bigToolTxt:    { fontSize: 11, color: PANEL_TXT, flex:1 },
 
   propBlock: { paddingHorizontal: 12, paddingVertical: 6 },
