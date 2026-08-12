@@ -1,4 +1,4 @@
-import { Directory, File, Paths } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import type { ChipProject, ValidationResult } from '@workspace/api-client-react';
 
@@ -176,17 +176,20 @@ export async function exportDesignPackage(
   }
 
   const bundle = buildExportBundle(project, validation);
-  const directory = new Directory(Paths.cache, 'chipforge-exports');
-  if (!directory.exists) {
-    directory.create({ intermediates: true, idempotent: true });
-  }
 
+  // Use the stable legacy FileSystem API — the new class-based API is
+  // unreliable in Expo Go and certain Android environments.
+  const cacheBase = FileSystem.cacheDirectory ?? 'file:///tmp/';
+  const exportDir = cacheBase + 'chipforge-exports/';
   const fileName = `${slugify(project.name)}-design-export.md`;
-  const file = new File(directory, fileName);
-  file.create({ overwrite: true });
-  file.write(bundle);
+  const fileUri = exportDir + fileName;
 
-  await Sharing.shareAsync(file.uri, {
+  await FileSystem.makeDirectoryAsync(exportDir, { intermediates: true });
+  await FileSystem.writeAsStringAsync(fileUri, bundle, {
+    encoding: FileSystem.EncodingType.UTF8,
+  });
+
+  await Sharing.shareAsync(fileUri, {
     mimeType: 'text/markdown',
     dialogTitle: `Export ${project.name} design package`,
   });

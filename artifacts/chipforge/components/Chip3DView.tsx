@@ -1,501 +1,352 @@
 /**
- * Chip3DView — Isometric PCB "3D" visualizer.
+ * Chip3DView — Real 3D PCB renderer using Three.js in a WebView.
  *
- * Renders the current ChipDesign as an isometric projection of a green PCB
- * board with 3D IC packages, gold copper traces, and solder-mask pads.
- * Pure SVG — no WebGL needed, works everywhere.
+ * Renders the ChipDesign as a proper 3D scene with:
+ *   - Green PCB board with lambert shading
+ *   - IC packages with coloured top faces and gold pin rows
+ *   - Discrete components (LED dome, capacitor cylinder, etc.)
+ *   - Gold copper trace tubes connecting nets
+ *   - Directional + ambient lighting with shadows
+ *   - Touch-to-orbit and pinch-to-zoom
+ *   - Slow auto-rotation when idle
  */
 
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import Svg, {
-  Circle,
-  Defs,
-  Line,
-  LinearGradient,
-  Path,
-  Polygon,
-  Rect,
-  Stop,
-  Text as SvgText,
-} from 'react-native-svg';
-import type { ChipComponent, ChipDesign } from '@workspace/api-client-react';
+import { StyleSheet, Text, View } from 'react-native';
+import { WebView } from 'react-native-webview';
+import type { ChipDesign } from '@workspace/api-client-react';
 
-// ─── Isometric constants ───────────────────────────────────────────────────────
+// ─── Component type → hex color (matches BuildWorkspace palette) ──────────────
 
-const ISO_SCALE  = 0.08;     // design-px → ISO screen units
-const COS30      = 0.866025;
-const SIN30      = 0.5;
-const BOARD_H    = 5;        // PCB slab thickness
-const CHIP_H     = 18;       // IC package height above board
-const BOARD_PAD  = 80;       // padding around component bounding box
-
-// Empty-state board (no components)
-const EMPTY_BW   = 600;
-const EMPTY_BD   = 400;
-
-// ─── Colour palettes ──────────────────────────────────────────────────────────
-
-const ACCENT: Record<string, string> = {
-  logic_gate:  '#2d8fa8',
-  flip_flop:   '#a07820',
-  multiplexer: '#7040a8',
-  alu:         '#b03030',
-  register:    '#1d8040',
-  memory:      '#5040a0',
-  clock:       '#2060a8',
-  io_port:     '#1878a0',
-  // Discrete
-  led:         '#c0392b',
-  resistor:    '#9a7840',
-  capacitor:   '#1e50a8',
-  header_pin:  '#b08000',
-  transistor:  '#505050',
-  diode:       '#282828',
+const TYPE_COLOR: Record<string, number> = {
+  logic_gate:  0x2d8fa8,
+  flip_flop:   0xa07820,
+  multiplexer: 0x7040a8,
+  alu:         0xb03030,
+  register:    0x1d8040,
+  memory:      0x5040a0,
+  clock:       0x2060a8,
+  io_port:     0x1878a0,
+  led:         0xc0392b,
+  resistor:    0x9a7840,
+  capacitor:   0x1e50a8,
+  header_pin:  0xb08000,
+  transistor:  0x505050,
+  diode:       0x282828,
 };
 
-const SHORT: Record<string, string> = {
-  logic_gate:'GATE', flip_flop:'FF', multiplexer:'MUX',
-  alu:'ALU', register:'REG', memory:'RAM', clock:'CLK', io_port:'I/O',
-  led:'LED', resistor:'R', capacitor:'C', header_pin:'HDR',
-  transistor:'Q', diode:'D',
-};
+const DISCRETE_TYPES = new Set([
+  'led', 'resistor', 'capacitor', 'header_pin', 'transistor', 'diode',
+]);
 
-// Discrete types render differently in 3D
-const DISCRETE_TYPES = new Set(['led','resistor','capacitor','header_pin','transistor','diode']);
+// ─── Build the full HTML page as a string ────────────────────────────────────
 
-// Per-type 3D heights
-const DISCRETE_H: Record<string, number> = {
-  led:        26,
-  resistor:   10,
-  capacitor:  30,
-  header_pin: 16,
-  transistor: 22,
-  diode:       9,
-};
-
-// ─── Isometric projection ─────────────────────────────────────────────────────
-
-function iso(x: number, y: number, z: number) {
-  return {
-    sx: (x - y) * COS30 * ISO_SCALE,
-    sy: ((x + y) * SIN30 - z) * ISO_SCALE,
-  };
-}
-
-function pt(x: number, y: number, z: number): string {
-  const p = iso(x, y, z);
-  return `${p.sx.toFixed(2)},${p.sy.toFixed(2)}`;
-}
-
-function polyPts(corners: [number, number, number][]): string {
-  return corners.map(([x, y, z]) => pt(x, y, z)).join(' ');
-}
-
-// Darken a hex colour by factor (0-1 = darker)
-function shade(hex: string, factor: number): string {
-  const n = parseInt(hex.slice(1), 16);
-  const r = Math.round(((n >> 16) & 0xff) * factor);
-  const g = Math.round(((n >> 8)  & 0xff) * factor);
-  const b = Math.round((n         & 0xff) * factor);
-  return `rgb(${r},${g},${b})`;
-}
-
-// ─── Board component ──────────────────────────────────────────────────────────
-
-function Board({ bw, bd }: { bw: number; bd: number }) {
-  const bh    = BOARD_H;
-  const top   = '#1a5c2a';
-  const right = '#0e3a1a';
-  const front = '#0b2d14';
-  const engPad = Math.min(20, bw * 0.06, bd * 0.06);
-
-  return (
-    <>
-      <Polygon points={polyPts([[0,0,0],[bw,0,0],[bw,0,bh],[0,0,bh]])}
-        fill={front} stroke="#0a2510" strokeWidth={0.4} />
-      <Polygon points={polyPts([[bw,0,0],[bw,bd,0],[bw,bd,bh],[bw,0,bh]])}
-        fill={right} stroke="#0a2510" strokeWidth={0.4} />
-      <Polygon points={polyPts([[0,0,bh],[bw,0,bh],[bw,bd,bh],[0,bd,bh]])}
-        fill={top} stroke="#1e6830" strokeWidth={0.5} />
-      <Polygon
-        points={polyPts([
-          [engPad,engPad,bh+0.1],[bw-engPad,engPad,bh+0.1],
-          [bw-engPad,bd-engPad,bh+0.1],[engPad,bd-engPad,bh+0.1],
-        ])}
-        fill="none" stroke="#155020" strokeWidth={0.5} strokeDasharray="4,2"
-      />
-    </>
-  );
-}
-
-// ─── IC Package ───────────────────────────────────────────────────────────────
-
-function ChipPackage({ comp }: { comp: ChipComponent }) {
-  const { x, y, width: w, height: h } = comp;
-  const accent = ACCENT[comp.type] ?? '#607a96';
-  const label  = SHORT[comp.type]  ?? comp.type.slice(0, 4).toUpperCase();
-  const bh = BOARD_H;
-  const ch = CHIP_H;
-
-  // Draw back-to-front: right face → front face → top face
-  // Front face: y (near side)
-  const front = polyPts([
-    [x,   y, bh],    [x+w, y, bh],
-    [x+w, y, bh+ch], [x,   y, bh+ch],
-  ]);
-  // Right face: x+w
-  const right = polyPts([
-    [x+w, y,   bh],    [x+w, y+h, bh],
-    [x+w, y+h, bh+ch], [x+w, y,   bh+ch],
-  ]);
-  // Top face
-  const top = polyPts([
-    [x,   y,   bh+ch], [x+w, y,   bh+ch],
-    [x+w, y+h, bh+ch], [x,   y+h, bh+ch],
-  ]);
-
-  // Label position (centre of top face in iso)
-  const cx = x + w / 2, cy = y + h / 2;
-  const lp = iso(cx, cy, bh + ch + 0.5);
-
-  // Pad positions (gold SMD pads at corners of board footprint)
-  const padPts: [number, number][] = [
-    [x + w * 0.25, y], [x + w * 0.75, y],
-    [x + w * 0.25, y + h], [x + w * 0.75, y + h],
-  ];
-
-  const topFill   = shade(accent, 0.55);
-  const frontFill = shade(accent, 0.3);
-  const rightFill = shade(accent, 0.4);
-
-  return (
-    <>
-      {/* Solder pads on board */}
-      {padPts.map(([px, py], i) => {
-        const pp = iso(px, py, BOARD_H);
-        return (
-          <Rect
-            key={i}
-            x={pp.sx - 2} y={pp.sy - 1}
-            width={4} height={2}
-            fill="#b08000" rx={0.5}
-          />
-        );
-      })}
-
-      {/* Front face */}
-      <Polygon points={front} fill={frontFill} stroke="#000" strokeWidth={0.3} />
-      {/* Right face */}
-      <Polygon points={right} fill={rightFill} stroke="#000" strokeWidth={0.3} />
-      {/* Top face */}
-      <Polygon points={top}   fill={topFill}   stroke={accent} strokeWidth={0.5} strokeOpacity={0.6} />
-
-      {/* Notch indicator on top-front-left corner */}
-      {(() => {
-        const np = iso(x + 8, y + 4, bh + ch + 0.2);
-        return <Circle cx={np.sx} cy={np.sy} r={1.5} fill="#ddd" opacity={0.7} />;
-      })()}
-
-      {/* Label on top face */}
-      <SvgText
-        x={lp.sx} y={lp.sy}
-        fontSize={4.5} fontWeight="bold"
-        textAnchor="middle" fill="#e0e8f0"
-        fontFamily="monospace"
-        opacity={0.9}
-      >
-        {label}
-      </SvgText>
-    </>
-  );
-}
-
-// ─── Copper trace ─────────────────────────────────────────────────────────────
-
-function CopperTrace({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y2: number }) {
-  const bh = BOARD_H;
-  const A = iso(x1, y1, bh);
-  const B = iso(x2, y2, bh);
-  // Manhattan mid-point
-  const mx = (x1 + x2) / 2;
-  const M1 = iso(mx, y1, bh);
-  const M2 = iso(mx, y2, bh);
-  const d = `M ${A.sx.toFixed(1)} ${A.sy.toFixed(1)} L ${M1.sx.toFixed(1)} ${M1.sy.toFixed(1)} L ${M2.sx.toFixed(1)} ${M2.sy.toFixed(1)} L ${B.sx.toFixed(1)} ${B.sy.toFixed(1)}`;
-  return (
-    <>
-      <Path d={d} stroke="#b08000" strokeWidth={1.5} fill="none" strokeOpacity={0.5} />
-      <Path d={d} stroke="#d4a800" strokeWidth={0.6} fill="none" />
-    </>
-  );
-}
-
-// ─── Discrete component 3D package ───────────────────────────────────────────
-
-function DiscretePkg({ comp }: { comp: ChipComponent }) {
-  const { x, y, width: w, height: h, type } = comp;
-  const accent = ACCENT[type] ?? '#607a96';
-  const ch = DISCRETE_H[type] ?? CHIP_H;
-  const bh = BOARD_H;
-  const cx = x + w / 2;
-  const cy = y + h / 2;
-
-  // Shared box faces (same as ChipPackage but with custom height + colour)
-  const front = polyPts([[x,   y, bh],[x+w, y, bh],[x+w, y, bh+ch],[x,   y, bh+ch]]);
-  const right  = polyPts([[x+w, y, bh],[x+w, y+h, bh],[x+w, y+h, bh+ch],[x+w, y, bh+ch]]);
-  const top    = polyPts([[x, y, bh+ch],[x+w, y, bh+ch],[x+w, y+h, bh+ch],[x, y+h, bh+ch]]);
-
-  const topFill   = shade(accent, 0.7);
-  const frontFill = shade(accent, 0.38);
-  const rightFill = shade(accent, 0.52);
-
-  const lp = iso(cx, cy, bh + ch + 0.5);
-
-  // --- Type-specific top decorations ---
-  const topDeco = (() => {
-    if (type === 'led') {
-      // Bright dome circle on top face
-      const dp = iso(cx, cy, bh + ch + 0.3);
-      return <Circle cx={dp.sx} cy={dp.sy} r={3.5} fill={accent} opacity={0.95} />;
-    }
-    if (type === 'resistor') {
-      // Colour bands across top face
-      const bands = ['#e8a010', '#303030', '#e8a010'];
-      return (
-        <>
-          {bands.map((c, i) => {
-            const bx = x + w * (0.25 + i * 0.25);
-            const A = iso(bx,   y,   bh + ch + 0.2);
-            const B = iso(bx,   y+h, bh + ch + 0.2);
-            const C = iso(bx+4, y+h, bh + ch + 0.2);
-            const D = iso(bx+4, y,   bh + ch + 0.2);
-            return (
-              <Polygon key={i}
-                points={`${A.sx},${A.sy} ${B.sx},${B.sy} ${C.sx},${C.sy} ${D.sx},${D.sy}`}
-                fill={c} opacity={0.85}
-              />
-            );
-          })}
-        </>
-      );
-    }
-    if (type === 'capacitor') {
-      // "+" marking on top
-      const tp = iso(cx, cy, bh + ch + 0.3);
-      return (
-        <SvgText x={tp.sx} y={tp.sy} fontSize={6} fill="#d0e8ff"
-          textAnchor="middle" fontWeight="bold">+</SvgText>
-      );
-    }
-    if (type === 'header_pin') {
-      // Grid of gold pin dots
-      const cols = 4, rows = 2;
-      const dots: React.ReactNode[] = [];
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const px = x + (w / (cols + 1)) * (c + 1);
-          const py = y + (h / (rows + 1)) * (r + 1);
-          const dp = iso(px, py, bh + ch + 0.3);
-          dots.push(
-            <Circle key={`${r}-${c}`} cx={dp.sx} cy={dp.sy} r={1.4}
-              fill="#d4a800" stroke="#806000" strokeWidth={0.3} />
-          );
-        }
-      }
-      return <>{dots}</>;
-    }
-    if (type === 'transistor') {
-      // Silver heatsink tab on top
-      const tw = w * 0.3, tx = cx - tw / 2;
-      const A = iso(tx,    y,   bh + ch + 0.2);
-      const B = iso(tx,    y+h, bh + ch + 0.2);
-      const C = iso(tx+tw, y+h, bh + ch + 0.2);
-      const D = iso(tx+tw, y,   bh + ch + 0.2);
-      return (
-        <Polygon
-          points={`${A.sx},${A.sy} ${B.sx},${B.sy} ${C.sx},${C.sy} ${D.sx},${D.sy}`}
-          fill="#c0c0c0" opacity={0.9}
-        />
-      );
-    }
-    // diode — anode/cathode bar
-    if (type === 'diode') {
-      const mp = iso(cx, cy, bh + ch + 0.3);
-      return (
-        <SvgText x={mp.sx} y={mp.sy} fontSize={4} fill="#d0d0d0"
-          textAnchor="middle">▷|</SvgText>
-      );
-    }
-    return null;
-  })();
-
-  return (
-    <>
-      {/* Solder pads */}
-      {[[x + w * 0.3, y],[x + w * 0.7, y]].map(([px, py], i) => {
-        const pp = iso(px, py, BOARD_H);
-        return <Rect key={i} x={pp.sx - 2} y={pp.sy - 1} width={4} height={2} fill="#b08000" rx={0.5} />;
-      })}
-      <Polygon points={front} fill={frontFill} stroke="#000" strokeWidth={0.3} />
-      <Polygon points={right}  fill={rightFill} stroke="#000" strokeWidth={0.3} />
-      <Polygon points={top}    fill={topFill}   stroke={accent} strokeWidth={0.4} strokeOpacity={0.5} />
-      {topDeco}
-      {/* Label */}
-      <SvgText x={lp.sx} y={lp.sy} fontSize={4} fontWeight="bold"
-        textAnchor="middle" fill="#e0e8f0" fontFamily="monospace" opacity={0.85}>
-        {SHORT[type] ?? type.slice(0,3).toUpperCase()}
-      </SvgText>
-    </>
-  );
-}
-
-// ─── Empty state ──────────────────────────────────────────────────────────────
-
-function EmptyBoard() {
-  const bw = EMPTY_BW, bd = EMPTY_BD;
-  const c = iso(bw / 2, bd / 2, BOARD_H + 1);
-  return (
-    <>
-      <Board bw={bw} bd={bd} />
-      <SvgText x={c.sx} y={c.sy - 6} fontSize={5} fill="#2a7a3a"
-        textAnchor="middle" fontFamily="monospace">NO COMPONENTS</SvgText>
-      <SvgText x={c.sx} y={c.sy + 3} fontSize={3.5} fill="#1e5a2a"
-        textAnchor="middle">Add chips in Parts panel or Chat</SvgText>
-    </>
-  );
-}
-
-// ─── Compute dynamic viewBox from component bounding box ─────────────────────
-
-function computeScene(components: ChipDesign['components']) {
-  if (components.length === 0) {
-    // Empty board
-    const bw = EMPTY_BW, bd = EMPTY_BD;
-    const corners = [
-      iso(0, 0, 0), iso(bw, 0, 0), iso(bw, bd, 0), iso(0, bd, 0),
-      iso(0, 0, BOARD_H + CHIP_H), iso(bw, 0, BOARD_H + CHIP_H),
-    ];
-    const margin = 10;
-    const sxMin = Math.min(...corners.map(p => p.sx)) - margin;
-    const sxMax = Math.max(...corners.map(p => p.sx)) + margin;
-    const syMin = Math.min(...corners.map(p => p.sy)) - margin;
-    const syMax = Math.max(...corners.map(p => p.sy)) + margin;
-    return { boardW: bw, boardD: bd, vbX: sxMin, vbY: syMin, vbW: sxMax - sxMin, vbH: syMax - syMin };
+function buildHtml(design: ChipDesign): string {
+  // Compute board dimensions from component bounding box
+  const comps = design.components;
+  const PAD = 60;
+  let boardW = 300, boardD = 200;
+  if (comps.length > 0) {
+    boardW = Math.max(...comps.map(c => c.x + c.width))  + PAD;
+    boardD = Math.max(...comps.map(c => c.y + c.height)) + PAD;
   }
 
-  // Compute tight bounding box of all components
-  const maxCompH = Math.max(CHIP_H, ...components.map(c =>
-    DISCRETE_H[c.type] ?? CHIP_H
-  ));
-  const rawMaxX = Math.max(...components.map(c => c.x + c.width));
-  const rawMaxY = Math.max(...components.map(c => c.y + c.height));
-  const boardW  = rawMaxX + BOARD_PAD;
-  const boardD  = rawMaxY + BOARD_PAD;
+  // Serialise type-color map to JS object literal
+  const colorMapJs = Object.entries(TYPE_COLOR)
+    .map(([k, v]) => `"${k}":${v}`)
+    .join(',');
 
-  // ISO extents of all 8 corners of the board volume
-  const topZ = BOARD_H + maxCompH + 4;
-  const corners = [
-    iso(0, 0, 0), iso(boardW, 0, 0), iso(boardW, boardD, 0), iso(0, boardD, 0),
-    iso(0, 0, topZ), iso(boardW, 0, topZ), iso(boardW, boardD, topZ), iso(0, boardD, topZ),
-  ];
-  const margin = 8;
-  const sxMin = Math.min(...corners.map(p => p.sx)) - margin;
-  const sxMax = Math.max(...corners.map(p => p.sx)) + margin;
-  const syMin = Math.min(...corners.map(p => p.sy)) - margin;
-  const syMax = Math.max(...corners.map(p => p.sy)) + margin;
-  return { boardW, boardD, vbX: sxMin, vbY: syMin, vbW: sxMax - sxMin, vbH: syMax - syMin };
+  const discreteJs = [...DISCRETE_TYPES].map(t => `"${t}"`).join(',');
+
+  const designJson = JSON.stringify({
+    components: design.components,
+    connections: design.connections,
+  });
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#060a12;overflow:hidden;width:100vw;height:100vh;touch-action:none;}
+  canvas{display:block;}
+  #hint{
+    position:fixed;bottom:14px;width:100%;text-align:center;
+    font-family:-apple-system,sans-serif;font-size:11px;color:#2a4a6a;
+    pointer-events:none;letter-spacing:0.4px;
+  }
+</style>
+</head>
+<body>
+<div id="hint">Drag to rotate · Pinch to zoom</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+(function(){
+  const DESIGN   = ${designJson};
+  const TYPE_CLR = {${colorMapJs}};
+  const DISCRETE = new Set([${discreteJs}]);
+  const BW = ${boardW}, BD = ${boardD};
+
+  // ── Renderer ───────────────────────────────────────────────────────────────
+  const W = window.innerWidth, H = window.innerHeight;
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(W, H);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x060a12);
+  scene.fog = new THREE.Fog(0x060a12, 800, 1400);
+
+  // ── Camera ─────────────────────────────────────────────────────────────────
+  const diagLen = Math.sqrt(BW*BW + BD*BD);
+  const camDist = diagLen * 1.1;
+  const camera = new THREE.PerspectiveCamera(42, W/H, 1, 2000);
+  camera.position.set(0, camDist * 0.7, camDist * 0.85);
+  camera.lookAt(0, 0, 0);
+
+  // ── Pivot group (everything rotates around this) ───────────────────────────
+  const pivot = new THREE.Group();
+  scene.add(pivot);
+  pivot.rotation.x = 0.38;
+  pivot.rotation.y = 0.45;
+
+  // ── PCB Board ──────────────────────────────────────────────────────────────
+  const boardH = 5;
+  const boardTopMat  = new THREE.MeshLambertMaterial({ color: 0x1a5c2a });
+  const boardSideMat = new THREE.MeshLambertMaterial({ color: 0x0d3318 });
+  const boardGeo     = new THREE.BoxGeometry(BW, boardH, BD);
+  const board = new THREE.Mesh(boardGeo, [
+    boardSideMat, boardSideMat, boardTopMat, boardSideMat, boardSideMat, boardSideMat,
+  ]);
+  board.position.y = -boardH / 2;
+  board.receiveShadow = true;
+  pivot.add(board);
+
+  // Board silk-screen border (thin plane slightly above board)
+  const borderPad = 12;
+  const blineGeo = new THREE.EdgesGeometry(
+    new THREE.BoxGeometry(BW - borderPad*2, 0.1, BD - borderPad*2)
+  );
+  const blineMat = new THREE.LineBasicMaterial({ color: 0x2a7a3a, linewidth: 1 });
+  const bline = new THREE.LineSegments(blineGeo, blineMat);
+  bline.position.y = 0.1;
+  pivot.add(bline);
+
+  // ── Components ─────────────────────────────────────────────────────────────
+  const comps = DESIGN.components || [];
+  for (const c of comps) {
+    const cx = c.x + c.width/2  - BW/2;
+    const cz = c.y + c.height/2 - BD/2;
+    const cw = c.width;
+    const cd = c.height;
+    const clr = TYPE_CLR[c.type] ?? 0x1a1a2e;
+
+    if (DISCRETE.has(c.type)) {
+      // ── Discrete: smaller coloured box
+      const h = 9;
+      const mat = new THREE.MeshLambertMaterial({ color: clr });
+      const geo = new THREE.BoxGeometry(cw * 0.75, h, cd * 0.75);
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(cx, h/2, cz);
+      mesh.castShadow = true;
+      pivot.add(mesh);
+
+      // LED: little dome on top
+      if (c.type === 'led') {
+        const domeGeo = new THREE.SphereGeometry(Math.min(cw,cd)*0.25, 8, 6, 0, Math.PI*2, 0, Math.PI/2);
+        const domeMat = new THREE.MeshLambertMaterial({ color: clr, emissive: clr, emissiveIntensity: 0.4 });
+        const dome = new THREE.Mesh(domeGeo, domeMat);
+        dome.position.set(cx, h, cz);
+        pivot.add(dome);
+      }
+      // Capacitor: cylinder body
+      if (c.type === 'capacitor') {
+        const capGeo = new THREE.CylinderGeometry(Math.min(cw,cd)*0.3, Math.min(cw,cd)*0.3, h, 10);
+        const capMat = new THREE.MeshLambertMaterial({ color: clr });
+        const cap = new THREE.Mesh(capGeo, capMat);
+        cap.position.set(cx, h/2, cz);
+        cap.castShadow = true;
+        pivot.add(cap);
+      }
+    } else {
+      // ── IC Package: dark body + coloured top face + gold pins
+      const h = 13;
+      const bodyMat = new THREE.MeshLambertMaterial({ color: 0x12121e });
+      const topMat  = new THREE.MeshLambertMaterial({ color: clr });
+      const geo = new THREE.BoxGeometry(cw * 0.82, h, cd * 0.82);
+      const mesh = new THREE.Mesh(geo, [
+        bodyMat, bodyMat, topMat, bodyMat, bodyMat, bodyMat,
+      ]);
+      mesh.position.set(cx, h/2, cz);
+      mesh.castShadow = true;
+      pivot.add(mesh);
+
+      // Gold pin rows on two sides
+      const pinRowW = cw * 0.82;
+      const pinH = 1.5;
+      const pinD = 3.5;
+      const pinGeo = new THREE.BoxGeometry(pinRowW, pinH, pinD);
+      const pinMat = new THREE.MeshLambertMaterial({ color: 0xc0a030 });
+      const pinOffset = cd * 0.41 + pinD/2;
+      [-1, 1].forEach(side => {
+        const pins = new THREE.Mesh(pinGeo, pinMat);
+        pins.position.set(cx, pinH/2, cz + side * pinOffset);
+        pivot.add(pins);
+      });
+
+      // Dot marker (notch indicator) on top
+      const dotGeo = new THREE.CircleGeometry(Math.min(cw,cd)*0.07, 8);
+      const dotMat = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.FrontSide });
+      const dot = new THREE.Mesh(dotGeo, dotMat);
+      dot.rotation.x = -Math.PI/2;
+      dot.position.set(cx - cw*0.3, h + 0.2, cz - cd*0.3);
+      pivot.add(dot);
+    }
+  }
+
+  // ── Copper traces ──────────────────────────────────────────────────────────
+  const byId = {};
+  for (const c of comps) byId[c.id] = c;
+  const conns = DESIGN.connections || [];
+  for (const conn of conns) {
+    const from = byId[conn.fromComponentId];
+    const to   = byId[conn.toComponentId];
+    if (!from || !to) continue;
+    const x1 = from.x + from.width  - BW/2;
+    const z1 = from.y + from.height/2 - BD/2;
+    const x2 = to.x - BW/2;
+    const z2 = to.y + to.height/2 - BD/2;
+    const midX = (x1+x2)/2, midZ = (z1+z2)/2;
+    const pts = [
+      new THREE.Vector3(x1, 0.4, z1),
+      new THREE.Vector3(x1 + (midX-x1)*0.4, 0.4, z1),
+      new THREE.Vector3(midX, 0.4, midZ),
+      new THREE.Vector3(x2 - (x2-midX)*0.4, 0.4, z2),
+      new THREE.Vector3(x2, 0.4, z2),
+    ];
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const tubeGeo = new THREE.TubeGeometry(curve, 10, 1.6, 5, false);
+    const tubeMat = new THREE.MeshLambertMaterial({ color: 0xb08820 });
+    pivot.add(new THREE.Mesh(tubeGeo, tubeMat));
+  }
+
+  // ── Lighting ───────────────────────────────────────────────────────────────
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  sun.position.set(300, 500, 250);
+  sun.castShadow = true;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far  = 1500;
+  const sw = Math.max(BW, BD) * 0.8;
+  sun.shadow.camera.left   = -sw;
+  sun.shadow.camera.right  =  sw;
+  sun.shadow.camera.top    =  sw;
+  sun.shadow.camera.bottom = -sw;
+  sun.shadow.mapSize.set(1024, 1024);
+  scene.add(sun);
+
+  const fill = new THREE.DirectionalLight(0x4466cc, 0.25);
+  fill.position.set(-200, 150, -250);
+  scene.add(fill);
+
+  // ── Touch orbit + pinch-zoom ───────────────────────────────────────────────
+  let dragging = false, px = 0, py = 0, pd = 0;
+  let autoRot  = true;
+  const el = renderer.domElement;
+
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    autoRot = false;
+    if (e.touches.length === 1) {
+      dragging = true;
+      px = e.touches[0].clientX;
+      py = e.touches[0].clientY;
+    }
+    if (e.touches.length === 2) {
+      pd = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if (e.touches.length === 1 && dragging) {
+      const dx = e.touches[0].clientX - px;
+      const dy = e.touches[0].clientY - py;
+      pivot.rotation.y += dx * 0.007;
+      pivot.rotation.x += dy * 0.007;
+      pivot.rotation.x = Math.max(-1.3, Math.min(1.5, pivot.rotation.x));
+      px = e.touches[0].clientX;
+      py = e.touches[0].clientY;
+    }
+    if (e.touches.length === 2) {
+      const d = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (pd > 0) {
+        const factor = pd / d;
+        camera.position.multiplyScalar(factor);
+        camera.position.y = Math.max(30, Math.min(700, camera.position.y));
+        camera.position.z = Math.max(30, Math.min(700, camera.position.z));
+      }
+      pd = d;
+    }
+  }, { passive: false });
+
+  el.addEventListener('touchend', e => {
+    if (e.touches.length === 0) dragging = false;
+    if (e.touches.length < 2) pd = 0;
+  });
+
+  // ── Render loop ────────────────────────────────────────────────────────────
+  function animate() {
+    requestAnimationFrame(animate);
+    if (autoRot) pivot.rotation.y += 0.0035;
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>`;
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function Chip3DView({ design }: { design: ChipDesign }) {
-  const byId = useMemo(() =>
-    new Map(design.components.map(c => [c.id, c])),
-    [design.components],
-  );
-
-  // Painter's algorithm: render back-to-front (smallest x+y = farthest from viewer)
-  const sorted = useMemo(() =>
-    [...design.components].sort((a, b) => (b.x + b.y) - (a.x + a.y)),
-    [design.components],
-  );
-
-  // Trace endpoints (centre-right of source → centre-left of dest)
-  const traces = useMemo(() =>
-    design.connections
-      .map(conn => {
-        const from = byId.get(conn.fromComponentId);
-        const to   = byId.get(conn.toComponentId);
-        if (!from || !to) return null;
-        return {
-          id: conn.id,
-          x1: from.x + from.width,
-          y1: from.y + from.height / 2,
-          x2: to.x,
-          y2: to.y + to.height / 2,
-        };
-      })
-      .filter((v): v is NonNullable<typeof v> => v !== null),
-    [design.connections, byId],
-  );
-
-  // Dynamic board size + viewBox — recomputed whenever components change
-  const scene = useMemo(() => computeScene(design.components), [design.components]);
-  const { boardW, boardD, vbX, vbY, vbW, vbH } = scene;
+  const html = useMemo(() => buildHtml(design), [design]);
 
   return (
     <View style={styles.root}>
-      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>3D Viewer</Text>
-        <Text style={styles.headerSub}>
+        <Text style={styles.title}>3D View</Text>
+        <Text style={styles.sub}>
           {design.components.length} components · {design.connections.length} nets
         </Text>
       </View>
-
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
-        <Svg
-          viewBox={`${vbX.toFixed(1)} ${vbY.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}`}
-          style={[styles.svg, { aspectRatio: vbW / vbH }]}
-          preserveAspectRatio="xMidYMid meet"
-        >
-          <Defs>
-            <LinearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#06090f" />
-              <Stop offset="100%" stopColor="#0b1220" />
-            </LinearGradient>
-          </Defs>
-
-          {/* Background */}
-          <Rect x={vbX} y={vbY} width={vbW} height={vbH} fill="url(#skyGrad)" />
-
-          {design.components.length === 0 ? (
-            <EmptyBoard />
-          ) : (
-            <>
-              {/* Board fitted to components */}
-              <Board bw={boardW} bd={boardD} />
-
-              {/* Copper traces on board surface */}
-              {traces.map(t => (
-                <CopperTrace key={t.id} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
-              ))}
-
-              {/* IC packages + discrete components (back to front) */}
-              {sorted.map(c =>
-                DISCRETE_TYPES.has(c.type)
-                  ? <DiscretePkg  key={c.id} comp={c} />
-                  : <ChipPackage  key={c.id} comp={c} />
-              )}
-            </>
-          )}
-        </Svg>
-
-        {/* Hint */}
-        <Text style={styles.hint}>
-          Isometric view • Components shown at actual canvas positions
-        </Text>
-      </ScrollView>
+      <WebView
+        style={styles.webview}
+        source={{ html }}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        scrollEnabled={false}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        // Allow loading Three.js from cdnjs CDN
+        mixedContentMode="always"
+        allowsInlineMediaPlayback
+        mediaPlaybackRequiresUserAction={false}
+      />
     </View>
   );
 }
@@ -505,63 +356,30 @@ export function Chip3DView({ design }: { design: ChipDesign }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#06090f',
+    backgroundColor: '#060a12',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a2840',
-    backgroundColor: '#0d1525',
-  },
-  headerTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#c9d8eb',
-    letterSpacing: 0.5,
-  },
-  headerSub: {
-    fontSize: 10,
-    color: '#4a6a8a',
-  },
-  scrollContent: {
     alignItems: 'center',
-    paddingBottom: 24,
-  },
-  svg: {
-    width: '100%',
-    maxWidth: 520,
-  },
-  legend: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    justifyContent: 'center',
+    paddingVertical: 10,
+    backgroundColor: '#0a1020',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a2a3a',
   },
-  legendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  title: {
+    color: '#c0d8f0',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.4,
   },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
+  sub: {
+    color: '#3a5a7a',
+    fontSize: 11,
   },
-  legendTxt: {
-    fontSize: 9,
-    color: '#4a6a8a',
-    fontFamily: 'monospace',
-  },
-  hint: {
-    fontSize: 9,
-    color: '#2a4060',
-    textAlign: 'center',
-    paddingHorizontal: 20,
+  webview: {
+    flex: 1,
+    backgroundColor: '#060a12',
   },
 });
