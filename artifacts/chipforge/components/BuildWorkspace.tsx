@@ -19,7 +19,6 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { DesignCanvasView } from '@/components/DesignCanvasView';
-import { Chip3DView } from '@/components/Chip3DView';
 import type { ChipComponent, ChipDesign } from '@workspace/api-client-react';
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
@@ -223,7 +222,6 @@ export function BuildWorkspace({
   const [gridSizeIdx, setGridIdx]  = useState(1); // 0.10 mm default
   const [showPanel,   setShowPanel]= useState(true);
   const [showRender,  setRender]   = useState(false);
-  const [show3D,      setShow3D]   = useState(false);
   const [selectedId,  setId]       = useState<string | null>(null);
 
   // Derived: set of layer IDs that are currently visible
@@ -351,34 +349,24 @@ export function BuildWorkspace({
 
         {/* Layers toggle */}
         <Pressable style={[s.abPicker, showPanel && s.abPickerOn]}
-          onPress={() => { setShowPanel(v => !v); setShow3D(false); }}>
+          onPress={() => setShowPanel(v => !v)}>
           <Feather name="layers" size={13} color={showPanel ? ACCENT : '#7a9aba'}/>
           <Text style={[s.abPickerTxt, showPanel && {color: ACCENT}]}>Layers</Text>
         </Pressable>
 
         {/* Render/Parts toggle */}
         <Pressable style={[s.abPicker, showRender && s.abPickerOn]}
-          onPress={() => { setRender(v => !v); setShow3D(false); }}>
+          onPress={() => setRender(v => !v)}>
           <Feather name="cpu" size={13} color={showRender ? ACCENT : '#7a9aba'}/>
           <Text style={[s.abPickerTxt, showRender && {color: ACCENT}]}>Parts</Text>
-        </Pressable>
-
-        {/* 3D Viewer toggle */}
-        <Pressable style={[s.abPicker, show3D && s.abPickerOn]}
-          onPress={() => setShow3D(v => !v)}>
-          <Feather name="box" size={13} color={show3D ? ACCENT : '#7a9aba'}/>
-          <Text style={[s.abPickerTxt, show3D && {color: ACCENT}]}>3D</Text>
         </Pressable>
       </View>
 
       {/* ═══════════════ MIDDLE ROW ═══════════════ */}
       <View style={s.middle}>
 
-        {/* CANVAS or 3D VIEWER */}
+        {/* CANVAS */}
         <View ref={canvasWrapRef} style={s.canvasWrap}>
-          {show3D ? (
-            <Chip3DView design={design} />
-          ) : (
           <DesignCanvasView
             design={design} onChange={onChange}
             grid={grid} snap={snap}
@@ -387,7 +375,6 @@ export function BuildWorkspace({
             onSelectComponent={setId}
             visibleLayers={visibleLayers}
           />
-          )}
 
           {/* Floating zoom controls — bottom-right */}
           <View style={s.floatZoom}>
