@@ -326,6 +326,8 @@ interface Props {
   hideToolbar?: boolean;
   externalScale?: number;
   onSelectComponent?: (id: string) => void;
+  /** Set of layer IDs that are currently visible. Omit to show all. */
+  visibleLayers?: Set<string>;
 }
 
 export function DesignCanvasView({
@@ -338,7 +340,13 @@ export function DesignCanvasView({
   hideToolbar = false,
   externalScale,
   onSelectComponent,
+  visibleLayers,
 }: Props) {
+  // Layer visibility helpers — defaults to showing everything when prop is omitted
+  const layerOn = (id: string) => !visibleLayers || visibleLayers.has(id);
+  const showComponents = layerOn('comp');
+  const showTraces     = layerOn('topcu') || layerOn('botcu');
+  const showVias       = layerOn('drill');
   const colors             = useColors();
   const [internalScale, setInternalScale] = useState(1);
   const scale = externalScale ?? internalScale;
@@ -486,19 +494,21 @@ export function DesignCanvasView({
                 ))}
 
                 {/* Traces */}
-                {traces.map(w => (
+                {showTraces && traces.map(w => (
                   <React.Fragment key={w.id}>
                     {/* Glow halo */}
                     <Path d={w.d} stroke={w.color} strokeWidth={4} fill="none" strokeOpacity={0.15} strokeLinecap="square" />
                     {/* Main trace */}
                     <Path d={w.d} stroke={w.color} strokeWidth={1.5} fill="none" strokeLinecap="square" />
                     {/* Vias at endpoints */}
-                    <Circle cx={w.x1} cy={w.y1} r={9} fill={`url(#via-${traceKey(w.color)})`} />
-                    <Circle cx={w.x1} cy={w.y1} r={3.5} fill={w.color} />
-                    <Circle cx={w.x1} cy={w.y1} r={1.5} fill="#fff" opacity={0.8} />
-                    <Circle cx={w.x2} cy={w.y2} r={9} fill={`url(#via-${traceKey(w.color)})`} />
-                    <Circle cx={w.x2} cy={w.y2} r={3.5} fill={w.color} />
-                    <Circle cx={w.x2} cy={w.y2} r={1.5} fill="#fff" opacity={0.8} />
+                    {showVias && <>
+                      <Circle cx={w.x1} cy={w.y1} r={9} fill={`url(#via-${traceKey(w.color)})`} />
+                      <Circle cx={w.x1} cy={w.y1} r={3.5} fill={w.color} />
+                      <Circle cx={w.x1} cy={w.y1} r={1.5} fill="#fff" opacity={0.8} />
+                      <Circle cx={w.x2} cy={w.y2} r={9} fill={`url(#via-${traceKey(w.color)})`} />
+                      <Circle cx={w.x2} cy={w.y2} r={3.5} fill={w.color} />
+                      <Circle cx={w.x2} cy={w.y2} r={1.5} fill="#fff" opacity={0.8} />
+                    </>}
                   </React.Fragment>
                 ))}
               </Svg>
@@ -514,7 +524,7 @@ export function DesignCanvasView({
               )}
 
               {/* IC packages */}
-              {design.components.map(c => (
+              {showComponents && design.components.map(c => (
                 <ComponentNode
                   key={c.id}
                   component={c}
