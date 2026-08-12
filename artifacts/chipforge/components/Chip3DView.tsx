@@ -533,7 +533,6 @@ const styles = StyleSheet.create({
   },
   svg: {
     width: '100%',
-    aspectRatio: VB_W / VB_H,
     maxWidth: 520,
   },
   legend: {
