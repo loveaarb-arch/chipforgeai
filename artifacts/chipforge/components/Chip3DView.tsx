@@ -50,11 +50,33 @@ const ACCENT: Record<string, string> = {
   memory:      '#5040a0',
   clock:       '#2060a8',
   io_port:     '#1878a0',
+  // Discrete
+  led:         '#c0392b',
+  resistor:    '#9a7840',
+  capacitor:   '#1e50a8',
+  header_pin:  '#b08000',
+  transistor:  '#505050',
+  diode:       '#282828',
 };
 
 const SHORT: Record<string, string> = {
   logic_gate:'GATE', flip_flop:'FF', multiplexer:'MUX',
   alu:'ALU', register:'REG', memory:'RAM', clock:'CLK', io_port:'I/O',
+  led:'LED', resistor:'R', capacitor:'C', header_pin:'HDR',
+  transistor:'Q', diode:'D',
+};
+
+// Discrete types render differently in 3D
+const DISCRETE_TYPES = new Set(['led','resistor','capacitor','header_pin','transistor','diode']);
+
+// Per-type 3D heights
+const DISCRETE_H: Record<string, number> = {
+  led:        26,
+  resistor:   10,
+  capacitor:  30,
+  header_pin: 16,
+  transistor: 22,
+  diode:       9,
 };
 
 // ─── Isometric projection ─────────────────────────────────────────────────────
@@ -231,6 +253,125 @@ function CopperTrace({ x1, y1, x2, y2 }: { x1: number; y1: number; x2: number; y
   );
 }
 
+// ─── Discrete component 3D package ───────────────────────────────────────────
+
+function DiscretePkg({ comp }: { comp: ChipComponent }) {
+  const { x, y, width: w, height: h, type } = comp;
+  const accent = ACCENT[type] ?? '#607a96';
+  const ch = DISCRETE_H[type] ?? CHIP_H;
+  const bh = BOARD_H;
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+
+  // Shared box faces (same as ChipPackage but with custom height + colour)
+  const front = polyPts([[x,   y, bh],[x+w, y, bh],[x+w, y, bh+ch],[x,   y, bh+ch]]);
+  const right  = polyPts([[x+w, y, bh],[x+w, y+h, bh],[x+w, y+h, bh+ch],[x+w, y, bh+ch]]);
+  const top    = polyPts([[x, y, bh+ch],[x+w, y, bh+ch],[x+w, y+h, bh+ch],[x, y+h, bh+ch]]);
+
+  const topFill   = shade(accent, 0.7);
+  const frontFill = shade(accent, 0.38);
+  const rightFill = shade(accent, 0.52);
+
+  const lp = iso(cx, cy, bh + ch + 0.5);
+
+  // --- Type-specific top decorations ---
+  const topDeco = (() => {
+    if (type === 'led') {
+      // Bright dome circle on top face
+      const dp = iso(cx, cy, bh + ch + 0.3);
+      return <Circle cx={dp.sx} cy={dp.sy} r={3.5} fill={accent} opacity={0.95} />;
+    }
+    if (type === 'resistor') {
+      // Colour bands across top face
+      const bands = ['#e8a010', '#303030', '#e8a010'];
+      return (
+        <>
+          {bands.map((c, i) => {
+            const bx = x + w * (0.25 + i * 0.25);
+            const A = iso(bx,   y,   bh + ch + 0.2);
+            const B = iso(bx,   y+h, bh + ch + 0.2);
+            const C = iso(bx+4, y+h, bh + ch + 0.2);
+            const D = iso(bx+4, y,   bh + ch + 0.2);
+            return (
+              <Polygon key={i}
+                points={`${A.sx},${A.sy} ${B.sx},${B.sy} ${C.sx},${C.sy} ${D.sx},${D.sy}`}
+                fill={c} opacity={0.85}
+              />
+            );
+          })}
+        </>
+      );
+    }
+    if (type === 'capacitor') {
+      // "+" marking on top
+      const tp = iso(cx, cy, bh + ch + 0.3);
+      return (
+        <SvgText x={tp.sx} y={tp.sy} fontSize={6} fill="#d0e8ff"
+          textAnchor="middle" fontWeight="bold">+</SvgText>
+      );
+    }
+    if (type === 'header_pin') {
+      // Grid of gold pin dots
+      const cols = 4, rows = 2;
+      const dots: React.ReactNode[] = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const px = x + (w / (cols + 1)) * (c + 1);
+          const py = y + (h / (rows + 1)) * (r + 1);
+          const dp = iso(px, py, bh + ch + 0.3);
+          dots.push(
+            <Circle key={`${r}-${c}`} cx={dp.sx} cy={dp.sy} r={1.4}
+              fill="#d4a800" stroke="#806000" strokeWidth={0.3} />
+          );
+        }
+      }
+      return <>{dots}</>;
+    }
+    if (type === 'transistor') {
+      // Silver heatsink tab on top
+      const tw = w * 0.3, tx = cx - tw / 2;
+      const A = iso(tx,    y,   bh + ch + 0.2);
+      const B = iso(tx,    y+h, bh + ch + 0.2);
+      const C = iso(tx+tw, y+h, bh + ch + 0.2);
+      const D = iso(tx+tw, y,   bh + ch + 0.2);
+      return (
+        <Polygon
+          points={`${A.sx},${A.sy} ${B.sx},${B.sy} ${C.sx},${C.sy} ${D.sx},${D.sy}`}
+          fill="#c0c0c0" opacity={0.9}
+        />
+      );
+    }
+    // diode — anode/cathode bar
+    if (type === 'diode') {
+      const mp = iso(cx, cy, bh + ch + 0.3);
+      return (
+        <SvgText x={mp.sx} y={mp.sy} fontSize={4} fill="#d0d0d0"
+          textAnchor="middle">▷|</SvgText>
+      );
+    }
+    return null;
+  })();
+
+  return (
+    <>
+      {/* Solder pads */}
+      {[[x + w * 0.3, y],[x + w * 0.7, y]].map(([px, py], i) => {
+        const pp = iso(px, py, BOARD_H);
+        return <Rect key={i} x={pp.sx - 2} y={pp.sy - 1} width={4} height={2} fill="#b08000" rx={0.5} />;
+      })}
+      <Polygon points={front} fill={frontFill} stroke="#000" strokeWidth={0.3} />
+      <Polygon points={right}  fill={rightFill} stroke="#000" strokeWidth={0.3} />
+      <Polygon points={top}    fill={topFill}   stroke={accent} strokeWidth={0.4} strokeOpacity={0.5} />
+      {topDeco}
+      {/* Label */}
+      <SvgText x={lp.sx} y={lp.sy} fontSize={4} fontWeight="bold"
+        textAnchor="middle" fill="#e0e8f0" fontFamily="monospace" opacity={0.85}>
+        {SHORT[type] ?? type.slice(0,3).toUpperCase()}
+      </SvgText>
+    </>
+  );
+}
+
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 function EmptyBoard() {
@@ -328,10 +469,12 @@ export function Chip3DView({ design }: { design: ChipDesign }) {
                 <CopperTrace key={t.id} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2} />
               ))}
 
-              {/* IC packages (back to front) */}
-              {sorted.map(c => (
-                <ChipPackage key={c.id} comp={c} />
-              ))}
+              {/* IC packages + discrete components (back to front) */}
+              {sorted.map(c =>
+                DISCRETE_TYPES.has(c.type)
+                  ? <DiscretePkg  key={c.id} comp={c} />
+                  : <ChipPackage  key={c.id} comp={c} />
+              )}
             </>
           )}
         </Svg>

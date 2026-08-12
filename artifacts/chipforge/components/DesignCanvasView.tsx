@@ -56,6 +56,7 @@ interface TypeMeta {
 }
 
 const TYPE_META: Record<string, TypeMeta> = {
+  // ── Digital logic ────────────────────────────────────────────────────────
   logic_gate:  { accentColor:'#2d8fa8', sigClass:'data',    short:'GATE', refPrefix:'U',  inputs:['A','B'],                outputs:['Q'],       topPins:2, bottomPins:2 },
   flip_flop:   { accentColor:'#a07820', sigClass:'clock',   short:'FF',   refPrefix:'U',  inputs:['D','CLK','RST'],        outputs:['Q','~Q'],  topPins:2, bottomPins:2 },
   multiplexer: { accentColor:'#7040a8', sigClass:'data',    short:'MUX',  refPrefix:'U',  inputs:['A','B','SEL'],          outputs:['Y'],       topPins:2, bottomPins:1 },
@@ -64,6 +65,13 @@ const TYPE_META: Record<string, TypeMeta> = {
   memory:      { accentColor:'#5040a0', sigClass:'data',    short:'MEM',  refPrefix:'U',  inputs:['ADDR','DI','WE','CLK'],outputs:['DO'],      topPins:4, bottomPins:3 },
   clock:       { accentColor:'#2060a8', sigClass:'clock',   short:'CLK',  refPrefix:'Y',  inputs:[],                      outputs:['CLK'],     topPins:1, bottomPins:1 },
   io_port:     { accentColor:'#1878a0', sigClass:'control', short:'I/O',  refPrefix:'J',  inputs:[],                      outputs:['IO'],      topPins:2, bottomPins:2 },
+  // ── Discrete / through-hole ──────────────────────────────────────────────
+  led:         { accentColor:'#c0392b', sigClass:'power',   short:'LED',  refPrefix:'D',  inputs:['A','K'],                outputs:[],          topPins:1, bottomPins:1 },
+  resistor:    { accentColor:'#9a7840', sigClass:'misc',    short:'R',    refPrefix:'R',  inputs:['1'],                   outputs:['2'],       topPins:1, bottomPins:1 },
+  capacitor:   { accentColor:'#2060c0', sigClass:'power',   short:'C',    refPrefix:'C',  inputs:['+'],                   outputs:['-'],       topPins:1, bottomPins:1 },
+  header_pin:  { accentColor:'#b08000', sigClass:'misc',    short:'HDR',  refPrefix:'J',  inputs:[],                      outputs:[],          topPins:3, bottomPins:3 },
+  transistor:  { accentColor:'#606060', sigClass:'control', short:'Q',    refPrefix:'Q',  inputs:['B'],                   outputs:['C','E'],   topPins:1, bottomPins:1 },
+  diode:       { accentColor:'#383838', sigClass:'misc',    short:'D',    refPrefix:'D',  inputs:['A'],                   outputs:['K'],       topPins:1, bottomPins:1 },
 };
 
 function getMeta(type: string): TypeMeta {

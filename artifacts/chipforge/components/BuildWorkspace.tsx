@@ -113,7 +113,24 @@ const COMP_COLORS: Record<string, string> = {
   memory:      '#5040a0',
   clock:       '#2060a8',
   io_port:     '#1878a0',
+  // Discrete
+  led:         '#c0392b',
+  resistor:    '#9a7840',
+  capacitor:   '#2060c0',
+  header_pin:  '#b08000',
+  transistor:  '#606060',
+  diode:       '#383838',
 };
+
+// Discrete passives / through-hole palette
+const DISCRETE_DEFS: CompDef[] = [
+  { type:'led',        label:'LED',    symbol:'◉',  w:44,  h:44, bits:null },
+  { type:'resistor',   label:'1kΩ',   symbol:'Ω',  w:60,  h:36, bits:null },
+  { type:'capacitor',  label:'100µF', symbol:'╫',  w:44,  h:44, bits:null },
+  { type:'header_pin', label:'HDR',   symbol:'⊞',  w:80,  h:48, bits:null },
+  { type:'transistor', label:'NPN',   symbol:'⊳',  w:56,  h:52, bits:null },
+  { type:'diode',      label:'1N4001',symbol:'▷|', w:60,  h:36, bits:null },
+];
 
 // ─── Analysis helpers ─────────────────────────────────────────────────────────
 
@@ -472,9 +489,24 @@ function PartsPanel({
         <Text style={s.panelTitle}>Parts</Text>
       </View>
       <ScrollView style={s.panelScroll} showsVerticalScrollIndicator={false} bounces={false}>
-        <View style={s.partsSec}><Text style={s.partsSecTxt}>COMPONENTS</Text></View>
+        <View style={s.partsSec}><Text style={s.partsSecTxt}>LOGIC</Text></View>
         <View style={s.compGrid}>
           {COMP_DEFS.map((def, i) => {
+            const col = COMP_COLORS[def.type] ?? '#6b7280';
+            return (
+              <Pressable key={i} style={s.compTile} onPress={() => onPlace(def)}>
+                <View style={[s.compBox, {borderColor: col + '80', backgroundColor: col + '18'}]}>
+                  <Text style={[s.compSym, {color: col}]}>{def.symbol}</Text>
+                </View>
+                <Text style={s.compLbl} numberOfLines={1}>{def.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={s.partsSec}><Text style={s.partsSecTxt}>DISCRETE</Text></View>
+        <View style={s.compGrid}>
+          {DISCRETE_DEFS.map((def, i) => {
             const col = COMP_COLORS[def.type] ?? '#6b7280';
             return (
               <Pressable key={i} style={s.compTile} onPress={() => onPlace(def)}>
