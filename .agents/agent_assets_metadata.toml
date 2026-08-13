@@ -69,3 +69,10 @@ uri = "file://attached_assets/appstore_screenshots/chipforge_5.5in_1242x2208.png
 type = "image"
 title = "5.5\" screenshot — 1242×2208 (iPhone 8 Plus)"
 description = "Required for App Store Connect"
+
+[[outputs]]
+id = "McLxgQLmqneB-_VkN9WrP"
+uri = "file://attached_assets/chipforge_screenshot_1242x2688.png"
+type = "image"
+title = "App Store screenshot — 1242×2688px"
+description = "Ready to upload to App Store Connect"
