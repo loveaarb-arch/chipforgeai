@@ -83,3 +83,10 @@ uri = "file://attached_assets/chipforge_screenshot2_1242x2688.png"
 type = "image"
 title = "App Store screenshot — 1242×2688px"
 description = "Ready to upload to App Store Connect"
+
+[[outputs]]
+id = "DKnE7wlb8lLjBlaYqWQtw"
+uri = "file://attached_assets/chipforge_screenshot3_1242x2688.png"
+type = "image"
+title = "App Store screenshot — 1242×2688px"
+description = "Resized and ready to upload to App Store Connect"
