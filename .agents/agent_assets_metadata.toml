@@ -41,3 +41,31 @@ uri = "file://attached_assets/screenshot_appstore4.png"
 type = "image"
 title = "Screenshot 3 – Diagram"
 description = "1284×2778px, no crop"
+
+[[outputs]]
+id = "m3TxlN6P7QZPHaALmzRXN"
+uri = "file://attached_assets/appstore_screenshots/chipforge_6.9in_1320x2868.png"
+type = "image"
+title = "6.9\" screenshot — 1320×2868 (iPhone 16 Pro Max)"
+description = "Required for App Store Connect"
+
+[[outputs]]
+id = "V0YdD46KjcDrVVK6mAW7y"
+uri = "file://attached_assets/appstore_screenshots/chipforge_6.7in_1290x2796.png"
+type = "image"
+title = "6.7\" screenshot — 1290×2796 (iPhone 14/15 Pro Max)"
+description = "Required for App Store Connect"
+
+[[outputs]]
+id = "bHx9irL95hIAsY5tYs6pv"
+uri = "file://attached_assets/appstore_screenshots/chipforge_6.5in_1242x2688.png"
+type = "image"
+title = "6.5\" screenshot — 1242×2688 (iPhone 11/12/13 Pro Max)"
+description = "Required for App Store Connect"
+
+[[outputs]]
+id = "8eT5b-knmURFhTS9cwirz"
+uri = "file://attached_assets/appstore_screenshots/chipforge_5.5in_1242x2208.png"
+type = "image"
+title = "5.5\" screenshot — 1242×2208 (iPhone 8 Plus)"
+description = "Required for App Store Connect"
