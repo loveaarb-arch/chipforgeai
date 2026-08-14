@@ -38,7 +38,7 @@ const features = [
   {
     icon: <Code2 className="w-6 h-6 text-primary" />,
     title: "One-Tap HDL Generation",
-    description: "Convert your architecture into clean, Verilog-style HDL code with a single tap. Ready for review, simulation, or handoff."
+    description: "Convert your architecture into clean, Verilog-style HDL code with a single tap. Ready for review or handoff."
   },
   {
     icon: <Activity className="w-6 h-6 text-primary" />,
