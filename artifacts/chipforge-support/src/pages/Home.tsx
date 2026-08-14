@@ -190,7 +190,6 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">Everything you need to conceptualize.</h2>
-            <p className="text-muted-foreground font-mono">From idea to verified HDL in your pocket.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
