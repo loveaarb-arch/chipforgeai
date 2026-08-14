@@ -162,24 +162,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Philosophy / Disclaimer Banner */}
-      <section className="border-y border-white/5 bg-secondary/30 relative overflow-hidden">
-        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="flex flex-col md:flex-row md:items-center gap-8 justify-between">
-            <div className="max-w-2xl">
-              <h3 className="text-lg font-mono font-bold text-foreground mb-2 flex items-center gap-2">
-                <Check className="w-5 h-5 text-primary" />
-                Pre-Tapeout Handoff
-              </h3>
-              <p className="text-muted-foreground">
-                Chip Forge AI is built for students, enthusiasts, and rapid architectural exploration. It is an honest, pre-tapeout handoff tool. It handles the design, critique, and logic verification up to silicon — but getting to a foundry-ready submission requires additional steps.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Features Grid */}
       <section className="py-24 px-6 relative">
         <div className="max-w-6xl mx-auto">
