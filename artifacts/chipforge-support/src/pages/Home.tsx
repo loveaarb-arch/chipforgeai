@@ -146,16 +146,11 @@ export default function Home() {
             variants={staggerContainer}
             className="max-w-3xl"
           >
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-sm font-mono mb-6">
-              <Smartphone className="w-4 h-4" />
-              <span>Available for iOS</span>
-            </motion.div>
-            
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
               Design chips with AI.
             </motion.h1>
             
-            <motion.p variants={fadeUp} className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-2xl font-mono border-l-2 border-primary pl-4">
+            <motion.p variants={fadeUp} className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-2xl font-mono">
               Describe your idea and get HDL code, fast.
             </motion.p>
           </motion.div>
