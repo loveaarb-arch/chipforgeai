@@ -33,7 +33,7 @@ const features = [
   {
     icon: <TerminalSquare className="w-6 h-6 text-primary" />,
     title: "Instant Block Diagrams",
-    description: "Describe your chip in plain English. We instantly parse your intent and generate a precise architectural block diagram."
+    description: "Describe your chip in plain English. Chip Forge AI instantly parses your intent and generates a precise architectural block diagram."
   },
   {
     icon: <Code2 className="w-6 h-6 text-primary" />,
@@ -53,7 +53,7 @@ const features = [
   {
     icon: <FlaskConical className="w-6 h-6 text-primary" />,
     title: "Testbench Generation",
-    description: "Verify your logic instantly. We automatically generate a comprehensive testbench to validate your core functionality."
+    description: "Verify your logic instantly. Chip Forge AI automatically generates a comprehensive testbench to validate your core functionality."
   },
   {
     icon: <Zap className="w-6 h-6 text-primary" />,
@@ -69,19 +69,15 @@ const faqs = [
   },
   {
     question: "Is this foundry-ready output?",
-    answer: "No. Chip Forge AI is a pre-tapeout design handoff tool. It's built for rapid prototyping, learning, and architectural exploration. Getting to silicon requires additional physical design steps, but we handle everything up to that point."
+    answer: "No. Chip Forge AI is a pre-tapeout design handoff tool. It's built for rapid prototyping, learning, and architectural exploration. Getting to silicon requires additional physical design steps, but it handles everything up to that point."
   },
   {
     question: "What is HDL?",
-    answer: "Hardware Description Language (HDL) is a specialized computer language used to describe the structure and behavior of electronic circuits, most commonly digital logic circuits. Our app generates Verilog-style HDL."
-  },
-  {
-    question: "What devices does the app support?",
-    answer: "Chip Forge AI is currently available exclusively for iOS devices (iPhone and iPad) on the App Store."
+    answer: "Hardware Description Language (HDL) is a specialized computer language used to describe the structure and behavior of electronic circuits, most commonly digital logic circuits. This app generates Verilog-style HDL."
   },
   {
     question: "How do I export my design?",
-    answer: "You can export your generated HDL, testbenches, and block diagrams directly from the app as plain text files or PDFs, ready to be imported into your desktop EDA tools."
+    answer: "You can export your generated HDL, testbenches, and block diagrams directly from the app as plain text files or PDFs."
   },
   {
     question: "What does the AI synthesis estimate give me?",
@@ -132,8 +128,7 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono font-bold text-lg tracking-tight">
-            <Cpu className="w-5 h-5 text-primary" />
-            <span>Chip Forge<span className="text-primary">.ai</span></span>
+            <span>Chip Forge AI</span>
           </div>
           <a 
             href="#support" 
@@ -183,7 +178,7 @@ export default function Home() {
                 Pre-Tapeout Handoff
               </h3>
               <p className="text-muted-foreground">
-                Chip Forge AI is built for students, enthusiasts, and rapid architectural exploration. It is an honest, pre-tapeout handoff tool. We handle the design, critique, and logic verification up to silicon — but getting to a foundry-ready submission requires additional steps.
+                Chip Forge AI is built for students, enthusiasts, and rapid architectural exploration. It is an honest, pre-tapeout handoff tool. It handles the design, critique, and logic verification up to silicon — but getting to a foundry-ready submission requires additional steps.
               </p>
             </div>
           </div>
@@ -249,10 +244,6 @@ export default function Home() {
             <Mail className="w-8 h-8 text-primary" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Need technical support?</h2>
-          <p className="text-xl text-muted-foreground mb-8">
-            Encountered a synthesis error? Have feature requests? Our engineering team is ready to help.
-          </p>
-          
           <a 
             href="mailto:[your support email]"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-mono font-bold rounded-sm hover:bg-primary/90 transition-colors"
@@ -260,9 +251,6 @@ export default function Home() {
             <Mail className="w-5 h-5" />
             Contact Support
           </a>
-          <p className="mt-4 text-sm text-muted-foreground font-mono">
-            Email: [your support email]
-          </p>
         </div>
       </section>
 
