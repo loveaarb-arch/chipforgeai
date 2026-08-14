@@ -55,11 +55,6 @@ const features = [
     title: "Testbench Generation",
     description: "Verify your logic instantly. Chip Forge AI automatically generates a comprehensive testbench to validate your core functionality."
   },
-  {
-    icon: <Zap className="w-6 h-6 text-primary" />,
-    title: "Synthesis & Estimation",
-    description: "Run a pre-synthesis pass to get immediate resource estimates, including LUT count, flip-flops, and estimated clock speed."
-  }
 ];
 
 const faqs = [
