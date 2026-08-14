@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/chipforge-support/"
+title = "Chip Forge AI — Support"
+description = "A public support webpage for the Chip Forge AI mobile app. Shows what the app does, answers common questions in an FAQ, and provides a contact section. Used as the App Store Connect support URL."
+version = "1.0.0"
+id = "artifacts/chipforge-support"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/chipforge-support/" ]
+localPort = 26226
+
+[services.development]
+run = "pnpm --filter @workspace/chipforge-support run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/chipforge-support", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/chipforge-support/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "26226"
+BASE_PATH = "/chipforge-support/"
