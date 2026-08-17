@@ -1,0 +1,21 @@
+workflows:
+  ios-build:
+    name: Chip Forge AI iOS Build
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        EXPO_TOKEN: $EXPO_TOKEN
+    scripts:
+      - name: Install pnpm
+        script: npm install -g pnpm
+      - name: Install EAS CLI
+        script: npm install -g eas-cli
+      - name: Install dependencies
+        script: |
+          cd artifacts/chipforge
+          pnpm install
+      - name: Build and submit with EAS
+        script: |
+          cd artifacts/chipforge
+          eas build --platform ios --profile production --non-interactive --auto-submit
