@@ -8,7 +8,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: ai.chipforge.app
+        bundle_identifier: com.chipforgeai.app
     scripts:
       - name: Install pnpm
         script: npm install -g pnpm
