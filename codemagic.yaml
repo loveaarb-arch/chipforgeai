@@ -1,21 +1,45 @@
 workflows:
-  ios-eas-build:
-    name: Chip Forge AI iOS EAS Build
+  ios-native-build:
+    name: Chip Forge AI iOS Native Build
     max_build_duration: 120
     instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Apple Dev Portal
     environment:
-      vars:
-        EXPO_TOKEN: $EXPO_TOKEN
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.chipforgeai.app
     scripts:
       - name: Install pnpm
         script: npm install -g pnpm
-      - name: Install EAS CLI
-        script: npm install -g eas-cli@latest
       - name: Install dependencies
         script: |
           cd artifacts/chipforge
           pnpm install
-      - name: EAS Build and Submit
+      - name: Expo prebuild
         script: |
           cd artifacts/chipforge
-          eas build --platform ios --profile production --non-interactive --auto-submit
+          npx expo prebuild --platform ios --clean
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build iOS archive
+        script: |
+          cd artifacts/chipforge/ios
+          xcodebuild \
+            -workspace chipforge.xcworkspace \
+            -scheme chipforge \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/chipforge.xcarchive" \
+            clean archive
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace artifacts/chipforge/ios/chipforge.xcworkspace \
+            --archive-path "$CM_BUILD_DIR/chipforge.xcarchive"
+    artifacts:
+      - $CM_BUILD_DIR/**/*.ipa
+      - $CM_BUILD_DIR/**/*.xcarchive
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
