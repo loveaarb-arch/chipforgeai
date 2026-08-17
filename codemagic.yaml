@@ -20,6 +20,8 @@ workflows:
         script: |
           cd artifacts/chipforge
           npx expo prebuild --platform ios --clean
+      - name: Set up code signing
+        script: xcode-project use-profiles
       - name: Build iOS archive
         script: |
           cd artifacts/chipforge/ios
@@ -28,9 +30,12 @@ workflows:
             -scheme chipforge \
             -configuration Release \
             -archivePath "$CM_BUILD_DIR/chipforge.xcarchive" \
-            clean archive \
-            CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM=$APPLE_TEAM_ID
+            clean archive
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace artifacts/chipforge/ios/chipforge.xcworkspace \
+            --archive-path "$CM_BUILD_DIR/chipforge.xcarchive"
     artifacts:
       - $CM_BUILD_DIR/**/*.ipa
       - $CM_BUILD_DIR/**/*.xcarchive
