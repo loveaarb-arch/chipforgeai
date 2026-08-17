@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.chipforge.chipforgeai",
+      "bundleIdentifier": "ai.chipforge.app",
       "buildNumber": "1",
       "infoPlist": {
         "NSCameraUsageDescription": "Chip Forge AI does not use the camera.",
