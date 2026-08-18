@@ -1,0 +1,139 @@
+
+Scope: all 11 workspace projects
+? Verifying lockfile against supply-chain policies (1210 entries)...
+✓ Lockfile passes supply-chain policies (1210 entries in 5s)
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 94, reused 0, downloaded 22, added 0
+artifacts/chipforge-support              | [WARN] deprecated recharts@2.15.4
+Progress: resolved 125, reused 0, downloaded 86, added 0
+Progress: resolved 134, reused 0, downloaded 125, added 0
+Progress: resolved 137, reused 0, downloaded 129, added 0
+Progress: resolved 140, reused 0, downloaded 133, added 0
+Progress: resolved 307, reused 0, downloaded 185, added 0
+Progress: resolved 389, reused 0, downloaded 239, added 0
+Progress: resolved 411, reused 0, downloaded 309, added 0
+Progress: resolved 504, reused 0, downloaded 367, added 0
+Progress: resolved 505, reused 0, downloaded 447, added 0
+Progress: resolved 592, reused 0, downloaded 474, added 0
+Progress: resolved 651, reused 0, downloaded 485, added 0
+Progress: resolved 733, reused 0, downloaded 555, added 0
+Progress: resolved 884, reused 0, downloaded 659, added 0
+Progress: resolved 1021, reused 0, downloaded 808, added 0
+Progress: resolved 1099, reused 0, downloaded 945, added 0
+Progress: resolved 1167, reused 0, downloaded 1020, added 0
+Progress: resolved 1234, reused 0, downloaded 1130, added 0
+Progress: resolved 1242, reused 0, downloaded 1159, added 0
+Progress: resolved 1247, reused 0, downloaded 1164, added 0
+Progress: resolved 1256, reused 0, downloaded 1172, added 0
+Progress: resolved 1262, reused 0, downloaded 1182, added 0
+Progress: resolved 1273, reused 0, downloaded 1192, added 0
+Progress: resolved 1284, reused 0, downloaded 1202, added 0
+[WARN] 8 deprecated subdependencies found: @xmldom/xmldom@0.8.13, @xmldom/xmldom@0.9.10, crypto-js@4.2.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2, uuid@3.4.0, uuid@7.0.3
+Progress: resolved 1289, reused 0, downloaded 1209, added 0
+Packages: +1234
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/builder/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 1289, reused 0, downloaded 1209, added 145
+Progress: resolved 1289, reused 0, downloaded 1209, added 318
+Progress: resolved 1289, reused 0, downloaded 1209, added 596
+Progress: resolved 1289, reused 0, downloaded 1209, added 796
+Progress: resolved 1289, reused 0, downloaded 1209, added 808
+Progress: resolved 1289, reused 0, downloaded 1209, added 851
+Progress: resolved 1289, reused 0, downloaded 1209, added 874
+Progress: resolved 1289, reused 0, downloaded 1209, added 963
+Progress: resolved 1289, reused 0, downloaded 1209, added 1066
+Progress: resolved 1289, reused 0, downloaded 1209, added 1067
+Progress: resolved 1289, reused 0, downloaded 1209, added 1074
+Progress: resolved 1289, reused 0, downloaded 1209, added 1157
+Progress: resolved 1289, reused 0, downloaded 1209, added 1233
+Progress: resolved 1289, reused 0, downloaded 1209, added 1234, done
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+. preinstall: Done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @replit/connectors-sdk 0.4.1 (0.4.2 is available)
++ @replit/revenuecat-sdk 5.0.0
+
+devDependencies:
++ prettier 3.9.4 (3.9.6 is available)
++ typescript 5.9.3 (7.0.2 is available)
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: browser-tabs-lock@1.3.0, core-js@3.47.0, esbuild@0.27.3
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+
+
+Build failed :|
+Step 4 script `Install dependencies` exited with status code 1
+Scope: all 11 workspace projects
+? Verifying lockfile against supply-chain policies (1210 entries)...
+✓ Lockfile passes supply-chain policies (1210 entries in 5s)
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 94, reused 0, downloaded 22, added 0
+artifacts/chipforge-support              | [WARN] deprecated recharts@2.15.4
+Progress: resolved 125, reused 0, downloaded 86, added 0
+Progress: resolved 134, reused 0, downloaded 125, added 0
+Progress: resolved 137, reused 0, downloaded 129, added 0
+Progress: resolved 140, reused 0, downloaded 133, added 0
+Progress: resolved 307, reused 0, downloaded 185, added 0
+Progress: resolved 389, reused 0, downloaded 239, added 0
+Progress: resolved 411, reused 0, downloaded 309, added 0
+Progress: resolved 504, reused 0, downloaded 367, added 0
+Progress: resolved 505, reused 0, downloaded 447, added 0
+Progress: resolved 592, reused 0, downloaded 474, added 0
+Progress: resolved 651, reused 0, downloaded 485, added 0
+Progress: resolved 733, reused 0, downloaded 555, added 0
+Progress: resolved 884, reused 0, downloaded 659, added 0
+Progress: resolved 1021, reused 0, downloaded 808, added 0
+Progress: resolved 1099, reused 0, downloaded 945, added 0
+Progress: resolved 1167, reused 0, downloaded 1020, added 0
+Progress: resolved 1234, reused 0, downloaded 1130, added 0
+Progress: resolved 1242, reused 0, downloaded 1159, added 0
+Progress: resolved 1247, reused 0, downloaded 1164, added 0
+Progress: resolved 1256, reused 0, downloaded 1172, added 0
+Progress: resolved 1262, reused 0, downloaded 1182, added 0
+Progress: resolved 1273, reused 0, downloaded 1192, added 0
+Progress: resolved 1284, reused 0, downloaded 1202, added 0
+[WARN] 8 deprecated subdependencies found: @xmldom/xmldom@0.8.13, @xmldom/xmldom@0.9.10, crypto-js@4.2.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2, uuid@3.4.0, uuid@7.0.3
+Progress: resolved 1289, reused 0, downloaded 1209, added 0
+Packages: +1234
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/builder/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 1289, reused 0, downloaded 1209, added 145
+Progress: resolved 1289, reused 0, downloaded 1209, added 318
+Progress: resolved 1289, reused 0, downloaded 1209, added 596
+Progress: resolved 1289, reused 0, downloaded 1209, added 796
+Progress: resolved 1289, reused 0, downloaded 1209, added 808
+Progress: resolved 1289, reused 0, downloaded 1209, added 851
+Progress: resolved 1289, reused 0, downloaded 1209, added 874
+Progress: resolved 1289, reused 0, downloaded 1209, added 963
+Progress: resolved 1289, reused 0, downloaded 1209, added 1066
+Progress: resolved 1289, reused 0, downloaded 1209, added 1067
+Progress: resolved 1289, reused 0, downloaded 1209, added 1074
+Progress: resolved 1289, reused 0, downloaded 1209, added 1157
+Progress: resolved 1289, reused 0, downloaded 1209, added 1233
+Progress: resolved 1289, reused 0, downloaded 1209, added 1234, done
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+. preinstall: Done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @replit/connectors-sdk 0.4.1 (0.4.2 is available)
++ @replit/revenuecat-sdk 5.0.0
+
+devDependencies:
++ prettier 3.9.4 (3.9.6 is available)
++ typescript 5.9.3 (7.0.2 is available)
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: browser-tabs-lock@1.3.0, core-js@3.47.0, esbuild@0.27.3
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+
+
+Build failed :|
+Step 4 script `Install dependencies` exited with status code 1
