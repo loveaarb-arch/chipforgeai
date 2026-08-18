@@ -37,7 +37,7 @@ workflows:
       - name: Expo prebuild
         script: |
           cd artifacts/chipforge
-          npx expo prebuild --platform ios --clean
+          npx expo prebuild --platform ios --clean --no-install
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS archive
