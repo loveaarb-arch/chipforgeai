@@ -1,0 +1,109 @@
+
+Scope: all 11 workspace projects
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 79, reused 0, downloaded 62, added 0
+artifacts/chipforge-support              | [WARN] deprecated recharts@2.15.4
+Progress: resolved 126, reused 0, downloaded 113, added 0
+Progress: resolved 134, reused 0, downloaded 128, added 0
+Progress: resolved 139, reused 0, downloaded 134, added 0
+Progress: resolved 285, reused 0, downloaded 213, added 0
+Progress: resolved 386, reused 0, downloaded 326, added 0
+Progress: resolved 475, reused 0, downloaded 419, added 0
+Progress: resolved 504, reused 0, downloaded 478, added 0
+Progress: resolved 583, reused 0, downloaded 512, added 0
+Progress: resolved 760, reused 0, downloaded 648, added 0
+Progress: resolved 888, reused 0, downloaded 814, added 0
+Progress: resolved 1116, reused 0, downloaded 1016, added 0
+Progress: resolved 1222, reused 0, downloaded 1108, added 0
+Progress: resolved 1257, reused 0, downloaded 1164, added 0
+Progress: resolved 1263, reused 0, downloaded 1168, added 0
+Progress: resolved 1276, reused 0, downloaded 1182, added 0
+Progress: resolved 1290, reused 0, downloaded 1198, added 0
+Progress: resolved 1305, reused 0, downloaded 1209, added 0
+[WARN] 6 deprecated subdependencies found: crypto-js@4.2.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2, uuid@3.4.0, uuid@7.0.3
+Packages: +1241
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/builder/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 1306, reused 0, downloaded 1215, added 158
+Progress: resolved 1306, reused 0, downloaded 1215, added 557
+Progress: resolved 1306, reused 0, downloaded 1215, added 807
+Progress: resolved 1306, reused 0, downloaded 1215, added 852
+Progress: resolved 1306, reused 0, downloaded 1215, added 940
+Progress: resolved 1306, reused 0, downloaded 1215, added 1074
+Progress: resolved 1306, reused 0, downloaded 1215, added 1086
+Scope: all 11 workspace projects
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Progress: resolved 79, reused 0, downloaded 62, added 0
+artifacts/chipforge-support              | [WARN] deprecated recharts@2.15.4
+Progress: resolved 126, reused 0, downloaded 113, added 0
+Progress: resolved 134, reused 0, downloaded 128, added 0
+Progress: resolved 139, reused 0, downloaded 134, added 0
+Progress: resolved 285, reused 0, downloaded 213, added 0
+Progress: resolved 386, reused 0, downloaded 326, added 0
+Progress: resolved 475, reused 0, downloaded 419, added 0
+Progress: resolved 504, reused 0, downloaded 478, added 0
+Progress: resolved 583, reused 0, downloaded 512, added 0
+Progress: resolved 760, reused 0, downloaded 648, added 0
+Progress: resolved 888, reused 0, downloaded 814, added 0
+Progress: resolved 1116, reused 0, downloaded 1016, added 0
+Progress: resolved 1222, reused 0, downloaded 1108, added 0
+Progress: resolved 1257, reused 0, downloaded 1164, added 0
+Progress: resolved 1263, reused 0, downloaded 1168, added 0
+Progress: resolved 1276, reused 0, downloaded 1182, added 0
+Progress: resolved 1290, reused 0, downloaded 1198, added 0
+Progress: resolved 1305, reused 0, downloaded 1209, added 0
+[WARN] 6 deprecated subdependencies found: crypto-js@4.2.0, glob@7.2.3, inflight@1.0.6, rimraf@3.0.2, uuid@3.4.0, uuid@7.0.3
+Packages: +1241
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Packages are cloned from the content-addressable store to the virtual store.
+  Content-addressable store is at: /Users/builder/Library/pnpm/store/v11
+  Virtual store is at:             node_modules/.pnpm
+Progress: resolved 1306, reused 0, downloaded 1215, added 158
+Progress: resolved 1306, reused 0, downloaded 1215, added 557
+Progress: resolved 1306, reused 0, downloaded 1215, added 807
+Progress: resolved 1306, reused 0, downloaded 1215, added 852
+Progress: resolved 1306, reused 0, downloaded 1215, added 940
+Progress: resolved 1306, reused 0, downloaded 1215, added 1074
+Progress: resolved 1306, reused 0, downloaded 1215, added 1086
+Progress: resolved 1306, reused 0, downloaded 1215, added 1241, done
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+. preinstall: Done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @replit/connectors-sdk 0.4.2
++ @replit/revenuecat-sdk 5.0.0
+
+devDependencies:
++ prettier 3.9.6
++ typescript 5.9.3 (7.0.2 is available)
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: browser-tabs-lock@1.3.0, core-js@3.47.0, esbuild@0.27.3
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+
+
+Build failed :|
+Step 4 script `Install dependencies` exited with status code 1
+Progress: resolved 1306, reused 0, downloaded 1215, added 1241, done
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm instead" >&2; exit 1 ;; esac'
+. preinstall: Done
+[WARN] Issues with peer dependencies found. Run "pnpm peers check" to list them.
+
+dependencies:
++ @replit/connectors-sdk 0.4.2
++ @replit/revenuecat-sdk 5.0.0
+
+devDependencies:
++ prettier 3.9.6
++ typescript 5.9.3 (7.0.2 is available)
+
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: browser-tabs-lock@1.3.0, core-js@3.47.0, esbuild@0.27.3
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+
+
+Build failed :|
+Step 4 script `Install dependencies` exited with status code 1
