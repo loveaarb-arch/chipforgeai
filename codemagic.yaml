@@ -33,7 +33,7 @@ workflows:
           sed -i '' '/aix/d' pnpm-workspace.yaml
           sed -i '' '/android/d' pnpm-workspace.yaml
           rm -f pnpm-lock.yaml
-          pnpm install --no-frozen-lockfile
+          pnpm install --no-frozen-lockfile --ignore-scripts
       - name: Expo prebuild
         script: |
           cd artifacts/chipforge
