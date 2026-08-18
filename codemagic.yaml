@@ -32,6 +32,7 @@ workflows:
           sed -i '' '/openbsd/d' pnpm-workspace.yaml
           sed -i '' '/aix/d' pnpm-workspace.yaml
           sed -i '' '/android/d' pnpm-workspace.yaml
+          echo "dangerouslyAllowAllBuilds=true" >> .npmrc
           pnpm install --no-frozen-lockfile
       - name: Expo prebuild
         script: |
