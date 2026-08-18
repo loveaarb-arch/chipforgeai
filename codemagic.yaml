@@ -13,9 +13,7 @@ workflows:
       - name: Install pnpm
         script: npm install -g pnpm --force
       - name: Install dependencies
-        script: |
-          cd artifacts/chipforge
-          pnpm install
+        script: pnpm install --no-frozen-lockfile
       - name: Expo prebuild
         script: |
           cd artifacts/chipforge
