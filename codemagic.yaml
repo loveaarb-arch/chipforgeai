@@ -38,6 +38,10 @@ workflows:
         script: |
           cd artifacts/chipforge
           npx expo prebuild --platform ios --clean --no-install
+      - name: Install CocoaPods dependencies
+        script: |
+          cd artifacts/chipforge/ios
+          pod install
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS archive
