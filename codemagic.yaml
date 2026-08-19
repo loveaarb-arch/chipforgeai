@@ -133,6 +133,7 @@ workflows:
             -destination "generic/platform=iOS" \
             -archivePath "$CM_BUILD_DIR/chipforge.xcarchive" \
             REACT_NATIVE_PATH="$RN_PATH" \
+            IPHONEOS_DEPLOYMENT_TARGET="15.1" \
             clean archive
       - name: Export IPA
         script: |
