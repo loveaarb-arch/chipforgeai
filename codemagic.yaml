@@ -117,14 +117,18 @@ workflows:
           end
 
           project.save
-          puts "Set all CocoaPods targets to iOS #{deployment_target}"
+          clerk_target = project.targets.find { |target| target.name == "ClerkGoogleSignIn" }
+          abort "ClerkGoogleSignIn target was not found" if clerk_target.nil?
+
+          clerk_values = clerk_target.build_configurations.map do |configuration|
+            configuration.build_settings["IPHONEOS_DEPLOYMENT_TARGET"]
+          end.uniq
+          unless clerk_values == [deployment_target]
+            abort "ClerkGoogleSignIn targets have unexpected deployment settings: #{clerk_values.inspect}"
+          end
+
+          puts "Set and verified all CocoaPods targets to iOS #{deployment_target}"
           RUBY
-          CLERK_TARGET=$(xcodebuild -project Pods/Pods.xcodeproj -target ClerkGoogleSignIn -configuration Release -showBuildSettings | awk -F ' = ' '/IPHONEOS_DEPLOYMENT_TARGET/ { print $2; exit }')
-          if [ "$CLERK_TARGET" != "17.0" ]; then
-            echo "ERROR: ClerkGoogleSignIn deployment target is '$CLERK_TARGET', expected 17.0"
-            exit 1
-          fi
-          echo "Verified ClerkGoogleSignIn deployment target: $CLERK_TARGET"
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS archive
