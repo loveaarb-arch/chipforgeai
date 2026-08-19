@@ -100,14 +100,21 @@ workflows:
       - name: Build iOS archive
         script: |
           cd artifacts/chipforge/ios
-          # Auto-detect workspace name (expo prebuild names it from the app name, not slug)
-          WORKSPACE=$(ls *.xcworkspace 2>/dev/null | head -1)
+          # A workspace is a directory. `ls *.xcworkspace` enters that directory
+          # and returns contents.xcworkspacedata instead of the workspace path.
+          WORKSPACE_PATH=$(find . -maxdepth 1 -type d -name "*.xcworkspace" -print -quit)
+          WORKSPACE="${WORKSPACE_PATH#./}"
           if [ -z "$WORKSPACE" ]; then
             echo "ERROR: No .xcworkspace found in ios/ directory"
             ls -la
             exit 1
           fi
-          SCHEME="${WORKSPACE%.xcworkspace}"
+          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" -json | ruby -rjson -e 'puts JSON.parse(STDIN.read).dig("workspace", "schemes", 0)')
+          if [ -z "$SCHEME" ]; then
+            echo "ERROR: No build scheme found in $WORKSPACE"
+            xcodebuild -list -workspace "$WORKSPACE"
+            exit 1
+          fi
           echo "Using workspace: $WORKSPACE, scheme: $SCHEME"
           xcodebuild \
             -workspace "$WORKSPACE" \
@@ -117,7 +124,11 @@ workflows:
             clean archive
       - name: Export IPA
         script: |
-          WORKSPACE=$(ls artifacts/chipforge/ios/*.xcworkspace 2>/dev/null | head -1)
+          WORKSPACE=$(find artifacts/chipforge/ios -maxdepth 1 -type d -name "*.xcworkspace" -print -quit)
+          if [ -z "$WORKSPACE" ]; then
+            echo "ERROR: No .xcworkspace found before IPA export"
+            exit 1
+          fi
           xcode-project build-ipa \
             --workspace "$WORKSPACE" \
             --archive-path "$CM_BUILD_DIR/chipforge.xcarchive"
