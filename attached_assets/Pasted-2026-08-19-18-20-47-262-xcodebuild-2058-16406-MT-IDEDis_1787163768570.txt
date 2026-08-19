@@ -1,0 +1,24 @@
+2026-08-19 18:20:47.262 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionLogging _createLoggingBundleAtPath:]: Created bundle at path "/var/folders/w2/rrf5p87d1bbfyphxc7jdnyvh0000gn/T/AppAuth_2026-08-19_18-20-47.261.xcdistributionlogs".
+2026-08-19 18:20:47.303 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionMethodManager orderedDistributionMethodsForTask:archive:logAspect:]: Error = Error Domain=IDEDistributionMethodManagerErrorDomain Code=2 "Unknown Distribution Error" UserInfo={NSLocalizedDescription=Unknown Distribution Error}
+2026-08-19 18:20:47.309 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionMethodManager orderedDistributionMethodsForTask:archive:logAspect:]: Error = Error Domain=IDEDistributionMethodManagerErrorDomain Code=2 "Unknown Distribution Error" UserInfo={NSLocalizedDescription=Unknown Distribution Error}
+2026-08-19 18:20:47.316 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionMethodManager orderedDistributionMethodsForTask:archive:logAspect:]: Error = Error Domain=IDEDistributionMethodManagerErrorDomain Code=2 "Unknown Distribution Error" UserInfo={NSLocalizedDescription=Unknown Distribution Error}
+error: exportArchive exportOptionsPlist error for key "method" expected one {} but found app-store
+
+** EXPORT FAILED **
+
+
+
+Build failed :|
+Step 10 script `Export IPA` exited with status code 70
+2026-08-19 18:20:47.262 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionLogging _createLoggingBundleAtPath:]: Created bundle at path "/var/folders/w2/rrf5p87d1bbfyphxc7jdnyvh0000gn/T/AppAuth_2026-08-19_18-20-47.261.xcdistributionlogs".
+2026-08-19 18:20:47.303 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionMethodManager orderedDistributionMethodsForTask:archive:logAspect:]: Error = Error Domain=IDEDistributionMethodManagerErrorDomain Code=2 "Unknown Distribution Error" UserInfo={NSLocalizedDescription=Unknown Distribution Error}
+2026-08-19 18:20:47.309 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionMethodManager orderedDistributionMethodsForTask:archive:logAspect:]: Error = Error Domain=IDEDistributionMethodManagerErrorDomain Code=2 "Unknown Distribution Error" UserInfo={NSLocalizedDescription=Unknown Distribution Error}
+2026-08-19 18:20:47.316 xcodebuild[2058:16406] [MT] IDEDistribution: -[IDEDistributionMethodManager orderedDistributionMethodsForTask:archive:logAspect:]: Error = Error Domain=IDEDistributionMethodManagerErrorDomain Code=2 "Unknown Distribution Error" UserInfo={NSLocalizedDescription=Unknown Distribution Error}
+error: exportArchive exportOptionsPlist error for key "method" expected one {} but found app-store
+
+** EXPORT FAILED **
+
+
+
+Build failed :|
+Step 10 script `Export IPA` exited with status code 70
