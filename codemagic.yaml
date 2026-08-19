@@ -109,9 +109,11 @@ workflows:
             ls -la
             exit 1
           fi
-          SCHEME=$(xcodebuild -list -workspace "$WORKSPACE" -json | ruby -rjson -e 'puts JSON.parse(STDIN.read).dig("workspace", "schemes", 0)')
-          if [ -z "$SCHEME" ]; then
-            echo "ERROR: No build scheme found in $WORKSPACE"
+          # The workspace includes pod schemes such as AppAuth. The first listed
+          # scheme is not necessarily our app; archive the Expo app target itself.
+          SCHEME="ChipForgeAI"
+          if ! xcodebuild -list -workspace "$WORKSPACE" -json | ruby -rjson -e 'exit(JSON.parse(STDIN.read).dig("workspace", "schemes")&.include?("ChipForgeAI") ? 0 : 1)'; then
+            echo "ERROR: ChipForgeAI scheme was not found in $WORKSPACE"
             xcodebuild -list -workspace "$WORKSPACE"
             exit 1
           fi
