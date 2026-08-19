@@ -1,0 +1,51 @@
+
+Installing React-jsitooling (0.81.5)
+Installing React-jsitracing (0.81.5)
+Installing React-logger (0.81.5)
+Installing React-microtasksnativemodule (0.81.5)
+Installing React-oscompat (0.81.5)
+Installing React-perflogger (0.81.5)
+Installing React-performancetimeline (0.81.5)
+Installing React-rendererconsistency (0.81.5)
+Installing React-renderercss (0.81.5)
+Installing React-rendererdebug (0.81.5)
+Installing React-runtimeexecutor (0.81.5)
+Installing React-runtimescheduler (0.81.5)
+Installing React-timing (0.81.5)
+Installing React-utils (0.81.5)
+Installing ReactAppDependencyProvider (0.81.5)
+Installing ReactCodegen (0.81.5)
+Installing ReactCommon (0.81.5)
+Installing ReactNativeDependencies (0.81.5)
+Installing RecaptchaInterop (101.0.0)
+Installing RevenueCat (5.83.1)
+Installing SDWebImage (5.21.7)
+Installing SDWebImageAVIFCoder (0.11.1)
+Installing SDWebImageSVGCoder (1.7.0)
+Installing SDWebImageWebPCoder (0.14.6)
+Installing Yoga (0.0.0)
+Installing hermes-engine (0.81.5)
+Installing libavif (1.0.0)
+Installing libdav1d (1.2.0)
+Installing libwebp (1.6.0)
+Installing react-native-keyboard-controller (1.18.5)
+Installing react-native-safe-area-context (5.6.2)
+Generating Pods project
+Integrating client project
+
+[!] Please close any current Xcode sessions and use `ChipForgeAI.xcworkspace` for this project from now on.
+[Expo] Installing the build script for target ChipForgeAI
+Pod installation complete! There are 103 dependencies from the Podfile and 120 total pods installed.
+[Expo] Adding '[Expo Autolinking] Run Codegen with autolinking' build phase to ReactCodegen
+
+[!] React-Core-prebuilt has added 1 script phase. Please inspect before executing a build. See `https://guides.cocoapods.org/syntax/podspec.html#script_phases` for more information.
+
+[!] ReactNativeDependencies has added 1 script phase. Please inspect before executing a build. See `https://guides.cocoapods.org/syntax/podspec.html#script_phases` for more information.
+
+[!] hermes-engine has added 1 script phase. Please inspect before executing a build. See `https://guides.cocoapods.org/syntax/podspec.html#script_phases` for more information.
+Set all CocoaPods targets to iOS 17.0
+ERROR: ClerkGoogleSignIn deployment target is 'IPHONEOS_DEPLOYMENT_TARGET', expected 17.0
+
+
+Build failed :|
+Step 7 script `Install CocoaPods dependencies` exited with status code 1
