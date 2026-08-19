@@ -95,6 +95,36 @@ workflows:
         script: |
           cd artifacts/chipforge/ios
           pod install
+          # Clerk's native SDK requires iOS 17, while its Google Sign-In pod
+          # declares iOS 13.4. CocoaPods preserves that lower target on the
+          # individual pod target, which makes Swift reject ExpoModulesCore.
+          # Set one target across every generated pod after installation.
+          ruby <<'RUBY'
+          require "xcodeproj"
+
+          deployment_target = "17.0"
+          project_path = "Pods/Pods.xcodeproj"
+          project = Xcodeproj::Project.open(project_path)
+
+          project.targets.each do |target|
+            target.build_configurations.each do |configuration|
+              configuration.build_settings["IPHONEOS_DEPLOYMENT_TARGET"] = deployment_target
+            end
+          end
+
+          project.build_configurations.each do |configuration|
+            configuration.build_settings["IPHONEOS_DEPLOYMENT_TARGET"] = deployment_target
+          end
+
+          project.save
+          puts "Set all CocoaPods targets to iOS #{deployment_target}"
+          RUBY
+          CLERK_TARGET=$(xcodebuild -project Pods/Pods.xcodeproj -target ClerkGoogleSignIn -configuration Release -showBuildSettings | awk -F ' = ' '/IPHONEOS_DEPLOYMENT_TARGET/ { print $2; exit }')
+          if [ "$CLERK_TARGET" != "17.0" ]; then
+            echo "ERROR: ClerkGoogleSignIn deployment target is '$CLERK_TARGET', expected 17.0"
+            exit 1
+          fi
+          echo "Verified ClerkGoogleSignIn deployment target: $CLERK_TARGET"
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS archive
@@ -133,7 +163,7 @@ workflows:
             -destination "generic/platform=iOS" \
             -archivePath "$CM_BUILD_DIR/chipforge.xcarchive" \
             REACT_NATIVE_PATH="$RN_PATH" \
-            IPHONEOS_DEPLOYMENT_TARGET="15.1" \
+            IPHONEOS_DEPLOYMENT_TARGET="17.0" \
             clean archive
       - name: Export IPA
         script: |
@@ -146,7 +176,7 @@ workflows:
           <plist version="1.0">
           <dict>
             <key>method</key>
-            <string>app-store</string>
+            <string>app-store-connect</string>
             <key>signingStyle</key>
             <string>manual</string>
             <key>provisioningProfiles</key>

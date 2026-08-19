@@ -1,3 +1,4 @@
 - [Clerk sign-up blocks Playwright testing](clerk-signup-blocks-playwright-testing.md) — CAPTCHA stops automated e2e tests at sign-up; seed/sign-in with an existing user instead.
+- [Codemagic iOS target consistency](codemagic-ios-target-consistency.md) — Clerk’s pod targets must match its iOS 17 SDK requirement; app-level target alone is not enough.
 - [pnpm workspace lib stale typecheck](pnpm-workspace-lib-stale-typecheck.md) — rebuild `lib/*` via `tsc --build` before trusting a consumer's "missing export" typecheck error.
 - [RevenueCat setup quirks](revenuecat-setup.md) — proxy path needs /v2, SDK passes Request object not plain URL, test_store app can't be created manually, token is project-scoped.
