@@ -124,14 +124,30 @@ workflows:
             clean archive
       - name: Export IPA
         script: |
-          WORKSPACE=$(find artifacts/chipforge/ios -maxdepth 1 -type d -name "*.xcworkspace" -print -quit)
-          if [ -z "$WORKSPACE" ]; then
-            echo "ERROR: No .xcworkspace found before IPA export"
-            exit 1
-          fi
-          xcode-project build-ipa \
-            --workspace "$WORKSPACE" \
-            --archive-path "$CM_BUILD_DIR/chipforge.xcarchive"
+          # xcode-project build-ipa does not accept --archive-path.
+          # Export the archive produced above with Xcode's native exporter.
+          EXPORT_OPTIONS="$CM_BUILD_DIR/export_options.plist"
+          cat > "$EXPORT_OPTIONS" <<'PLIST'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.chipforgeai.app</key>
+              <string>ChipForgeAI AppStore</string>
+            </dict>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/chipforge.xcarchive" \
+            -exportOptionsPlist "$EXPORT_OPTIONS" \
+            -exportPath "$CM_BUILD_DIR/ipa"
     artifacts:
       - $CM_BUILD_DIR/**/*.ipa
       - $CM_BUILD_DIR/**/*.xcarchive
