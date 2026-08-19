@@ -40,8 +40,9 @@ workflows:
           npx expo prebuild --platform ios --clean --no-install
       - name: Install CocoaPods dependencies
         script: |
+          sudo gem install cocoapods -v 1.15.2 --no-document
           cd artifacts/chipforge/ios
-          pod install
+          pod _1.15.2_ install
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS archive
