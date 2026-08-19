@@ -117,12 +117,22 @@ workflows:
             xcodebuild -list -workspace "$WORKSPACE"
             exit 1
           fi
+          RN_SCRIPT=$(find ../../../node_modules/.pnpm -path "*/react-native/scripts/xcode/with-environment.sh" -print -quit)
+          if [ -z "$RN_SCRIPT" ]; then
+            echo "ERROR: React Native with-environment.sh was not found"
+            exit 1
+          fi
+          RN_PATH="${RN_SCRIPT%/scripts/xcode/with-environment.sh}"
+          RN_PATH=$(cd "$RN_PATH" && pwd)
           echo "Using workspace: $WORKSPACE, scheme: $SCHEME"
+          echo "Using React Native path: $RN_PATH"
           xcodebuild \
             -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
             -configuration Release \
+            -destination "generic/platform=iOS" \
             -archivePath "$CM_BUILD_DIR/chipforge.xcarchive" \
+            REACT_NATIVE_PATH="$RN_PATH" \
             clean archive
       - name: Export IPA
         script: |
