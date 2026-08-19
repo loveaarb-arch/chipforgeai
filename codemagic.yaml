@@ -38,11 +38,24 @@ workflows:
         script: |
           cd artifacts/chipforge
           npx expo prebuild --platform ios --clean --no-install
+      - name: Patch react-native SPM nil-target bug
+        script: |
+          # CocoaPods 1.16.x crashes when Clerk's Swift package target can't be found.
+          # Guard against nil target in spm.rb (react-native 0.81 known issue).
+          SPM_RB=$(find node_modules -name "spm.rb" -path "*/react-native/scripts/cocoapods/spm.rb" 2>/dev/null | head -1)
+          if [ -n "$SPM_RB" ]; then
+            echo "Patching $SPM_RB"
+            # Add 'return if target.nil?' after the line that finds the target
+            sed -i '' '/target = installer\.pods_project\.targets\.find/a\
+            return if target.nil?' "$SPM_RB"
+            echo "Patch applied."
+          else
+            echo "spm.rb not found — skipping patch"
+          fi
       - name: Install CocoaPods dependencies
         script: |
-          sudo gem install cocoapods -v 1.15.2 --no-document
           cd artifacts/chipforge/ios
-          pod _1.15.2_ install
+          pod install
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS archive
