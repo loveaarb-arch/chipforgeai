@@ -44,7 +44,12 @@
       ],
       "expo-font",
       "expo-web-browser",
-      "@clerk/expo"
+      [
+        "@clerk/expo",
+        {
+          "appleSignIn": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
