@@ -40,8 +40,9 @@ workflows:
           npx expo prebuild --platform ios --clean --no-install
       - name: Install CocoaPods dependencies
         script: |
+          set -euo pipefail
           cd artifacts/chipforge
-          pnpm exec expo-modules-autolinking resolve --platform apple --json > /tmp/expo-apple-modules.json
+          ./node_modules/.bin/expo-modules-autolinking resolve --platform apple --json > /tmp/expo-apple-modules.json
           node <<'NODE'
           const fs = require("fs");
           const modules = JSON.parse(fs.readFileSync("/tmp/expo-apple-modules.json", "utf8")).modules;
@@ -54,7 +55,7 @@ workflows:
           }
           console.log("Verified Expo autolinking for ClerkExpo and ClerkGoogleSignIn");
           NODE
-          cd artifacts/chipforge/ios
+          cd ios
           pod install
           ruby <<'RUBY'
           require "xcodeproj"
