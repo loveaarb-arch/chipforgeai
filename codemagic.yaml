@@ -134,6 +134,8 @@ workflows:
       - name: Build iOS archive
         script: |
           cd artifacts/chipforge/ios
+          # Expo's native bundle script requires this during an Xcode archive.
+          export NODE_ENV=production
           # A workspace is a directory. `ls *.xcworkspace` enters that directory
           # and returns contents.xcworkspacedata instead of the workspace path.
           WORKSPACE_PATH=$(find . -maxdepth 1 -type d -name "*.xcworkspace" -print -quit)
