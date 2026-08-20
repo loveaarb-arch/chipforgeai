@@ -43,7 +43,8 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@clerk/expo"
     ],
     "experiments": {
       "typedRoutes": true,

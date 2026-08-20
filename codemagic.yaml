@@ -38,73 +38,34 @@ workflows:
         script: |
           cd artifacts/chipforge
           npx expo prebuild --platform ios --clean --no-install
-      - name: Patch react-native SPM nil-target bug
-        script: |
-          # CocoaPods 1.16.x crashes: "undefined method 'package_product_dependencies' for nil"
-          # when Clerk's Swift package target lookup returns nil in spm.rb.
-          # Strategy: patch spm.rb via shell find + Ruby, then also patch Podfile post_install.
-
-          # --- 1. Patch spm.rb ---
-          SPM_RB=$(find node_modules/.pnpm -name "spm.rb" \
-            -path "*/react-native/scripts/cocoapods/spm.rb" 2>/dev/null | head -1)
-
-          if [ -z "$SPM_RB" ]; then
-            echo "spm.rb not found in node_modules/.pnpm"
-          else
-            echo "Found spm.rb: $SPM_RB"
-            grep -n "add_spm_to_target\|package_product_dependencies\|target = installer" "$SPM_RB"
-            ruby << RUBY_SCRIPT
-          content = File.read("$SPM_RB")
-          content.gsub!(
-            'target = installer.pods_project.targets.find { |t| t.name == target_name }',
-            "target = installer.pods_project.targets.find { |t| t.name == target_name }\n    return if target.nil?"
-          )
-          content.gsub!(
-            'dep = target.package_product_dependencies.new',
-            "next if target.nil?\n      dep = target.package_product_dependencies.new"
-          )
-          File.write("$SPM_RB", content)
-          puts "spm.rb patched"
-          RUBY_SCRIPT
-          fi
-
-          # --- 2. Patch the generated Podfile's post_install hook as a safety net ---
-          PODFILE="artifacts/chipforge/ios/Podfile"
-          if [ -f "$PODFILE" ]; then
-            echo "Patching Podfile post_install..."
-            ruby << RUBY_SCRIPT
-          path = "$PODFILE"
-          content = File.read(path)
-          # Wrap react_native_post_install in begin/rescue to swallow SPM nil errors
-          patched = content.gsub(/([ \t]*)(react_native_post_install\((?:[^()]*|\([^()]*\))*\))/m) do
-            indent = $1
-            call   = $2
-            "#{indent}begin\n#{indent}  #{call}\n#{indent}rescue => _spm_err\n#{indent}  puts \"[Warning] SPM post-install skipped: \#{_spm_err.message}\"\n#{indent}end"
-          end
-          if patched != content
-            File.write(path, patched)
-            puts "Podfile post_install wrapped in rescue"
-          else
-            puts "No react_native_post_install found to wrap"
-          end
-          RUBY_SCRIPT
-          else
-            echo "Podfile not found at $PODFILE"
-          fi
       - name: Install CocoaPods dependencies
         script: |
+          cd artifacts/chipforge
+          pnpm exec expo-modules-autolinking resolve --platform apple --json > /tmp/expo-apple-modules.json
+          node <<'NODE'
+          const fs = require("fs");
+          const modules = JSON.parse(fs.readFileSync("/tmp/expo-apple-modules.json", "utf8")).modules;
+          const clerk = modules.find((module) => module.packageName === "@clerk/expo");
+          const podNames = new Set(clerk?.pods?.map((pod) => pod.podName));
+          for (const podName of ["ClerkExpo", "ClerkGoogleSignIn"]) {
+            if (!podNames.has(podName)) {
+              throw new Error(`Expo autolinking did not resolve ${podName}`);
+            }
+          }
+          console.log("Verified Expo autolinking for ClerkExpo and ClerkGoogleSignIn");
+          NODE
           cd artifacts/chipforge/ios
           pod install
-          # Clerk's native SDK requires iOS 17, while its Google Sign-In pod
-          # declares iOS 13.4. CocoaPods preserves that lower target on the
-          # individual pod target, which makes Swift reject ExpoModulesCore.
-          # Set one target across every generated pod after installation.
           ruby <<'RUBY'
           require "xcodeproj"
 
           deployment_target = "17.0"
           project_path = "Pods/Pods.xcodeproj"
           project = Xcodeproj::Project.open(project_path)
+
+          %w[ClerkExpo ClerkGoogleSignIn].each do |pod_name|
+            abort "#{pod_name} was not installed by CocoaPods" unless project.targets.any? { |target| target.name == pod_name }
+          end
 
           project.targets.each do |target|
             target.build_configurations.each do |configuration|
@@ -117,17 +78,17 @@ workflows:
           end
 
           project.save
-          clerk_target = project.targets.find { |target| target.name == "ClerkGoogleSignIn" }
-          abort "ClerkGoogleSignIn target was not found" if clerk_target.nil?
-
-          clerk_values = clerk_target.build_configurations.map do |configuration|
-            configuration.build_settings["IPHONEOS_DEPLOYMENT_TARGET"]
-          end.uniq
-          unless clerk_values == [deployment_target]
-            abort "ClerkGoogleSignIn targets have unexpected deployment settings: #{clerk_values.inspect}"
+          %w[ClerkExpo ClerkGoogleSignIn].each do |pod_name|
+            target = project.targets.find { |candidate| candidate.name == pod_name }
+            target_values = target.build_configurations.map do |configuration|
+              configuration.build_settings["IPHONEOS_DEPLOYMENT_TARGET"]
+            end.uniq
+            unless target_values == [deployment_target]
+              abort "#{pod_name} targets have unexpected deployment settings: #{target_values.inspect}"
+            end
           end
 
-          puts "Set and verified all CocoaPods targets to iOS #{deployment_target}"
+          puts "Verified ClerkExpo and ClerkGoogleSignIn at iOS #{deployment_target}"
           RUBY
       - name: Set up code signing
         script: xcode-project use-profiles
