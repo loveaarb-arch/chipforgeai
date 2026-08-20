@@ -1,0 +1,51 @@
+
+<anonymous_script>:1
+Scope: all 11 workspace projects
+^
+
+SyntaxError: Unexpected token 'S', "Scope: all"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at [stdin]:2:22
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [stdin]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+
+Node.js v24.15.0
+/var/folders/w2/rrf5p87d1bbfyphxc7jdnyvh0000gn/T/build_script_6_1_iv1gxhi6: line 17: cd: artifacts/chipforge/ios: No such file or directory
+<anonymous_script>:1
+Scope: all 11 workspace projects
+^
+
+SyntaxError: Unexpected token 'S', "Scope: all"... is not valid JSON
+    at JSON.parse (<anonymous>)
+    at [stdin]:2:22
+    at runScriptInThisContext (node:internal/vm:219:10)
+    at node:internal/process/execution:451:12
+    at [stdin]-wrapper:6:24
+    at runScriptInContext (node:internal/process/execution:449:60)
+    at evalFunction (node:internal/process/execution:283:30)
+    at evalTypeScript (node:internal/process/execution:295:3)
+    at node:internal/main/eval_stdin:51:5
+    at ReadStream.<anonymous> (node:internal/process/execution:205:5)
+
+Node.js v24.15.0
+/var/folders/w2/rrf5p87d1bbfyphxc7jdnyvh0000gn/T/build_script_6_1_iv1gxhi6: line 17: cd: artifacts/chipforge/ios: No such file or directory
+[!] No `Podfile' found in the project directory.
+/Users/builder/.rbenv/versions/4.0.2/lib/ruby/gems/4.0.0/gems/xcodeproj-1.27.0/lib/xcodeproj/project.rb:110:in 'Xcodeproj::Project.open': [Xcodeproj] Unable to open `/Users/builder/clone/artifacts/chipforge/Pods/Pods.xcodeproj` because it doesn't exist. (RuntimeError)
+	from -:5:in '<main>'
+
+
+Build failed :|
+Step 6 script `Install CocoaPods dependencies` exited with status code 1
+[!] No `Podfile' found in the project directory.
+/Users/builder/.rbenv/versions/4.0.2/lib/ruby/gems/4.0.0/gems/xcodeproj-1.27.0/lib/xcodeproj/project.rb:110:in 'Xcodeproj::Project.open': [Xcodeproj] Unable to open `/Users/builder/clone/artifacts/chipforge/Pods/Pods.xcodeproj` because it doesn't exist. (RuntimeError)
+	from -:5:in '<main>'
+
+
+Build failed :|
+Step 6 script `Install CocoaPods dependencies` exited with status code 1
