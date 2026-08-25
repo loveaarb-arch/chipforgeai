@@ -14,30 +14,23 @@ workflows:
         script: npm install -g pnpm --force
       - name: Install dependencies
         script: |
-          # Remove linux-only overrides that break Mac builds
-          sed -i '' '/darwin/d' pnpm-workspace.yaml
-          sed -i '' '/win32/d' pnpm-workspace.yaml
-          sed -i '' '/linux-arm/d' pnpm-workspace.yaml
-          sed -i '' '/linux-ia32/d' pnpm-workspace.yaml
-          sed -i '' '/linux-loong/d' pnpm-workspace.yaml
-          sed -i '' '/linux-mips/d' pnpm-workspace.yaml
-          sed -i '' '/linux-ppc/d' pnpm-workspace.yaml
-          sed -i '' '/linux-riscv/d' pnpm-workspace.yaml
-          sed -i '' '/linux-s390/d' pnpm-workspace.yaml
-          sed -i '' '/linux-x64-musl/d' pnpm-workspace.yaml
-          sed -i '' '/freebsd/d' pnpm-workspace.yaml
-          sed -i '' '/sunos/d' pnpm-workspace.yaml
-          sed -i '' '/netbsd/d' pnpm-workspace.yaml
-          sed -i '' '/openharmony/d' pnpm-workspace.yaml
-          sed -i '' '/openbsd/d' pnpm-workspace.yaml
-          sed -i '' '/aix/d' pnpm-workspace.yaml
-          sed -i '' '/android/d' pnpm-workspace.yaml
-          rm -f pnpm-lock.yaml
-          pnpm install --no-frozen-lockfile --ignore-scripts
+          # Use the committed dependency versions that pass the release export.
+          pnpm install --frozen-lockfile --ignore-scripts
+      - name: Validate release environment
+        script: |
+          set -euo pipefail
+          : "${EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:?Set this in Codemagic before creating a release build}"
+          : "${EXPO_PUBLIC_REVENUECAT_IOS_API_KEY:?Set this in Codemagic before creating a release build}"
+          : "${EXPO_PUBLIC_DOMAIN:?Set the public API domain in Codemagic before creating a release build}"
+          echo "Required release environment variables are configured"
       - name: Expo prebuild
         script: |
           cd artifacts/chipforge
           npx expo prebuild --platform ios --clean --no-install
+      - name: Verify release JavaScript bundle
+        script: |
+          cd artifacts/chipforge
+          NODE_ENV=production npx expo export --platform ios --output-dir "$CM_BUILD_DIR/release-js"
       - name: Install CocoaPods dependencies
         script: |
           set -euo pipefail
