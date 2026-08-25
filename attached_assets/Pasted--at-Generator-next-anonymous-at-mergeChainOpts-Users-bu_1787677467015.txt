@@ -1,0 +1,50 @@
+    at Generator.next (<anonymous>)
+    at mergeChainOpts (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/config-chain.js:350:34)
+    at mergeChainOpts.next (<anonymous>)
+    at chainWalker (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/config-chain.js:316:14)
+    at chainWalker.next (<anonymous>)
+    at loadFileChain (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/config-chain.js:191:24)
+    at loadFileChain.next (<anonymous>)
+    at mergeExtendsChain (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/config-chain.js:328:28)
+    at mergeExtendsChain.next (<anonymous>)
+    at chainWalker (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/config-chain.js:312:20)
+    at chainWalker.next (<anonymous>)
+    at buildRootChain (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/config-chain.js:56:36)
+    at buildRootChain.next (<anonymous>)
+    at loadPrivatePartialConfig (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/partial.js:72:62)
+    at loadPrivatePartialConfig.next (<anonymous>)
+    at loadFullConfig (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/config/full.js:36:46)
+    at loadFullConfig.next (<anonymous>)
+    at transform (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/transform.js:20:44)
+    at transform.next (<anonymous>)
+    at evaluateSync (/Users/builder/clone/node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:251:28)
+    at sync (/Users/builder/clone/node_modules/.pnpm/gensync@1.0.0-beta.2/node_modules/gensync/index.js:89:14)
+    at stopHiding - secret - don't use this - v1 (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/errors/rewrite-stack-trace.js:47:12)
+    at Object.transformSync (/Users/builder/clone/node_modules/.pnpm/@babel+core@7.29.7_supports-color@8.1.1/node_modules/@babel/core/lib/transform.js:40:76)
+    at parseWithBabel (/Users/builder/clone/node_modules/.pnpm/@expo+metro-config@54.0.17_expo@54.0.37_supports-color@8.1.1/node_modules/@expo/metro-config/build/transformSync.js:75:18)
+    at transformSync (/Users/builder/clone/node_modules/.pnpm/@expo+metro-config@54.0.17_expo@54.0.37_supports-color@8.1.1/node_modules/@expo/metro-config/build/transformSync.js:64:12)
+    at Object.transform (/Users/builder/clone/node_modules/.pnpm/@expo+metro-config@54.0.17_expo@54.0.37_supports-color@8.1.1/node_modules/@expo/metro-config/build/babel-transformer.js:127:58)
+    at transformJSWithBabel (/Users/builder/clone/node_modules/.pnpm/@expo+metro-config@54.0.17_expo@54.0.37_supports-color@8.1.1/node_modules/@expo/metro-config/build/transform-worker/metro-transform-worker.js:468:47)
+
+GenerateDSYMFile /Users/builder/Library/Developer/Xcode/DerivedData/ChipForgeAI-apunruructadhrblxtroqypfvpli/Build/Intermediates.noindex/ArchiveIntermediates/ChipForgeAI/BuildProductsPath/Release-iphoneos/ChipForgeAI.app.dSYM /Users/builder/Library/Developer/Xcode/DerivedData/ChipForgeAI-apunruructadhrblxtroqypfvpli/Build/Intermediates.noindex/ArchiveIntermediates/ChipForgeAI/InstallationBuildProductsLocation/Applications/ChipForgeAI.app/ChipForgeAI (in target 'ChipForgeAI' from project 'ChipForgeAI')
+    cd /Users/builder/clone/artifacts/chipforge/ios
+    /Applications/Xcode-26.4.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/dsymutil /Users/builder/Library/Developer/Xcode/DerivedData/ChipForgeAI-apunruructadhrblxtroqypfvpli/Build/Intermediates.noindex/ArchiveIntermediates/ChipForgeAI/InstallationBuildProductsLocation/Applications/ChipForgeAI.app/ChipForgeAI -o /Users/builder/Library/Developer/Xcode/DerivedData/ChipForgeAI-apunruructadhrblxtroqypfvpli/Build/Intermediates.noindex/ArchiveIntermediates/ChipForgeAI/BuildProductsPath/Release-iphoneos/ChipForgeAI.app.dSYM
+
+warning: Run script build phase '[CP-User] [Hermes] Replace Hermes for the right configuration, if needed' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'hermes-engine' from project 'Pods')
+note: Run script build phase '[CP-User] [RNDeps] Replace React Native Dependencies for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ReactNativeDependencies' from project 'Pods')
+note: Run script build phase '[CP-User] [RNDeps] Replace React Native Core for the right configuration, if needed' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'React-Core-prebuilt' from project 'Pods')
+note: Run script build phase '[CP-User] [RN]Check FBReactNativeSpec' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'React-RCTFBReactNativeSpec' from project 'Pods')
+note: Run script build phase '[Expo] Configure project' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ChipForgeAI' from project 'ChipForgeAI')
+note: Run script build phase 'Bundle React Native code and images' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'ChipForgeAI' from project 'ChipForgeAI')
+note: Run script build phase '[CP-User] Generate app.config for prebuilt Constants.manifest' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'EXConstants' from project 'Pods')
+** ARCHIVE FAILED **
+
+
+The following build commands failed:
+	PhaseScriptExecution Bundle\ React\ Native\ code\ and\ images /Users/builder/Library/Developer/Xcode/DerivedData/ChipForgeAI-apunruructadhrblxtroqypfvpli/Build/Intermediates.noindex/ArchiveIntermediates/ChipForgeAI/IntermediateBuildFilesPath/ChipForgeAI.build/Release-iphoneos/ChipForgeAI.build/Script-00DD1BFF1BD5951E006B06BC.sh (in target 'ChipForgeAI' from project 'ChipForgeAI')
+	Archiving workspace ChipForgeAI with scheme ChipForgeAI
+(2 failures)
+
+
+Build failed :|
+Step 8 script `Build iOS archive` exited with status code 65
