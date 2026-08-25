@@ -19,9 +19,20 @@ workflows:
       - name: Validate release environment
         script: |
           set -euo pipefail
-          : "${EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY:?Set this in Codemagic before creating a release build}"
-          : "${EXPO_PUBLIC_REVENUECAT_IOS_API_KEY:?Set this in Codemagic before creating a release build}"
-          : "${EXPO_PUBLIC_DOMAIN:?Set the public API domain in Codemagic before creating a release build}"
+          missing=""
+          for variable in \
+            EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY \
+            EXPO_PUBLIC_REVENUECAT_IOS_API_KEY \
+            EXPO_PUBLIC_DOMAIN; do
+            if [ -z "${!variable:-}" ]; then
+              missing="${missing} ${variable}"
+            fi
+          done
+          if [ -n "$missing" ]; then
+            echo "Missing required Codemagic release environment variables:$missing"
+            echo "Add them in Codemagic Environment variables, then start a new build."
+            exit 1
+          fi
           echo "Required release environment variables are configured"
       - name: Expo prebuild
         script: |
