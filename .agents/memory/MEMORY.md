@@ -1,6 +1,7 @@
 - [Clerk sign-up blocks Playwright testing](clerk-signup-blocks-playwright-testing.md) — CAPTCHA stops automated e2e tests at sign-up; seed/sign-in with an existing user instead.
 - [Codemagic iOS target consistency](codemagic-ios-target-consistency.md) — Clerk’s pod targets must match its iOS 17 SDK requirement; app-level target alone is not enough.
 - [Codemagic variable groups](codemagic-variable-groups.md) — UI-added env vars need their group name imported via `environment: groups:` in codemagic.yaml, or the build never sees them.
+- [Key-like env vars always masked](key-like-env-vars-always-masked.md) — agent can never read back a KEY/TOKEN-named var's plaintext, even non-secret; only the user can copy it elsewhere.
 - [Codemagic dependency determinism](codemagic-dependency-determinism.md) — never delete the pnpm lockfile in CI; unpinned Expo patch updates can break release bundling.
 - [Codemagic shell command safety](codemagic-shell-command-safety.md) — pnpm workspace status can corrupt machine-readable output; use app-local binaries and fail-fast scripts.
 - [pnpm workspace lib stale typecheck](pnpm-workspace-lib-stale-typecheck.md) — rebuild `lib/*` via `tsc --build` before trusting a consumer's "missing export" typecheck error.
