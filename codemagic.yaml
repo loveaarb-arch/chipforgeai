@@ -36,6 +36,22 @@ workflows:
             exit 1
           fi
           echo "Required release environment variables are configured"
+      - name: Set iOS build number
+        script: |
+          set -euo pipefail
+          : "${PROJECT_BUILD_NUMBER:?Codemagic PROJECT_BUILD_NUMBER is required for App Store uploads}"
+          if ! [[ "$PROJECT_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: PROJECT_BUILD_NUMBER must be numeric, got: $PROJECT_BUILD_NUMBER"
+            exit 1
+          fi
+          node <<'NODE'
+          const fs = require("fs");
+          const path = "artifacts/chipforge/app.json";
+          const config = JSON.parse(fs.readFileSync(path, "utf8"));
+          config.expo.ios.buildNumber = String(process.env.PROJECT_BUILD_NUMBER);
+          fs.writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`);
+          console.log(`Using iOS build number ${config.expo.ios.buildNumber}`);
+          NODE
       - name: Expo prebuild
         script: |
           cd artifacts/chipforge
