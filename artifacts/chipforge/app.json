@@ -4,12 +4,12 @@
     "slug": "chipforge",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon-filled.png",
+    "icon": "./assets/images/icon-clean.png",
     "scheme": "chipforge",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon-filled.png",
+      "image": "./assets/images/icon-clean.png",
       "resizeMode": "contain",
       "backgroundColor": "#0d1117"
     },
@@ -33,7 +33,7 @@
       "package": "com.chipforgeai.app"
     },
     "web": {
-      "favicon": "./assets/images/icon-filled.png"
+      "favicon": "./assets/images/icon-clean.png"
     },
     "plugins": [
       [
