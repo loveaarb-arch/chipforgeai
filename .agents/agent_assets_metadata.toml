@@ -6,6 +6,7 @@ id = "xi83fTwQSuUXx9SdDkUZc"
 uri = "file://attached_assets/chipforge-qr.png"
 type = "image"
 title = "ChipForge dev server QR code"
+logical_id = "cbbd9752-934e-4568-a927-6a12b9e6c7e2"
 
 [[outputs]]
 id = "7UzzjALZTyEyPVrv9MYGx"
@@ -13,6 +14,7 @@ uri = "file://attached_assets/logo_large.png"
 type = "image"
 title = "Logo (large)"
 description = "Resized to 512×512"
+logical_id = "0c9d3353-f81b-490c-a286-c58bfd34185a"
 
 [[outputs]]
 id = "ED3Xj3YUQ5kYAcLiHasnK"
@@ -20,6 +22,7 @@ uri = "file://attached_assets/screenshot_appstore.png"
 type = "image"
 title = "App Store Screenshot (1284×2778)"
 description = "Ready to upload to App Store Connect"
+logical_id = "74898c08-f0fb-4c88-a20c-7ea03e641b3a"
 
 [[outputs]]
 id = "_LT3hOlrH97okCiSEutCn"
@@ -27,6 +30,7 @@ uri = "file://attached_assets/screenshot_appstore2.png"
 type = "image"
 title = "App Store Screenshot (1284×2778, no crop)"
 description = "Ready to upload to App Store Connect"
+logical_id = "24227f3f-c6c6-4e3f-bf7f-7439593d2174"
 
 [[outputs]]
 id = "fcis5NPtplgxwUdYCU8vX"
@@ -34,6 +38,7 @@ uri = "file://attached_assets/screenshot_appstore3.png"
 type = "image"
 title = "Screenshot 2 (fixed)"
 description = "1284×2778px, no crop"
+logical_id = "dc888e3b-8062-4974-b043-4da337750996"
 
 [[outputs]]
 id = "MtRV-HyfjowTF2Snldt7T"
@@ -41,6 +46,7 @@ uri = "file://attached_assets/screenshot_appstore4.png"
 type = "image"
 title = "Screenshot 3 – Diagram"
 description = "1284×2778px, no crop"
+logical_id = "41fe2acf-2364-4436-b520-0ccbeb093ec1"
 
 [[outputs]]
 id = "m3TxlN6P7QZPHaALmzRXN"
@@ -48,6 +54,7 @@ uri = "file://attached_assets/appstore_screenshots/chipforge_6.9in_1320x2868.png
 type = "image"
 title = "6.9\" screenshot — 1320×2868 (iPhone 16 Pro Max)"
 description = "Required for App Store Connect"
+logical_id = "84ad73eb-89f5-42bb-b019-7dec78e6e3fa"
 
 [[outputs]]
 id = "V0YdD46KjcDrVVK6mAW7y"
@@ -55,6 +62,7 @@ uri = "file://attached_assets/appstore_screenshots/chipforge_6.7in_1290x2796.png
 type = "image"
 title = "6.7\" screenshot — 1290×2796 (iPhone 14/15 Pro Max)"
 description = "Required for App Store Connect"
+logical_id = "fa08e658-4360-4cce-b98f-14ee337ef9a3"
 
 [[outputs]]
 id = "bHx9irL95hIAsY5tYs6pv"
@@ -62,6 +70,7 @@ uri = "file://attached_assets/appstore_screenshots/chipforge_6.5in_1242x2688.png
 type = "image"
 title = "6.5\" screenshot — 1242×2688 (iPhone 11/12/13 Pro Max)"
 description = "Required for App Store Connect"
+logical_id = "3e552341-c642-4567-8753-9ef5fc0adc22"
 
 [[outputs]]
 id = "8eT5b-knmURFhTS9cwirz"
@@ -69,6 +78,7 @@ uri = "file://attached_assets/appstore_screenshots/chipforge_5.5in_1242x2208.png
 type = "image"
 title = "5.5\" screenshot — 1242×2208 (iPhone 8 Plus)"
 description = "Required for App Store Connect"
+logical_id = "9361eeb0-5adf-4772-9398-22757059eff4"
 
 [[outputs]]
 id = "McLxgQLmqneB-_VkN9WrP"
@@ -76,6 +86,7 @@ uri = "file://attached_assets/chipforge_screenshot_1242x2688.png"
 type = "image"
 title = "App Store screenshot — 1242×2688px"
 description = "Ready to upload to App Store Connect"
+logical_id = "25a23c07-2462-4f4d-8b71-ebbb037c03f2"
 
 [[outputs]]
 id = "UiKSHyXH6y2LXR9Cj2bCP"
@@ -83,6 +94,7 @@ uri = "file://attached_assets/chipforge_screenshot2_1242x2688.png"
 type = "image"
 title = "App Store screenshot — 1242×2688px"
 description = "Ready to upload to App Store Connect"
+logical_id = "2ef1bb25-8be1-402e-bbd0-d2d655db92b7"
 
 [[outputs]]
 id = "DKnE7wlb8lLjBlaYqWQtw"
@@ -90,3 +102,18 @@ uri = "file://attached_assets/chipforge_screenshot3_1242x2688.png"
 type = "image"
 title = "App Store screenshot — 1242×2688px"
 description = "Full image preserved, scaled to App Store size"
+logical_id = "fade1470-c9f0-444b-a05e-488d051d6334"
+
+[[outputs]]
+id = "QPDlp4ompTj9MuKDsqMIU"
+uri = "file://artifacts/chipforge/assets/images/icon-filled.png"
+type = "image"
+title = "Updated Chip Forge App Icon"
+description = "The blue artwork now fills the entire 1024×1024 icon with the tan and white outer space removed."
+logical_id = "10602e3c-6d30-40a7-9141-7fa4bfbc2bcf"
+content_hash = "sha256:94672669b1100e141ec60c6f7ad58c4920006d4b1138c84f5ab225a2484fe44e"
+size = 517446
+mtime_ms = 1788636198129
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/10602e3c-6d30-40a7-9141-7fa4bfbc2bcf/a1feee3f-615b-4b46-9b71-e6d262f06143"
+storage_version_token = "1788636236575300"
+content_type = "image/png"
