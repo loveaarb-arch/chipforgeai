@@ -117,3 +117,17 @@ mtime_ms = 1788636397833
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/10602e3c-6d30-40a7-9141-7fa4bfbc2bcf/11b73ffd-7308-490e-ae82-5f516fad7594"
 storage_version_token = "1788636415292695"
 content_type = "image/png"
+
+[[outputs]]
+id = "7inHVjha_gG8zNHNkjkcZ"
+uri = "file://artifacts/chipforge/assets/images/icon-clean-preview.png"
+type = "image"
+title = "Clean Chip Forge Icon Preview"
+description = "Preview only: the blue A and full circle on one seamless pale-blue background, without the rounded-square frame or corner panels."
+logical_id = "136159cf-c696-4f35-bbae-bebfd81121be"
+content_hash = "sha256:ab0c165251283a2a8ea234cc0d125d1af897c06f0b753dcf8369fd881b86bd84"
+size = 889434
+mtime_ms = 1788637174212
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/136159cf-c696-4f35-bbae-bebfd81121be/77a38f66-e54e-47f7-a22d-3f2ba2556f6d"
+storage_version_token = "1788637182314302"
+content_type = "image/png"
