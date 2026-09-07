@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useSubscription } from '@/lib/revenuecat';
 import { useColors } from '@/hooks/useColors';
 
@@ -28,9 +30,11 @@ export function PaywallModal({ visible, onDismiss }: Props) {
   const colors = useColors();
   const { offerings, purchase, restore, isPurchasing, isRestoring } = useSubscription();
   const [error, setError] = useState<string | null>(null);
+  const isStoreUnavailable =
+    Constants.executionEnvironment === 'storeClient' || Platform.OS === 'web';
 
   const pkg = offerings?.current?.availablePackages?.[0];
-  const priceString = pkg?.product?.priceString ?? '—';
+  const priceString = pkg?.product?.priceString ?? (isStoreUnavailable ? 'App Store price' : '—');
   const busy = isPurchasing || isRestoring;
 
   async function handlePurchase() {
@@ -92,8 +96,16 @@ export function PaywallModal({ visible, onDismiss }: Props) {
           {/* Price */}
           <View style={[styles.priceBadge, { backgroundColor: colors.background, borderColor: colors.border }]}>
             <Text style={[styles.price, { color: colors.foreground }]}>{priceString}</Text>
-            <Text style={[styles.period, { color: colors.mutedForeground }]}> / month</Text>
+            {!isStoreUnavailable && (
+              <Text style={[styles.period, { color: colors.mutedForeground }]}> / month</Text>
+            )}
           </View>
+
+          {isStoreUnavailable && (
+            <Text style={[styles.previewNotice, { color: colors.mutedForeground }]}>
+              Subscription checkout is available in the TestFlight or App Store version.
+            </Text>
+          )}
 
           {/* Error */}
           {error && (
@@ -114,13 +126,21 @@ export function PaywallModal({ visible, onDismiss }: Props) {
               <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.ctaText}>
-                {pkg ? `Subscribe for ${priceString}/mo` : 'Loading…'}
+                {pkg
+                  ? `Subscribe for ${priceString}/mo`
+                  : isStoreUnavailable
+                    ? 'Open the TestFlight app to subscribe'
+                    : 'Loading…'}
               </Text>
             )}
           </Pressable>
 
           {/* Restore */}
-          <Pressable onPress={handleRestore} disabled={busy} style={styles.restoreBtn}>
+          <Pressable
+            onPress={handleRestore}
+            disabled={busy || isStoreUnavailable}
+            style={[styles.restoreBtn, isStoreUnavailable && { opacity: 0.5 }]}
+          >
             {isRestoring ? (
               <ActivityIndicator size="small" color={colors.mutedForeground} />
             ) : (
@@ -190,6 +210,7 @@ const styles = StyleSheet.create({
   price: { fontSize: 26, fontWeight: '700' },
   period: { fontSize: 14 },
   error: { fontSize: 13, textAlign: 'center' },
+  previewNotice: { fontSize: 12, lineHeight: 17, textAlign: 'center' },
   cta: {
     borderRadius: 14,
     paddingVertical: 15,
