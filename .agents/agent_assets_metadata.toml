@@ -131,3 +131,17 @@ mtime_ms = 1788637174212
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/136159cf-c696-4f35-bbae-bebfd81121be/77a38f66-e54e-47f7-a22d-3f2ba2556f6d"
 storage_version_token = "1788637182314302"
 content_type = "image/png"
+
+[[outputs]]
+id = "PPv6LVnFDWBzCRxnni_bb"
+uri = "file://attached_assets/chipforge-paywall-1024x1024.png"
+type = "image"
+title = "ChipForge Paywall — 1024 × 1024"
+description = "Square PNG resized with padding so the phone screenshot keeps its original proportions."
+logical_id = "90bc215a-7512-4b70-8037-d15482530456"
+content_hash = "sha256:84ae6f0118fa7c0bf8be52b6cda8dc37fae8f380f32058f5e3448f30f64f8aea"
+size = 98856
+mtime_ms = 1788810919426
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/90bc215a-7512-4b70-8037-d15482530456/1fc29f76-839e-4e54-98d0-ac6fd2b88673"
+storage_version_token = "1788810924545756"
+content_type = "image/png"
