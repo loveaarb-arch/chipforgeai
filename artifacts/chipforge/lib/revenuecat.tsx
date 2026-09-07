@@ -1,8 +1,8 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Platform } from "react-native";
-import Purchases from "react-native-purchases";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Constants from "expo-constants";
+import { useAuth } from "@clerk/expo";
 
 const REVENUECAT_IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
 const REVENUECAT_ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
@@ -19,24 +19,39 @@ function getRevenueCatApiKey(): string {
   throw new Error("RevenueCat API key not found for this platform");
 }
 
-export function initializeRevenueCat() {
+let revenueCatConfigured = false;
+type PurchasesModule = typeof import("react-native-purchases").default;
+let purchasesModule: PurchasesModule | null = null;
+
+function getPurchasesModule(): PurchasesModule {
+  if (purchasesModule) return purchasesModule;
+  const loadedModule = require("react-native-purchases").default as PurchasesModule;
+  purchasesModule = loadedModule;
+  return loadedModule;
+}
+
+function initializeRevenueCat() {
   if (IS_EXPO_GO || Platform.OS === "web") {
     console.log("RevenueCat skipped — Expo Go or web environment");
     return;
   }
+  if (revenueCatConfigured) return;
   const apiKey = getRevenueCatApiKey();
+  const Purchases = getPurchasesModule();
   Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
   Purchases.configure({ apiKey });
+  revenueCatConfigured = true;
   console.log("Configured RevenueCat");
 }
 
-function useSubscriptionContext() {
+function useSubscriptionContext(enabled: boolean, initializationError: string | null) {
   const customerInfoQuery = useQuery({
     queryKey: ["revenuecat", "customer-info"],
     queryFn: async () => {
       if (IS_EXPO_GO || Platform.OS === "web") return null;
-      return Purchases.getCustomerInfo();
+      return getPurchasesModule().getCustomerInfo();
     },
+    enabled,
     staleTime: 60 * 1000,
   });
 
@@ -44,21 +59,22 @@ function useSubscriptionContext() {
     queryKey: ["revenuecat", "offerings"],
     queryFn: async () => {
       if (IS_EXPO_GO || Platform.OS === "web") return null;
-      return Purchases.getOfferings();
+      return getPurchasesModule().getOfferings();
     },
+    enabled,
     staleTime: 300 * 1000,
   });
 
   const purchaseMutation = useMutation({
     mutationFn: async (packageToPurchase: any) => {
-      const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
+      const { customerInfo } = await getPurchasesModule().purchasePackage(packageToPurchase);
       return customerInfo;
     },
     onSuccess: () => customerInfoQuery.refetch(),
   });
 
   const restoreMutation = useMutation({
-    mutationFn: async () => Purchases.restorePurchases(),
+    mutationFn: async () => getPurchasesModule().restorePurchases(),
     onSuccess: () => customerInfoQuery.refetch(),
   });
 
@@ -74,7 +90,10 @@ function useSubscriptionContext() {
     customerInfo: customerInfoQuery.data ?? null,
     offerings: offeringsQuery.data ?? null,
     isSubscribed,
-    isLoading: customerInfoQuery.isLoading || offeringsQuery.isLoading,
+    isLoading:
+      !initializationError &&
+      (!enabled || customerInfoQuery.isLoading || offeringsQuery.isLoading),
+    initializationError,
     purchase: purchaseMutation.mutateAsync,
     restore: restoreMutation.mutateAsync,
     isPurchasing: purchaseMutation.isPending,
@@ -86,7 +105,28 @@ type SubscriptionContextValue = ReturnType<typeof useSubscriptionContext>;
 const Context = createContext<SubscriptionContextValue | null>(null);
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
-  const value = useSubscriptionContext();
+  const { isLoaded, isSignedIn } = useAuth();
+  const skipNativeRevenueCat = IS_EXPO_GO || Platform.OS === "web";
+  const [initialized, setInitialized] = useState(skipNativeRevenueCat);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || initialized || initializationError) return;
+
+    try {
+      initializeRevenueCat();
+      setInitialized(true);
+    } catch (error: any) {
+      const message = error?.message ?? "RevenueCat initialization failed";
+      console.warn("RevenueCat initialization failed:", message);
+      setInitializationError(message);
+    }
+  }, [initializationError, initialized, isLoaded, isSignedIn]);
+
+  const value = useSubscriptionContext(
+    skipNativeRevenueCat || (isLoaded && !!isSignedIn && initialized),
+    initializationError,
+  );
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 
