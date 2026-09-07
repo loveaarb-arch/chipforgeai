@@ -36,6 +36,10 @@ workflows:
             exit 1
           fi
           echo "Required release environment variables are configured"
+      - name: Validate Expo dependencies
+        script: |
+          cd artifacts/chipforge
+          CI=1 pnpm exec expo install --check
       - name: Set iOS build number
         script: |
           set -euo pipefail
