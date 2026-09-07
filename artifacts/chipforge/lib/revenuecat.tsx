@@ -67,6 +67,9 @@ function useSubscriptionContext(enabled: boolean, initializationError: string | 
 
   const purchaseMutation = useMutation({
     mutationFn: async (packageToPurchase: any) => {
+      if (IS_EXPO_GO || Platform.OS === "web") {
+        throw new Error("Purchases are only available in the installed app");
+      }
       const { customerInfo } = await getPurchasesModule().purchasePackage(packageToPurchase);
       return customerInfo;
     },
@@ -74,16 +77,16 @@ function useSubscriptionContext(enabled: boolean, initializationError: string | 
   });
 
   const restoreMutation = useMutation({
-    mutationFn: async () => getPurchasesModule().restorePurchases(),
+    mutationFn: async () => {
+      if (IS_EXPO_GO || Platform.OS === "web") {
+        throw new Error("Restore purchases is only available in the installed app");
+      }
+      return getPurchasesModule().restorePurchases();
+    },
     onSuccess: () => customerInfoQuery.refetch(),
   });
 
-  // In dev / Expo Go / web: treat as subscribed so the app is fully navigable during testing.
-  // Paywall only enforced in production native builds.
   const isSubscribed =
-    __DEV__ ||
-    IS_EXPO_GO ||
-    Platform.OS === "web" ||
     customerInfoQuery.data?.entitlements.active?.[REVENUECAT_ENTITLEMENT_IDENTIFIER] !== undefined;
 
   return {

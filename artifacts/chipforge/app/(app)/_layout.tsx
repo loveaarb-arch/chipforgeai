@@ -34,6 +34,14 @@ export default function AppLayout() {
     );
   }
 
+  if (!isSubscribed) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <PaywallModal visible />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Stack
@@ -48,7 +56,6 @@ export default function AppLayout() {
         <Stack.Screen name="index" options={{ title: 'Chip Forge AI' }} />
         <Stack.Screen name="project/[id]" options={{ title: 'Project' }} />
       </Stack>
-      <PaywallModal visible={!isSubscribed} />
     </View>
   );
 }
