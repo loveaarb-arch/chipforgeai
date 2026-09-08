@@ -145,3 +145,17 @@ mtime_ms = 1788810919426
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/90bc215a-7512-4b70-8037-d15482530456/1fc29f76-839e-4e54-98d0-ac6fd2b88673"
 storage_version_token = "1788810924545756"
 content_type = "image/png"
+
+[[outputs]]
+id = "YUqX2WgdN4_eD2hI8eDfW"
+uri = "file://attached_assets/chipforge-subscription-review-640x920.jpg"
+type = "image"
+title = "ChipForge Subscription Review Screenshot"
+description = "Apple-ready 640 × 920 RGB JPEG with no transparency."
+logical_id = "afbe29b6-ccec-40f7-a4dc-212097c96a6b"
+content_hash = "sha256:27408db298d4604060c0b47957a05362deeb2d19107144a7429e84fc02f4c551"
+size = 50137
+mtime_ms = 1788911074133
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/afbe29b6-ccec-40f7-a4dc-212097c96a6b/2f2e3af2-cb99-4e0b-a984-d78b7c19030c"
+storage_version_token = "1788911078725192"
+content_type = "image/jpeg"
