@@ -159,3 +159,17 @@ mtime_ms = 1788911074133
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/afbe29b6-ccec-40f7-a4dc-212097c96a6b/2f2e3af2-cb99-4e0b-a984-d78b7c19030c"
 storage_version_token = "1788911078725192"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "SmeuXRxvI-6TrPAU4sDef"
+uri = "file://attached_assets/chipforge-review-1024x1024-no-transparency.jpg"
+type = "image"
+title = "ChipForge Review Screenshot — 1024 × 1024"
+description = "Exact 1024 × 1024 RGB JPEG with no transparency, ready to download and upload."
+logical_id = "e841b90f-6ace-47d6-b333-d03be49fdfa5"
+content_hash = "sha256:f250e668a418f4172ec5266d89be07d551fc65fdce9a993a226449a39fe7b141"
+size = 65338
+mtime_ms = 1788911730549
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/e841b90f-6ace-47d6-b333-d03be49fdfa5/0a9e1976-2d68-415f-9153-b673162a8fdf"
+storage_version_token = "1788911735141268"
+content_type = "image/jpeg"
