@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon-clean.png",
     "scheme": "chipforge",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/images/icon-clean.png",
       "resizeMode": "contain",

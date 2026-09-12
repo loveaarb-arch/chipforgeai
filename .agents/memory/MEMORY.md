@@ -6,3 +6,4 @@
 - [Codemagic shell command safety](codemagic-shell-command-safety.md) — pnpm workspace status can corrupt machine-readable output; use app-local binaries and fail-fast scripts.
 - [pnpm workspace lib stale typecheck](pnpm-workspace-lib-stale-typecheck.md) — rebuild `lib/*` via `tsc --build` before trusting a consumer's "missing export" typecheck error.
 - [RevenueCat setup quirks](revenuecat-setup.md) — proxy path needs /v2, SDK passes Request object not plain URL, test_store app can't be created manually, token is project-scoped.
+- [Expo old-architecture isolation](expo-old-architecture-isolation.md) — Reanimated 4 cannot test the old architecture; switch the animation stack coherently.
