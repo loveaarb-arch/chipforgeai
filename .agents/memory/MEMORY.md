@@ -7,3 +7,4 @@
 - [pnpm workspace lib stale typecheck](pnpm-workspace-lib-stale-typecheck.md) — rebuild `lib/*` via `tsc --build` before trusting a consumer's "missing export" typecheck error.
 - [RevenueCat setup quirks](revenuecat-setup.md) — proxy path needs /v2, SDK passes Request object not plain URL, test_store app can't be created manually, token is project-scoped.
 - [Expo old-architecture isolation](expo-old-architecture-isolation.md) — Reanimated 4 cannot test the old architecture; switch the animation stack coherently.
+- [Xcode 26 fmt compatibility](xcode26-fmt-compatibility.md) — RN 0.81’s bundled fmt fails on newer Xcode 26 compilers; pin a known-compatible Xcode.

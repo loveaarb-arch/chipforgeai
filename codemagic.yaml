@@ -8,10 +8,16 @@ workflows:
     environment:
       groups:
         - chipforge_release
+      xcode: 26.3
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.chipforgeai.app
     scripts:
+      - name: Verify Xcode version
+        script: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild -version | grep -q "^Xcode 26\\.3"
       - name: Install pnpm
         script: npm install -g pnpm --force
       - name: Install dependencies
