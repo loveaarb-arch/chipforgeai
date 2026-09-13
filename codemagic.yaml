@@ -16,8 +16,15 @@ workflows:
       - name: Verify Xcode version
         script: |
           set -euo pipefail
-          xcodebuild -version
-          xcodebuild -version | grep -q "^Xcode 26\\.3"
+          XCODE_VERSION="$(xcodebuild -version)"
+          printf '%s\n' "$XCODE_VERSION"
+          case "$XCODE_VERSION" in
+            "Xcode 26.3"$'\n'*) ;;
+            *)
+              echo "Expected Xcode 26.3" >&2
+              exit 1
+              ;;
+          esac
       - name: Install pnpm
         script: npm install -g pnpm --force
       - name: Install dependencies
