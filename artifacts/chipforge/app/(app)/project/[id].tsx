@@ -12,12 +12,6 @@ import { Stack, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
-import { ChatPanel } from '@/components/ChatPanel';
-import { BuildWorkspace } from '@/components/BuildWorkspace';
-import { DesignCanvasView } from '@/components/DesignCanvasView';
-import { ValidationPanel } from '@/components/ValidationPanel';
-import { HdlPanel } from '@/components/HdlPanel';
-import { VersionsPanel } from '@/components/VersionsPanel';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   getGetProjectQueryKey,
@@ -27,6 +21,27 @@ import {
   useUpdateProjectDesign,
   type ChipDesign,
 } from '@workspace/api-client-react';
+
+// Expo Router loads route modules during startup, even on the sign-in screen.
+// Defer project-only panels (and their native dependencies) until opened.
+const ChatPanel = React.lazy(() =>
+  import('@/components/ChatPanel').then(({ ChatPanel }) => ({ default: ChatPanel })),
+);
+const BuildWorkspace = React.lazy(() =>
+  import('@/components/BuildWorkspace').then(({ BuildWorkspace }) => ({ default: BuildWorkspace })),
+);
+const DesignCanvasView = React.lazy(() =>
+  import('@/components/DesignCanvasView').then(({ DesignCanvasView }) => ({ default: DesignCanvasView })),
+);
+const ValidationPanel = React.lazy(() =>
+  import('@/components/ValidationPanel').then(({ ValidationPanel }) => ({ default: ValidationPanel })),
+);
+const HdlPanel = React.lazy(() =>
+  import('@/components/HdlPanel').then(({ HdlPanel }) => ({ default: HdlPanel })),
+);
+const VersionsPanel = React.lazy(() =>
+  import('@/components/VersionsPanel').then(({ VersionsPanel }) => ({ default: VersionsPanel })),
+);
 
 type Tab = 'chat' | 'build' | 'diagram' | 'validate' | 'hdl' | 'versions';
 
@@ -156,7 +171,7 @@ export default function ProjectWorkspaceScreen() {
 
   // Shared tab content — rendered in both mobile and desktop branches
   const tabContent = (
-    <>
+    <React.Suspense fallback={<ActivityIndicator color={colors.primary} />}>
       {tab === 'chat' && <ChatPanel projectId={projectId} locked={project?.locked ?? false} />}
       {tab === 'diagram' && localDesign && (
         <DesignCanvasView
@@ -178,7 +193,7 @@ export default function ProjectWorkspaceScreen() {
       {tab === 'versions' && project && (
         <VersionsPanel projectId={projectId} currentVersionNumber={project.currentVersionNumber} />
       )}
-    </>
+    </React.Suspense>
   );
 
   if (isLoading) {

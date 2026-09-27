@@ -32,6 +32,17 @@ if (process.env.EXPO_PUBLIC_DIAGNOSTIC_BUILD === '1' && !__DEV__) {
     }
   });
 
+  // React Native can also report component and console exceptions directly
+  // through ExceptionsManager, bypassing ErrorUtils entirely.
+  const previousExceptionHandler = global.RN$handleException;
+  global.RN$handleException = (error, isFatal, reportToConsole) => {
+    if (isFatal) {
+      showStartupError(error);
+      return true;
+    }
+    return previousExceptionHandler?.(error, isFatal, reportToConsole) ?? false;
+  };
+
   try {
     require('expo-router/entry');
   } catch (error) {
