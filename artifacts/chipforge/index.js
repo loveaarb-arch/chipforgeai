@@ -1,6 +1,9 @@
 // Keep this entrypoint before expo-router so a diagnostic build can show
 // startup JavaScript errors that otherwise terminate the iOS release app.
 if (process.env.EXPO_PUBLIC_DIAGNOSTIC_BUILD === '1' && !__DEV__) {
+  // React Native's initialization installs its own fatal error handler.
+  // Initialize it first so it cannot replace the diagnostic handler below.
+  require('react-native/Libraries/Core/InitializeCore');
   const { Alert } = require('react-native');
   let showingError = false;
 
