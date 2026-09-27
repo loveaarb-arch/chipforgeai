@@ -8,6 +8,8 @@ workflows:
     environment:
       groups:
         - chipforge_release
+      vars:
+        EXPO_PUBLIC_DIAGNOSTIC_BUILD: "1"
       xcode: 26.3
       ios_signing:
         distribution_type: app_store
