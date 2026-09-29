@@ -42,7 +42,7 @@ export function PaywallModal({ visible, onDismiss }: Props) {
       if (isStoreUnavailable) {
         Alert.alert(
           'TestFlight required',
-          'Apple subscription checkout is available in the TestFlight or App Store version of ChipForge.',
+          'Apple subscription checkout is available in the TestFlight or App Store version of Chip Forge SI.',
         );
       } else {
         setError('Subscription is unavailable right now. Please try again.');

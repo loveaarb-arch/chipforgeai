@@ -33,7 +33,7 @@ const features = [
   {
     icon: <TerminalSquare className="w-6 h-6 text-primary" />,
     title: "Instant Block Diagrams",
-    description: "Describe your chip in plain English. Chip Forge AI instantly parses your intent and generates a precise architectural block diagram."
+    description: "Describe your chip in plain English. Chip Forge SI instantly parses your intent and generates a precise architectural block diagram."
   },
   {
     icon: <Code2 className="w-6 h-6 text-primary" />,
@@ -53,18 +53,18 @@ const features = [
   {
     icon: <FlaskConical className="w-6 h-6 text-primary" />,
     title: "Testbench Generation",
-    description: "Verify your logic instantly. Chip Forge AI automatically generates a comprehensive testbench to validate your core functionality."
+    description: "Verify your logic instantly. Chip Forge SI automatically generates a comprehensive testbench to validate your core functionality."
   },
 ];
 
 const faqs = [
   {
-    question: "What is Chip Forge AI?",
-    answer: "Chip Forge AI is an iOS app that lets you design digital circuits using natural language. You describe what you want to build, and the app generates block diagrams, HDL code, and resource estimates."
+    question: "What is Chip Forge SI?",
+    answer: "Chip Forge SI is an iOS app that lets you design digital circuits using natural language. You describe what you want to build, and the app generates block diagrams, HDL code, and resource estimates."
   },
   {
     question: "Is this foundry-ready output?",
-    answer: "No. Chip Forge AI is a pre-tapeout design handoff tool. It's built for rapid prototyping, learning, and architectural exploration. Getting to silicon requires additional physical design steps, but it handles everything up to that point."
+    answer: "No. Chip Forge SI is a pre-tapeout design handoff tool. It's built for rapid prototyping, learning, and architectural exploration. Getting to silicon requires additional physical design steps, but it handles everything up to that point."
   },
   {
     question: "What is HDL?",
@@ -123,7 +123,7 @@ export default function Home() {
       <nav className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-mono font-bold text-lg tracking-tight">
-            <span>Chip Forge AI</span>
+            <span>Chip Forge SI</span>
           </div>
           <a 
             href="#support" 
@@ -216,7 +216,7 @@ export default function Home() {
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Need technical support?</h2>
           <a 
-            href="mailto:[your support email]"
+            href="mailto:chipforgeai@gmail.com"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-mono font-bold rounded-sm hover:bg-primary/90 transition-colors"
           >
             <Mail className="w-5 h-5" />
@@ -229,10 +229,10 @@ export default function Home() {
       <footer className="border-t border-white/5 py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2 font-mono font-bold text-muted-foreground">
-            <span>Chip Forge AI</span>
+            <span>Chip Forge SI</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Chip Forge AI. All rights reserved.
+            &copy; {new Date().getFullYear()} Chip Forge SI. All rights reserved.
           </p>
         </div>
       </footer>

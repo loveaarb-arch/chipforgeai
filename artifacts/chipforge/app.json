@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Chip Forge AI",
+    "name": "Chip Forge SI",
     "slug": "chipforge",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,8 +18,8 @@
       "bundleIdentifier": "com.chipforgeai.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "Chip Forge AI does not use the camera.",
-        "NSMicrophoneUsageDescription": "Chip Forge AI does not use the microphone.",
+        "NSCameraUsageDescription": "Chip Forge SI does not use the camera.",
+        "NSMicrophoneUsageDescription": "Chip Forge SI does not use the microphone.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {

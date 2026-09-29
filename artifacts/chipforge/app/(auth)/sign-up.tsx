@@ -62,7 +62,7 @@ export default function SignUpScreen() {
                 <View style={[styles.logoDot, { backgroundColor: colors.primary }]} />
               </View>
             </View>
-            <Text style={[styles.appName, { color: colors.foreground }]}>ChipForge</Text>
+            <Text style={[styles.appName, { color: colors.foreground }]}>Chip Forge SI</Text>
             <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
               AI-powered chip design
             </Text>

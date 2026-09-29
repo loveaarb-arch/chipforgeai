@@ -347,7 +347,7 @@ router.post("/projects/:id/chat", async (req, res) => {
         projectId: id,
         role: "assistant",
         content:
-          "Hello! Chip Forge AI lets you design custom silicon chips from your phone. Build block diagrams by adding components and drawing connections, then let AI generate production-ready Verilog HDL, a JSON netlist, and XDC/SDC constraint files — ready to hand off to an EDA tool or fabrication engineer. Export your full design package as a single file. No hardware lab required. How may I assist you today?",
+          "Hello! Chip Forge SI lets you design custom silicon chips from your phone. Build block diagrams by adding components and drawing connections, then let AI generate production-ready Verilog HDL, a JSON netlist, and XDC/SDC constraint files — ready to hand off to an EDA tool or fabrication engineer. Export your full design package as a single file. No hardware lab required. How may I assist you today?",
         blocked: false,
       })
       .returning();

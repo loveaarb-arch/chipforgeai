@@ -53,7 +53,7 @@ export default function AppLayout() {
           contentStyle: { backgroundColor: colors.background },
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'Chip Forge AI' }} />
+        <Stack.Screen name="index" options={{ title: 'Chip Forge SI' }} />
         <Stack.Screen name="project/[id]" options={{ title: 'Project' }} />
       </Stack>
     </View>

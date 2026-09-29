@@ -18,7 +18,7 @@ if (process.env.EXPO_PUBLIC_DIAGNOSTIC_BUILD === '1' && !__DEV__) {
     // The splash screen can cover the diagnostic if the root layout never loads.
     require('expo-splash-screen').hideAsync().catch(() => {});
     Alert.alert(
-      'Chip Forge AI startup error',
+      'Chip Forge SI startup error',
       `${message.slice(0, 1800)}\n\nPlease screenshot this message. Do not submit this diagnostic build to App Review.`,
       [{ text: 'OK' }],
     );

@@ -37,7 +37,7 @@ function MinWidthGuard({ children }: { children: React.ReactNode }) {
       <View style={guard.root}>
         <Text style={guard.icon}>🖥</Text>
         <Text style={guard.title}>Window too narrow</Text>
-        <Text style={guard.body}>Please widen your browser window or open ChipForge on a larger screen.</Text>
+        <Text style={guard.body}>Please widen your browser window or open Chip Forge SI on a larger screen.</Text>
       </View>
     );
   }
