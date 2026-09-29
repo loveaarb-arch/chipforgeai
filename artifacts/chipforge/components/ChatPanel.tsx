@@ -136,7 +136,7 @@ export function ChatPanel({ projectId, locked }: Props) {
           <View style={styles.empty}>
             <Feather name="message-circle" size={30} color={colors.mutedForeground} />
             <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>
-              Describe the chip you want and the AI will draft an architecture.
+              Describe the chip you want and SI will draft an architecture.
               {'\n\n'}Try: "Design a 4-bit synchronous up-counter with an
               active-high reset."
             </Text>

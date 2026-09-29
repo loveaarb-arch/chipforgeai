@@ -15,11 +15,11 @@ import { useSubscription } from '@/lib/revenuecat';
 import { useColors } from '@/hooks/useColors';
 
 const FEATURES = [
-  { icon: 'cpu' as const,         label: 'AI-assisted chip design' },
+  { icon: 'cpu' as const,         label: 'SI-assisted chip design' },
   { icon: 'layers' as const,      label: 'Unlimited PCB projects' },
   { icon: 'download' as const,    label: 'HDL & Gerber export' },
   { icon: 'check-circle' as const, label: 'DRC / ERC validation' },
-  { icon: 'zap' as const,         label: 'Auto-route & AI fixes' },
+  { icon: 'zap' as const,         label: 'Auto-route & SI fixes' },
 ];
 
 interface Props {
@@ -73,7 +73,7 @@ export function PaywallModal({ visible, onDismiss }: Props) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.foreground }]}>
-              Design smarter chips with AI
+              Design smarter chips with SI
             </Text>
           </View>
 

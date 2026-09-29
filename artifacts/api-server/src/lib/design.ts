@@ -104,7 +104,7 @@ export function buildLockedProjectMessage(category: string | null): string {
 
 function extractJson(content: string | null | undefined): unknown {
   if (!content) {
-    throw new Error("AI response had no content");
+    throw new Error("SI response had no content");
   }
   return JSON.parse(content);
 }
@@ -619,7 +619,7 @@ Respond with strict JSON:
   const parsed = extractJson(response.choices[0]?.message?.content);
   const result = normalizeSynthesisResult(parsed);
   if (!result) {
-    throw new Error("Synthesis estimation returned an unusable response from the AI.");
+    throw new Error("Synthesis estimation returned an unusable response from SI.");
   }
   return result;
 }
@@ -735,7 +735,7 @@ export async function validateDesign(
     return {
       issues,
       suggestions: [
-        "Start a conversation with the AI assistant to generate an initial architecture.",
+        "Start a conversation with the SI assistant to generate an initial architecture.",
       ],
     };
   }

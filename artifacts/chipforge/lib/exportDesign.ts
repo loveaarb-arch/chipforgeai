@@ -13,7 +13,7 @@ import type { ChipProject, ValidationResult } from '@workspace/api-client-react'
  */
 const PACKAGE_DISCLAIMER = `This is a PRE-TAPEOUT design handoff, not a foundry-ready submission.
 
-It contains the block-diagram design, AI-drafted HDL (Verilog-style) and a
+It contains the block-diagram design, SI-drafted HDL (Verilog-style) and a
 JSON netlist, and a basic validation report. Before this can go to a foundry,
 a qualified engineer still needs to run, at minimum:
   - Logic synthesis against a target process/PDK
@@ -73,7 +73,7 @@ export function buildExportBundle(
       : 'No suggestions recorded.';
 
   const validationSection = validation
-    ? `${issuesText}\n\n### AI suggestions\n\n${suggestionsText}`
+    ? `${issuesText}\n\n### SI suggestions\n\n${suggestionsText}`
     : 'Validation was not run before export. Run validation in the app before relying on this package.';
 
   let body = `# ${project.name} — Chip Forge SI design export
@@ -124,14 +124,14 @@ ${PACKAGE_DISCLAIMER}`;
     const critiqueText = project.designCritique
       .map((f) => `- [${f.severity.toUpperCase()}] [${f.category}] ${f.message}`)
       .join('\n');
-    body += section('AI design critique', critiqueText);
+    body += section('SI design critique', critiqueText);
   }
 
   if (project.hdlReview && project.hdlReview.length > 0) {
     const reviewText = project.hdlReview
       .map((f) => `- [${f.severity.toUpperCase()}] [${f.category}] ${f.message}`)
       .join('\n');
-    body += section('AI HDL review', reviewText);
+    body += section('SI HDL review', reviewText);
   }
 
   if (project.testbench) {

@@ -42,13 +42,13 @@ const features = [
   },
   {
     icon: <Activity className="w-6 h-6 text-primary" />,
-    title: "AI Design Critique",
+    title: "SI Design Critique",
     description: "Run an automated analysis to catch structural bottlenecks, missing pipeline stages, and common timing hazards before synthesis."
   },
   {
     icon: <Search className="w-6 h-6 text-primary" />,
     title: "Automated Code Review",
-    description: "Get line-by-line AI feedback on your generated HDL, explaining design decisions and highlighting areas for optimization."
+    description: "Get line-by-line SI feedback on your generated HDL, explaining design decisions and highlighting areas for optimization."
   },
   {
     icon: <FlaskConical className="w-6 h-6 text-primary" />,
@@ -75,7 +75,7 @@ const faqs = [
     answer: "You can export your generated HDL, testbenches, and block diagrams directly from the app as plain text files or PDFs."
   },
   {
-    question: "What does the AI synthesis estimate give me?",
+    question: "What does the SI synthesis estimate give me?",
     answer: "The estimate provides a baseline expectation of hardware utilization (Look-Up Tables and Flip-Flops) and potential maximum clock speed, giving you immediate feedback on the feasibility of your design."
   }
 ];
@@ -147,7 +147,7 @@ export default function Home() {
             className="max-w-3xl"
           >
             <motion.h1 variants={fadeUp} className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
-              Design chips with AI.
+              Design chips with SI.
             </motion.h1>
             
             <motion.p variants={fadeUp} className="text-xl md:text-2xl text-muted-foreground leading-relaxed mb-10 max-w-2xl font-mono">

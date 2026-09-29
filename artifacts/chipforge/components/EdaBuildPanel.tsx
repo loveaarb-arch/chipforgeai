@@ -575,7 +575,7 @@ export function EdaBuildPanel({
                 label="Auto Route"
                 onPress={() => onChange(autoRoute(design))}
               />
-              <DesignActionBtn icon="cpu"    label="AI Assistant"      accent onPress={onAiAssist} />
+              <DesignActionBtn icon="cpu"    label="SI Assistant"      accent onPress={onAiAssist} />
               <DesignActionBtn icon="shield" label="Validate Design"   accent onPress={onValidate} />
               <DesignActionBtn icon="layout" label="Switch to Diagram" onPress={onGoToDiagram} />
             </View>

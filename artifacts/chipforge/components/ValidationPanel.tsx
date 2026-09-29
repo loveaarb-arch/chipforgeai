@@ -113,7 +113,7 @@ export function ValidationPanel({ projectId, project }: Props) {
           {result.suggestions.length > 0 ? (
             <>
               <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-                AI suggestions
+                SI suggestions
               </Text>
               {result.suggestions.map((suggestion, index) => (
                 <View key={index} style={[styles.row, { borderColor: colors.border }]}>
@@ -129,7 +129,7 @@ export function ValidationPanel({ projectId, project }: Props) {
       ) : (
         <Text style={[styles.hint, { color: colors.mutedForeground }]}>
           Run validation to check for unconnected pins, bit-width mismatches,
-          missing clock/reset signals, and naming conflicts — plus AI-suggested
+          missing clock/reset signals, and naming conflicts — plus SI-suggested
           improvements.
         </Text>
       )}
@@ -137,7 +137,7 @@ export function ValidationPanel({ projectId, project }: Props) {
       {/* ── AI design critique ─────────────────────────────── */}
       <View style={[styles.section, { borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-          AI design critique
+          SI design critique
         </Text>
         <Text style={[styles.hint, { color: colors.mutedForeground }]}>
           A senior-engineer-level review of your block diagram architecture —

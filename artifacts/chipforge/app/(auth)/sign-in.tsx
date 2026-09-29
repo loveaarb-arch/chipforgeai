@@ -111,7 +111,7 @@ export default function SignInScreen() {
           </View>
           <Text style={[styles.appName, { color: colors.foreground }]}>Chip Forge SI</Text>
           <Text style={[styles.tagline, { color: colors.mutedForeground }]}>
-            AI-powered chip design
+            SI-powered chip design
           </Text>
         </View>
 

@@ -180,7 +180,7 @@ export function HdlPanel({ projectId, project }: Props) {
           Synthesis estimate
         </Text>
         <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-          AI-estimated FPGA resource usage and timing on a Xilinx Artix-7 —
+          SI-estimated FPGA resource usage and timing on a Xilinx Artix-7 —
           LUT count, flip-flops, DSP slices, BRAMs, critical-path depth, and
           estimated max clock frequency. Requires HDL to be generated first.
         </Text>
@@ -243,10 +243,10 @@ export function HdlPanel({ projectId, project }: Props) {
       {/* ── AI HDL Review ─────────────────────────────────── */}
       <View style={[styles.exportSection, { borderColor: colors.border }]}>
         <Text style={[styles.sectionTitle, { color: colors.foreground }]}>
-          AI HDL review
+          SI HDL review
         </Text>
         <Text style={[styles.hint, { color: colors.mutedForeground }]}>
-          A second AI pass over the generated Verilog — catches undriven
+          A second SI pass over the generated Verilog — catches undriven
           signals, combinational loops, implicit latches, missing resets, and
           timing risks. Requires HDL to be generated first.
         </Text>

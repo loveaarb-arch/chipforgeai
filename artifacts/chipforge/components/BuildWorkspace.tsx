@@ -521,7 +521,7 @@ function PartsPanel({
 
         <View style={s.partsSec}><Text style={s.partsSecTxt}>TOOLS</Text></View>
         {([
-          {icon:'cpu'    as const, lbl:'AI Assist', cb: onAiAssist, acc:true},
+          {icon:'cpu'    as const, lbl:'SI Assist', cb: onAiAssist, acc:true},
           {icon:'shield' as const, lbl:'Validate',  cb: onValidate, acc:true},
         ] as {icon: React.ComponentProps<typeof Feather>['name']; lbl:string; cb?:()=>void; acc?:boolean}[])
         .map(btn => (
