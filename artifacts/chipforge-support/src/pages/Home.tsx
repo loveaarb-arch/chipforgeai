@@ -60,7 +60,7 @@ const features = [
 const faqs = [
   {
     question: "What is Chip Forge SI?",
-    answer: "Chip Forge SI is an iOS app that lets you design digital circuits using natural language. You describe what you want to build, and the app generates block diagrams, HDL code, and resource estimates."
+    answer: "Chip Forge SI is a Super Intelligence-powered iOS app that helps you design digital circuits. Describe the chip you want to build in plain language, and it helps turn your idea into block diagrams, Verilog-style HDL, and resource estimates."
   },
   {
     question: "Is this foundry-ready output?",
