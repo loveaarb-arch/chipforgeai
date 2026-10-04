@@ -1,6 +1,7 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [['babel-preset-expo', { unstable_transformImportMeta: true }]],
+    // Resolve from this app, not from a pnpm virtual-store entrypoint.
+    presets: [[require.resolve('babel-preset-expo'), { unstable_transformImportMeta: true }]],
   };
 };

@@ -19,6 +19,30 @@ tags:
   - name: design
     description: AI generation, validation, and simulation
 paths:
+  /account/access:
+    get:
+      operationId: getAccountAccess
+      tags: [account]
+      summary: Check complimentary access for the signed-in account
+      responses:
+        "200":
+          description: Account access verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountAccess"
+        "401":
+          description: Sign-in required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Account access verification unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /healthz:
     get:
       operationId: healthCheck
@@ -683,6 +707,12 @@ paths:
 
 components:
   schemas:
+    AccountAccess:
+      type: object
+      required: [complimentaryAccess]
+      properties:
+        complimentaryAccess:
+          type: boolean
     HealthStatus:
       type: object
       properties:

@@ -25,9 +25,11 @@ const FEATURES = [
 interface Props {
   visible: boolean;
   onDismiss?: () => void;    // undefined = non-dismissible (hard gate)
+  accessCheckError?: boolean;
+  onRetryAccess?: () => void;
 }
 
-export function PaywallModal({ visible, onDismiss }: Props) {
+export function PaywallModal({ visible, onDismiss, accessCheckError, onRetryAccess }: Props) {
   const colors = useColors();
   const { offerings, purchase, isPurchasing } = useSubscription();
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +90,16 @@ export function PaywallModal({ visible, onDismiss }: Props) {
           </View>
 
           {/* Error */}
+          {accessCheckError && (
+            <View style={{ gap: 8 }}>
+              <Text style={[styles.featureText, { color: colors.mutedForeground }]}>
+                Complimentary access could not be verified. You can retry or continue with a subscription.
+              </Text>
+              <Pressable onPress={onRetryAccess} accessibilityRole="button">
+                <Text style={[styles.featureText, { color: colors.primary }]}>Check access again</Text>
+              </Pressable>
+            </View>
+          )}
           {error && (
             <Text style={[styles.error, { color: '#f87171' }]}>{error}</Text>
           )}

@@ -173,3 +173,17 @@ mtime_ms = 1788911730549
 storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/e841b90f-6ace-47d6-b333-d03be49fdfa5/0a9e1976-2d68-415f-9153-b673162a8fdf"
 storage_version_token = "1788911735141268"
 content_type = "image/jpeg"
+
+[[outputs]]
+id = "ulE6eif0aJil8xPB-QX16"
+uri = "file://attached_assets/chipforge-640x920.jpg"
+type = "image"
+title = "Chip Forge — 640 × 920"
+description = "JPEG resized to exactly 640 × 920 pixels in sRGB."
+logical_id = "bc69ba44-a573-407d-a4db-028319a77016"
+content_hash = "sha256:31edf77382fc7ed6908f5aa4c79a90d21622dee5cf8a0a9fab6f1494655b601d"
+size = 38898
+mtime_ms = 1789332811974
+storage_uri = "gcs://replit-rams-assets-kirk/rams/assets/repl:4fede31c-54a5-4b61-8f70-efdcfc3d7241/bc69ba44-a573-407d-a4db-028319a77016/9f517e14-b088-4d0e-bba5-61f3498ebc98"
+storage_version_token = "1789332816574569"
+content_type = "image/jpeg"

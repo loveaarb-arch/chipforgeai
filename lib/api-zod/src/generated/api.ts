@@ -9,6 +9,14 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Check complimentary access for the signed-in account
+ */
+export const GetAccountAccessResponse = zod.object({
+  "complimentaryAccess": zod.boolean()
+})
+
+
+/**
  * Returns server health status
  * @summary Health check
  */

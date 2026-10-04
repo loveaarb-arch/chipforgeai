@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccountAccess,
   ChatMessage,
   ChatMessageInput,
   ChatTurnResult,
@@ -62,6 +63,83 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetAccountAccessUrl = () => {
+
+
+
+
+  return `/api/account/access`
+}
+
+/**
+ * @summary Check complimentary access for the signed-in account
+ */
+export const getAccountAccess = async ( options?: RequestInit): Promise<AccountAccess> => {
+
+  return customFetch<AccountAccess>(getGetAccountAccessUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccountAccessQueryKey = () => {
+    return [
+    `/api/account/access`
+    ] as const;
+    }
+
+
+export const getGetAccountAccessQueryOptions = <TData = Awaited<ReturnType<typeof getAccountAccess>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountAccess>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccountAccessQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountAccess>>> = ({ signal }) => getAccountAccess({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccountAccess>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAccountAccessQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountAccess>>>
+export type GetAccountAccessQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Check complimentary access for the signed-in account
+ */
+
+export function useGetAccountAccess<TData = Awaited<ReturnType<typeof getAccountAccess>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountAccess>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAccountAccessQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getHealthCheckUrl = () => {
 

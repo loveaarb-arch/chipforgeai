@@ -14,10 +14,19 @@ telemetry, so the CAPTCHA gate blocks the flow before an email verification
 code is ever needed. There is no way to solve the CAPTCHA or retrieve a real
 verification code from within the sandboxed testing environment.
 
-**How to apply:** when planning e2e test coverage for an app with Clerk
-email/password sign-up, don't route the happy-path test through a fresh
-sign-up. Either (a) seed/pre-verify a test user directly (e.g. via Clerk's
-backend API) and have the tester sign in with existing credentials instead of
-signing up, or (b) scope automated testing to screens/flows that don't
-require passing through sign-up, and rely on manual/visual verification
-(screenshots) plus code review for the sign-up screen itself.
+**How to apply:** use the programmatic Clerk sign-in described in the testing
+skill with a generated temporary identity instead of fresh UI sign-up.
+If that helper is unavailable, seed/pre-verify a test user directly and test
+existing-user sign-in rather than trying to solve the CAPTCHA.
+
+Programmatic Clerk test sessions can be scoped to the base preview host,
+not the separate Expo subdomain.
+
+**Why:** the testing helper established a session on the base preview host,
+while visiting the Expo subdomain left the app signed out. Visiting the same
+Expo web app on its base preview host successfully reused the test session.
+
+**How to apply:** verify where the mobile artifact is mounted and whether its
+web app is available on the base preview host. If the helper session is
+scoped there, run signed-in browser tests on that host rather than retrying
+authentication on the Expo subdomain.

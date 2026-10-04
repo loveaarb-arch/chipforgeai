@@ -1,4 +1,4 @@
-- [Clerk sign-up blocks Playwright testing](clerk-signup-blocks-playwright-testing.md) — CAPTCHA stops automated e2e tests at sign-up; seed/sign-in with an existing user instead.
+- [Clerk browser testing](clerk-signup-blocks-playwright-testing.md) — Use programmatic sign-in, not CAPTCHA sign-up; keep Expo tests on the host holding the session.
 - [Codemagic iOS target consistency](codemagic-ios-target-consistency.md) — Clerk’s pod targets must match its iOS 17 SDK requirement; app-level target alone is not enough.
 - [Codemagic variable groups](codemagic-variable-groups.md) — UI-added env vars need their group name imported via `environment: groups:` in codemagic.yaml, or the build never sees them.
 - [Key-like env vars always masked](key-like-env-vars-always-masked.md) — agent can never read back a KEY/TOKEN-named var's plaintext, even non-secret; only the user can copy it elsewhere.
@@ -6,5 +6,8 @@
 - [Codemagic shell command safety](codemagic-shell-command-safety.md) — pnpm workspace status can corrupt machine-readable output; use app-local binaries and fail-fast scripts.
 - [pnpm workspace lib stale typecheck](pnpm-workspace-lib-stale-typecheck.md) — rebuild `lib/*` via `tsc --build` before trusting a consumer's "missing export" typecheck error.
 - [RevenueCat setup quirks](revenuecat-setup.md) — proxy path needs /v2, SDK passes Request object not plain URL, test_store app can't be created manually, token is project-scoped.
-- [Expo old-architecture isolation](expo-old-architecture-isolation.md) — Reanimated 4 cannot test the old architecture; switch the animation stack coherently.
+- [Expo architecture compatibility](expo-old-architecture-isolation.md) — Prebuilt previews require the SDK animation stack; old-architecture diagnostics must use a separate compatible native build.
 - [Xcode 26 fmt compatibility](xcode26-fmt-compatibility.md) — RN 0.81’s bundled fmt fails on newer Xcode 26 compilers; pin a known-compatible Xcode.
+- [Public app rename continuity](public-app-rename-continuity.md) — change visible branding without changing existing iOS/Android identifiers needed for app updates.
+- [Owner access scope](owner-access-scope.md) — Creator-only verified-account exemption; shared env settings are tracked and must not contain raw personal identifiers.
+- [GitHub synchronization](github-sync.md) — A stale Git push credential need not mean the connector is broken; preserve remote history and verify source trees.
