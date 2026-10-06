@@ -15,7 +15,8 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.chipforgeai.app
     scripts:
-      - name: Verify Xcode version
+      - &verify_xcode_version
+        name: Verify Xcode version
         script: |
           set -euo pipefail
           XCODE_VERSION="$(xcodebuild -version)"
@@ -27,13 +28,16 @@ workflows:
               exit 1
               ;;
           esac
-      - name: Install pnpm
+      - &install_pnpm
+        name: Install pnpm
         script: npm install -g pnpm --force
-      - name: Install dependencies
+      - &install_dependencies
+        name: Install dependencies
         script: |
           # Use the committed dependency versions that pass the release export.
           pnpm install --frozen-lockfile --ignore-scripts
-      - name: Validate release environment
+      - &validate_release_environment
+        name: Validate release environment
         script: |
           set -euo pipefail
           missing=""
@@ -51,7 +55,8 @@ workflows:
             exit 1
           fi
           echo "Required release environment variables are configured"
-      - name: Validate Expo dependencies
+      - &validate_expo_dependencies
+        name: Validate Expo dependencies
         script: |
           cd artifacts/chipforge
           CI=1 pnpm exec expo install --check
@@ -71,7 +76,8 @@ workflows:
           fs.writeFileSync(path, `${JSON.stringify(config, null, 2)}\n`);
           console.log(`Using iOS build number ${config.expo.ios.buildNumber}`);
           NODE
-      - name: Expo prebuild
+      - &expo_prebuild
+        name: Expo prebuild
         script: |
           cd artifacts/chipforge
           npx expo prebuild --platform ios --clean --no-install
@@ -96,7 +102,8 @@ workflows:
             --bundle-output "$CM_BUILD_DIR/release-js/main.jsbundle" \
             --sourcemap-output "$CM_BUILD_DIR/release-js/main.jsbundle.map" \
             --assets-dest "$CM_BUILD_DIR/release-js/assets"
-      - name: Install CocoaPods dependencies
+      - &install_ios_pods
+        name: Install CocoaPods dependencies
         script: |
           set -euo pipefail
           cd artifacts/chipforge
@@ -246,3 +253,48 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: false
+
+  ios-startup-check:
+    name: Chip Forge SI — Startup Check (no upload)
+    # Free-eligible personal-account machine; never select a paid preview service.
+    # This still consumes build minutes. Check the free balance before running.
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - chipforge_release
+      vars:
+        # Only this simulator check disables the JS alert interception, so the
+        # original fatal error reaches the native console. Release is unchanged.
+        EXPO_PUBLIC_DIAGNOSTIC_BUILD: "0"
+      xcode: 26.3
+    # No automatic triggers, signing, App Store integration, or publishing.
+    scripts:
+      - name: Initialize startup-check artifacts
+        script: |
+          set -euo pipefail
+          mkdir -p "$CM_BUILD_DIR/startup-check"
+          printf '%s\n' \
+            "Simulator-only launch check. No TestFlight or App Store upload." \
+            "Uses free M2 minutes only while your account has free minutes available." \
+            "A surviving process is not proof of a working sign-in flow." \
+            > "$CM_BUILD_DIR/startup-check/README.txt"
+      - *verify_xcode_version
+      - *install_pnpm
+      - *install_dependencies
+      - *validate_release_environment
+      - *validate_expo_dependencies
+      - *expo_prebuild
+      - *install_ios_pods
+      - name: Build and launch on iPhone and iPad simulators
+        script: |
+          set -euo pipefail
+          node scripts/ios-startup-check.mjs
+    artifacts:
+      - $CM_BUILD_DIR/startup-check/**/*.log
+      - $CM_BUILD_DIR/startup-check/**/*.txt
+      - $CM_BUILD_DIR/startup-check/**/*.json
+      - $CM_BUILD_DIR/startup-check/**/*.png
+      - $CM_BUILD_DIR/startup-check/**/*.ips
+      - $CM_BUILD_DIR/startup-check/**/*.crash
+      - $CM_BUILD_DIR/startup-check/*.map

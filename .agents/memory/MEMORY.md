@@ -11,3 +11,4 @@
 - [Public app rename continuity](public-app-rename-continuity.md) — change visible branding without changing existing iOS/Android identifiers needed for app updates.
 - [Owner access scope](owner-access-scope.md) — Creator-only verified-account exemption; shared env settings are tracked and must not contain raw personal identifiers.
 - [GitHub synchronization](github-sync.md) — A stale Git push credential need not mean the connector is broken; preserve remote history and verify source trees.
+- [Native launch evidence](native-launch-evidence.md) — A TurboModule abort names the reporting path, not necessarily the cause; obtain the original exception reason.
