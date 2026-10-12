@@ -29,8 +29,18 @@ export function chooseSimulatorTargets(inventory) {
 
 export function parseLaunchPid(output, bundleId) {
   const escaped = bundleId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = output.match(new RegExp(`${escaped}:\\s*(\\d+)`));
-  return match ? Number(match[1]) : null;
+  const match = output.match(new RegExp(`^${escaped}:[ \\t]*(\\d+)[ \\t\\r]*$`, "m"));
+  const pid = match ? Number(match[1]) : null;
+  return Number.isSafeInteger(pid) && pid > 0 ? pid : null;
+}
+
+export function simulatorLaunchArgs(deviceId, bundleId, stdoutPath, stderrPath) {
+  // --console is a blocking terminal attachment, not a launch/PID response.
+  // Redirect app output separately so simctl's normal response remains readable.
+  return [
+    "simctl", "launch", "--terminate-running-process",
+    `--stdout=${stdoutPath}`, `--stderr=${stderrPath}`, deviceId, bundleId,
+  ];
 }
 
 export function pidIsAlive(pid, signal = process.kill) {

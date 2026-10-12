@@ -57,6 +57,10 @@ test("extracts the launched PID without treating dots as regex wildcards", () =>
   assert.equal(parseLaunchPid("com.chipforgeai.app: 1234\n", "com.chipforgeai.app"), 1234);
   assert.equal(parseLaunchPid("comXchipforgeaiXapp: 1234", "com.chipforgeai.app"), null);
   assert.equal(parseLaunchPid("launch failed", "com.chipforgeai.app"), null);
+  assert.equal(parseLaunchPid("com.chipforgeai.app: 1234\r\n", "com.chipforgeai.app"), 1234);
+  assert.equal(parseLaunchPid("com.chipforgeai.app: 0", "com.chipforgeai.app"), null);
+  assert.equal(parseLaunchPid("com.chipforgeai.app: 999999999999999999", "com.chipforgeai.app"), null);
+  assert.equal(parseLaunchPid("other log: com.chipforgeai.app: 1234", "com.chipforgeai.app"), null);
 });
 
 test("checks process existence without terminating it", () => {
@@ -67,11 +71,11 @@ test("checks process existence without terminating it", () => {
   assert.throws(() => pidIsAlive(123, () => { throw new Error("unexpected"); }), /unexpected/);
 });
 
-test("command runner captures errors, timeouts and live console output", async () => {
+test("command runner captures errors, timeouts and live console output", async (t) => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "chipforge-startup-test-"));
   const previous = process.env.CM_BUILD_DIR;
   process.env.CM_BUILD_DIR = temporary;
-  const { command, attach, stopAttachment } = await import("./ios-startup-check.mjs");
+  const { command, attach, stopAttachment, launchSimulatorApp } = await import("./ios-startup-check.mjs");
   const logs = path.join(temporary, "startup-check");
   fs.mkdirSync(logs);
   try {
@@ -83,6 +87,40 @@ test("command runner captures errors, timeouts and live console output", async (
     assert.equal(failed.code, 7);
     await assert.rejects(command(process.execPath, ["-e", "setInterval(()=>{},1000)"], { timeout: 50 }), /timed out/);
     await assert.rejects(command(path.join(temporary, "missing-command"), []), /ENOENT/);
+
+    const deviceFolder = path.join(logs, "iphone");
+    fs.mkdirSync(deviceFolder);
+    const device = "00000000-0000-4000-8000-000000000001";
+    const bundle = "com.chipforgeai.app";
+    await t.test("launch response is separate from app stdout/stderr and has no console attachment", async () => {
+      const pid = await launchSimulatorApp(device, bundle, deviceFolder, async (executable, args, options) => {
+        assert.equal(executable, "xcrun");
+        assert.deepEqual(args.slice(0, 3), ["simctl", "launch", "--terminate-running-process"]);
+        assert.deepEqual(args.slice(-2), [device, bundle]);
+        assert.ok(!args.includes("--console"));
+        const script = `
+          const fs = require("node:fs"), args = process.argv.slice(1);
+          fs.appendFileSync(args.find(a => a.startsWith("--stdout=")).slice(9), "fixture app stdout\\n");
+          fs.appendFileSync(args.find(a => a.startsWith("--stderr=")).slice(9), "fixture app stderr\\n");
+          console.log(args.at(-1) + ": " + process.pid);
+        `;
+        return command(process.execPath, ["-e", script, ...args], options);
+      });
+      assert.ok(Number.isSafeInteger(pid) && pid > 0);
+      assert.equal(fs.readFileSync(path.join(deviceFolder, "app-stdout.log"), "utf8"), "fixture app stdout\n");
+      assert.equal(fs.readFileSync(path.join(deviceFolder, "app-stderr.log"), "utf8"), "fixture app stderr\n");
+      assert.match(fs.readFileSync(path.join(deviceFolder, "launch-console.log"), "utf8"), /com\.chipforgeai\.app: \d+/);
+    });
+    await t.test("empty launch metadata fails explicitly without claiming an app crash", async () => {
+      await assert.rejects(launchSimulatorApp(device, bundle, deviceFolder,
+        async () => ({ stdout: "", stderr: "" })), /not proof of an app crash/);
+    });
+    await t.test("failed launch command retains the actual error output", async () => {
+      await assert.rejects(launchSimulatorApp(device, bundle, deviceFolder,
+        async (_executable, _args, options) => command(process.execPath,
+          ["-e", "console.error('fixture launch failure'); process.exit(9)"], options)), /exited with 9/);
+      assert.match(fs.readFileSync(path.join(deviceFolder, "launch-console.log"), "utf8"), /fixture launch failure/);
+    });
 
     const consolePath = path.join(logs, "console.log");
     const attached = attach(process.execPath, ["-e", "console.log('com.chipforgeai.app: '+process.pid);setInterval(()=>{},1000)"], consolePath);

@@ -30,11 +30,21 @@ Start this workflow on `main`, not the normal iOS Native Build workflow.
 Afterward inspect the build's artifacts:
 
 - `summary.json` and the per-device `result.json`: process-level results.
-- `launch-console.log`: app stdout/stderr, including exception messages.
+- `launch-console.log`: the non-interactive launch command and its PID/error response.
+- `app-stdout.log` and `app-stderr.log`: the app's output, including exception messages.
 - `native-console.log`: the device's native launch logs.
 - `screen-5s.png`, `screen-30s.png`, or `screen-at-failure.png`: visible state.
 - `crash-reports/*.ips` or `*.crash`, when Apple's crash reporter produced them.
 - `simulator-build.log` or `failure.txt` if setup/build failed.
+- `simctl-launch-help.log`: output-redirection support is checked before compilation.
+
+The checker does not use the blocking `simctl launch --console` command to obtain
+a PID. It redirects app stdout/stderr to files and reads the separate launch
+response. A missing PID is a launch-verification failure, not evidence that the
+app crashed. A verified process that disappears is reported as `process_exited`.
+The result also records which phase failed.
+
+Artifact patterns exclude compiler intermediates and downloaded SDK source files.
 
 Both devices are checked even when one launch fails. A surviving process does
 **not** establish that sign-in works or that the TestFlight crash is fixed.

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { chooseSimulatorTargets, parseLaunchPid, pidIsAlive } from "./lib/ios-startup-utils.mjs";
+import { chooseSimulatorTargets, parseLaunchPid, pidIsAlive, simulatorLaunchArgs } from "./lib/ios-startup-utils.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const output = path.join(process.env.CM_BUILD_DIR || root, "startup-check");
@@ -111,11 +111,24 @@ function collectCrashReports(deviceId, executable, started, destination) {
   }
 }
 
+export async function launchSimulatorApp(deviceId, bundleId, folder, run = command) {
+  const stdoutPath = path.join(folder, "app-stdout.log");
+  const stderrPath = path.join(folder, "app-stderr.log");
+  for (const file of [stdoutPath, stderrPath]) fs.closeSync(fs.openSync(file, "a"));
+  const launched = await run("xcrun", simulatorLaunchArgs(deviceId, bundleId, stdoutPath, stderrPath), {
+    capture: true, timeout: 60_000,
+    log: path.relative(output, path.join(folder, "launch-console.log")),
+  });
+  const pid = parseLaunchPid(`${launched.stdout}\n${launched.stderr}`, bundleId);
+  if (!pid) throw new Error("Launch command did not report a valid app PID; see launch-console.log. This is not proof of an app crash.");
+  return pid;
+}
+
 async function checkDevice(target, appInfo) {
   const folder = path.join(output, target.family.toLowerCase());
   fs.mkdirSync(folder, { recursive: true });
-  const result = { device: target.family, runtime: target.runtimeName, status: "failed" };
-  let udid, logger, launcher;
+  const result = { device: target.family, runtime: target.runtimeName, status: "failed", phase: "simulator_setup" };
+  let udid, logger;
   const started = Date.now();
   try {
     console.log(`Checking ${target.family} on ${target.runtimeName}...`);
@@ -129,18 +142,16 @@ async function checkDevice(target, appInfo) {
     logger = attach("xcrun", ["simctl", "spawn", udid, "log", "stream", "--level", "debug", "--style", "compact", "--predicate", predicate], path.join(folder, "native-console.log"));
     await pause(1000);
     if (logger.closed) throw new Error("Native console capture failed; see native-console.log.");
-    launcher = attach("xcrun", ["simctl", "launch", "--terminate-running-process", "--console", udid, appInfo.bundleId], path.join(folder, "launch-console.log"));
-    const deadline = Date.now() + 30_000;
-    while (!parseLaunchPid(launcher.text, appInfo.bundleId)) {
-      if (launcher.closed) throw new Error(`App launch exited before returning a PID (${launcher.code}); see launch-console.log.`);
-      if (Date.now() > deadline) throw new Error("Could not verify the launched app PID; see launch-console.log.");
-      await pause(200);
-    }
-    const pid = parseLaunchPid(launcher.text, appInfo.bundleId);
+    result.phase = "launch";
+    const pid = await launchSimulatorApp(udid, appInfo.bundleId, folder);
     result.pid = pid;
+    result.phase = "observation";
     for (let second = 1; second <= 30; second++) {
       await pause(1000);
-      if (launcher.closed || !pidIsAlive(pid)) throw new Error(`App exited within ${second} seconds of launch; see launch-console.log and native-console.log.`);
+      if (!pidIsAlive(pid)) {
+        result.status = "process_exited";
+        throw new Error(`App exited within ${second} seconds of launch; see app-stderr.log, app-stdout.log and native-console.log.`);
+      }
       if (logger.closed) throw new Error("Native console capture stopped unexpectedly.");
       if (second === 5 || second === 30) {
         await command("xcrun", ["simctl", "io", udid, "screenshot", path.join(folder, `screen-${second}s.png`)]);
@@ -157,7 +168,6 @@ async function checkDevice(target, appInfo) {
     if (udid) {
       await pause(3000); // Give Apple's crash reporter time to finish writing.
       const cleanups = [
-        () => stopAttachment(launcher),
         () => stopAttachment(logger),
         () => collectCrashReports(udid, appInfo.executable, started, path.join(folder, "crash-reports")),
         () => command("xcrun", ["simctl", "shutdown", udid], { allowFailure: true }),
@@ -180,6 +190,12 @@ async function main() {
   fs.mkdirSync(output, { recursive: true });
   if (process.platform !== "darwin") throw new Error("This check must run on Codemagic's Mac mini M2, not the Linux workspace.");
   // Verify existing runtimes BEFORE an expensive simulator build. No downloads.
+  const help = await command("xcrun", ["simctl", "help", "launch"], {
+    capture: true, allowFailure: true, log: "simctl-launch-help.log",
+  });
+  if (!/--stdout/.test(help.stdout + help.stderr) || !/--stderr/.test(help.stdout + help.stderr)) {
+    throw new Error("Could not verify simctl launch output-redirection support; see simctl-launch-help.log.");
+  }
   const inventory = await command("xcrun", ["simctl", "list", "--json"], { capture: true });
   const targets = chooseSimulatorTargets(JSON.parse(inventory.stdout));
   const appInfo = await buildApp();

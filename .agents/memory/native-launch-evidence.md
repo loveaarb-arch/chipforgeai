@@ -20,3 +20,15 @@ Disable JavaScript error interception only in the isolated simulator check, not 
 **Why:** Diagnostic alerts can leave a failed app process alive and make a process-only smoke test appear successful. Simulator binaries also differ from installed device binaries.
 
 **How to apply:** Preserve console error output and screenshots; verify the installed app separately before any readiness claim.
+
+Separate simulator launch metadata from application console output. A blocking
+console attachment is not a reliable source for the launch command's PID response.
+
+**Why:** A cloud check produced empty console-attachment logs and PID timeouts on
+both devices; screenshots showed the simulator home screens. This did not provide
+an original exception or establish that the app had crashed.
+
+**How to apply:** Use a non-interactive launch with separate stdout/stderr files,
+record the launch response, and distinguish launch-verification failures from a
+verified process exiting. Check the installed command's supported flags before
+expensive compilation; never claim a native fix from Linux-only tests.

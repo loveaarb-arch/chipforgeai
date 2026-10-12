@@ -291,10 +291,18 @@ workflows:
           set -euo pipefail
           node scripts/ios-startup-check.mjs
     artifacts:
-      - $CM_BUILD_DIR/startup-check/**/*.log
-      - $CM_BUILD_DIR/startup-check/**/*.txt
-      - $CM_BUILD_DIR/startup-check/**/*.json
-      - $CM_BUILD_DIR/startup-check/**/*.png
-      - $CM_BUILD_DIR/startup-check/**/*.ips
-      - $CM_BUILD_DIR/startup-check/**/*.crash
+      # Do not collect JSON/log files from derived-data or downloaded SDK sources.
+      - $CM_BUILD_DIR/startup-check/*.log
+      - $CM_BUILD_DIR/startup-check/*.txt
+      - $CM_BUILD_DIR/startup-check/*.json
       - $CM_BUILD_DIR/startup-check/*.map
+      - $CM_BUILD_DIR/startup-check/iphone/*.log
+      - $CM_BUILD_DIR/startup-check/iphone/*.json
+      - $CM_BUILD_DIR/startup-check/iphone/*.png
+      - $CM_BUILD_DIR/startup-check/iphone/crash-reports/*.ips
+      - $CM_BUILD_DIR/startup-check/iphone/crash-reports/*.crash
+      - $CM_BUILD_DIR/startup-check/ipad/*.log
+      - $CM_BUILD_DIR/startup-check/ipad/*.json
+      - $CM_BUILD_DIR/startup-check/ipad/*.png
+      - $CM_BUILD_DIR/startup-check/ipad/crash-reports/*.ips
+      - $CM_BUILD_DIR/startup-check/ipad/crash-reports/*.crash
