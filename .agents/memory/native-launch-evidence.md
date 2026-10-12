@@ -32,3 +32,13 @@ an original exception or establish that the app had crashed.
 record the launch response, and distinguish launch-verification failures from a
 verified process exiting. Check the installed command's supported flags before
 expensive compilation; never claim a native fix from Linux-only tests.
+
+Validate authentication configuration with the installed SDK before expensive
+native compilation; a nonempty environment variable is not necessarily valid.
+
+**Why:** Invalid authentication configuration can throw during JavaScript startup
+and terminate the app through React Native's native exception-reporting path.
+
+**How to apply:** Fail CI early without logging input values. Correct the external
+CI configuration rather than hiding the error, swapping native libraries, or
+silently substituting a key from another authentication environment.

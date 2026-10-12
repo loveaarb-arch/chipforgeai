@@ -40,21 +40,7 @@ workflows:
         name: Validate release environment
         script: |
           set -euo pipefail
-          missing=""
-          for variable in \
-            EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY \
-            EXPO_PUBLIC_REVENUECAT_IOS_API_KEY \
-            EXPO_PUBLIC_DOMAIN; do
-            if [ -z "${!variable:-}" ]; then
-              missing="${missing} ${variable}"
-            fi
-          done
-          if [ -n "$missing" ]; then
-            echo "Missing required Codemagic release environment variables:$missing"
-            echo "Add them in Codemagic Environment variables, then start a new build."
-            exit 1
-          fi
-          echo "Required release environment variables are configured"
+          node scripts/validate-release-environment.mjs
       - &validate_expo_dependencies
         name: Validate Expo dependencies
         script: |

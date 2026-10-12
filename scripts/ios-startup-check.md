@@ -55,3 +55,23 @@ before submitting to Apple.
 Local checks: `node --test scripts/ios-startup-check.test.mjs`.
 The native check itself requires macOS/Xcode and must not be run in Replit's
 Linux workspace.
+
+## Clerk startup configuration
+
+Both iOS workflows validate the required environment before prebuild/compilation.
+The installed Clerk SDK must accept `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`; merely
+having a nonempty value is not enough. Validation never logs the value or replaces
+it with a different environment's key.
+
+Correct this variable in Codemagic's imported `chipforge_release` group, using the
+publishable key for the intended Clerk instance and environment. Do not use a
+secret key, masked display text, shell-variable name, extra quotes or whitespace.
+Keep the app and API on matching Clerk environments; do not rotate Replit-managed
+keys, change tenants, or paste any value into chat. A valid format alone does not
+prove the key belongs to the right instance.
+
+Run the offline guard tests with:
+`node --test scripts/validate-release-environment.test.mjs`.
+After correcting Codemagic configuration, manually verify Startup Check, review
+the screenshots, and separately verify the installed device build before Apple
+resubmission. Do not infer a device fix from a simulator-only result.
